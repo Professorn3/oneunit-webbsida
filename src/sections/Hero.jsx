@@ -56,14 +56,14 @@ export default function Hero() {
         </div>
 
         <div className="hero__text">
-          <p className="hero__eyebrow">Motorcykelgänget</p>
+          <p className="hero__eyebrow">⚡ OFFICIELL HEMSIDA FÖR ONEUNIT MC ⚡</p>
           <h1 className="hero__title">
             <GlitchText text="ONE" tag="span" className="hero__title-line" />
             <br />
             <GlitchText text="UNIT" tag="span" className="hero__title-line hero__title-line--outline" />
           </h1>
           <p className="hero__subtitle">
-            Gemenskap&nbsp;·&nbsp;Respekt&nbsp;·&nbsp;Lojalitet
+            Gemenskap&nbsp;·&nbsp;Respekt&nbsp;·&nbsp;Lojalitet&nbsp;·&nbsp;Broderskap
           </p>
           <div className="hero__actions">
             <Link to="/apply" id="hero-apply-btn" className="btn btn-primary">
