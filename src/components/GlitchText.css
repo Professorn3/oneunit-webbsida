@@ -1,0 +1,62 @@
+/* GlitchText */
+.glitch-text {
+  position: relative;
+  font-family: var(--font-display);
+  color: var(--color-text);
+  display: inline-block;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.glitch-text::before {
+  color: var(--color-accent-cyan);
+  animation: none;
+  mix-blend-mode: screen;
+}
+
+.glitch-text::after {
+  color: var(--color-accent-magenta);
+  animation: none;
+  mix-blend-mode: screen;
+}
+
+/* Hover glitch */
+.glitch-text:hover::before,
+.glitch-text:hover::after {
+  animation-duration: 0.4s;
+  animation-iteration-count: 3;
+  animation-timing-function: steps(1);
+}
+
+.glitch-text:hover::before {
+  animation-name: glitch-1;
+}
+
+.glitch-text:hover::after {
+  animation-name: glitch-2;
+  animation-delay: 0.05s;
+}
+
+/* Continuous glitch */
+.glitch-text--continuous::before {
+  animation: glitch-1 3s steps(1) infinite;
+}
+
+.glitch-text--continuous::after {
+  animation: glitch-2 3s steps(1) 0.1s infinite;
+}
+
+/* Glitch keyframes defined globally in index.css */

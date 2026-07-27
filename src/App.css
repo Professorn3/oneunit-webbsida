@@ -1,0 +1,9 @@
+/* App.css – page-level layout */
+.page {
+  min-height: 100vh;
+  padding-top: 80px;
+}
+
+.page-inner {
+  min-height: calc(100vh - 80px);
+}
