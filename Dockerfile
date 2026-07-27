@@ -20,6 +20,7 @@ FROM nginx:alpine as production-stage
 
 # Kopiera in den färdiga koden direkt från byggsteg 1
 COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exponera port 80 ut mot din Tower / Nginx Reverse Proxy
 EXPOSE 80
