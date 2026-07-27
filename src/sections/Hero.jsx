@@ -46,15 +46,7 @@ export default function Hero() {
 
       {/* Content */}
       <div className="container hero__content">
-        <div className="hero__logo-wrapper">
-          <img
-            src="/images/logo.png"
-            alt="OneUnit MC"
-            className="hero__logo-img"
-            onError={(e) => { e.target.style.display = 'none' }}
-          />
-        </div>
-
+        {/* Logo tillfälligt borttaget enligt önskemål */}
         <div className="hero__text">
           <p className="hero__eyebrow">⚡ OFFICIELL HEMSIDA FÖR ONEUNIT MC ⚡</p>
           <h1 className="hero__title">
