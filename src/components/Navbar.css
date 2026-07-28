@@ -29,6 +29,13 @@
   -webkit-backdrop-filter: blur(16px);
 }
 
+.navbar--menu-open .navbar__backdrop {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: none !important;
+}
+
 .navbar__inner {
   position: relative;
   z-index: 1;
@@ -64,10 +71,14 @@
 }
 
 /* Nav */
-.navbar__nav {
+.navbar__nav-desktop {
   display: flex;
   align-items: center;
   gap: 2rem;
+}
+
+.navbar__nav-mobile {
+  display: none;
 }
 
 .navbar__list {
@@ -150,28 +161,33 @@
 @media (max-width: 900px) {
   .navbar__burger { display: flex; }
 
-  .navbar__nav {
+  .navbar__nav-desktop {
+    display: none;
+  }
+
+  .navbar__nav-mobile {
+    display: flex;
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
     height: 100dvh;
-    background: rgba(4, 6, 9, 0.98);
+    background: rgba(5, 6, 8, 0.98);
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    padding: 6.5rem 2rem 3rem;
+    padding: 7rem 2rem 3rem;
     gap: 2rem;
     opacity: 0;
     pointer-events: none;
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease;
-    z-index: 1000;
+    z-index: 999;
     overflow-y: auto;
   }
 
-  .navbar__nav--open {
+  .navbar__nav-mobile--open {
     opacity: 1;
     pointer-events: all;
     transform: translateY(0);
