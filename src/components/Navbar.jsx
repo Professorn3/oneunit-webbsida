@@ -81,18 +81,8 @@ export default function Navbar() {
             className="btn btn-outline navbar__cta" 
             onClick={() => setMenuOpen(false)}
             title="Gå till kontrollpaneler"
-            style={{
-              borderColor: '#00ff88',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              padding: '0.6rem 1.4rem',
-              boxShadow: '0 0 15px rgba(0, 255, 136, 0.2)'
-            }}
           >
-            <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00ff88', boxShadow: '0 0 10px #00ff88' }} />
-            <span>{displayName}</span>
+            {displayName}
           </Link>
         )}
       </div>
