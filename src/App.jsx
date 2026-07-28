@@ -17,6 +17,7 @@ import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
 import './App.css'
+import ScrollToTop from './components/ScrollToTop'
 
 function AppContent() {
   const location = useLocation()
@@ -31,6 +32,7 @@ function AppContent() {
 
   return (
     <>
+      <ScrollToTop />
       <Navbar />
       <main>
         <AnimatePresence mode="wait">

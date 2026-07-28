@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { NavLink, Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
@@ -15,11 +15,25 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [hidden, setHidden] = useState(false)
   const { currentUser, userData, isMember } = useAuth()
+  const lastScrollY = useRef(0)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50)
-    window.addEventListener('scroll', onScroll)
+    const onScroll = () => {
+      const currentScrollY = window.scrollY
+      setScrolled(currentScrollY > 50)
+      
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setHidden(true)
+      } else if (currentScrollY < lastScrollY.current) {
+        setHidden(false)
+      }
+      
+      lastScrollY.current = currentScrollY
+    }
+    
+    window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
@@ -85,7 +99,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header id="navbar" className={`navbar ${scrolled ? 'navbar--scrolled' : ''} ${menuOpen ? 'navbar--menu-open' : ''}`}>
+      <header id="navbar" className={`navbar ${scrolled ? 'navbar--scrolled' : ''} ${menuOpen ? 'navbar--menu-open' : ''} ${hidden && !menuOpen ? 'navbar--hidden' : ''}`}>
         <div className="navbar__backdrop" aria-hidden="true" />
         <div className="container navbar__inner">
           <Link to="/" className="navbar__logo" onClick={() => setMenuOpen(false)}>
