@@ -167,9 +167,7 @@ export default function Chat() {
         onClick={() => setIsOpen(true)}
         aria-label="Öppna Klubbchatt"
       >
-        <span className="chat-toggle-icon">💬</span>
-        <span>KLUBBCHATT</span>
-        <span className="chat-online-pulse" title="Live och ansluten" />
+        <span style={{ fontSize: '0.9rem', letterSpacing: '2px', fontWeight: 'bold' }}>CHATT</span>
       </button>
 
       {/* Backdrop */}

@@ -12,10 +12,10 @@
   --color-border: rgba(255, 255, 255, 0.08);
   --color-text: #ffffff;
   --color-muted: #888888;
-  --color-accent-cyan: #00f5ff;
-  --color-accent-magenta: #ff00e5;
-  --color-accent-cyan-dim: rgba(0, 245, 255, 0.15);
-  --color-accent-magenta-dim: rgba(255, 0, 229, 0.15);
+  --color-accent-cyan: #ffffff;
+  --color-accent-magenta: #999999;
+  --color-accent-cyan-dim: rgba(255, 255, 255, 0.15);
+  --color-accent-magenta-dim: rgba(153, 153, 153, 0.15);
 
   /* Typography */
   --font-display: 'Bebas Neue', sans-serif;
