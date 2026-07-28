@@ -4,7 +4,6 @@ import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import Chat from '../components/Chat';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -162,20 +161,19 @@ export default function Dashboard() {
 
         {isMember && (
           <div className="dashboard-grid">
-            <div className="dashboard-card member-card">
+            <div className="dashboard-card member-card" style={{ maxWidth: '450px' }}>
               <h3>Ditt Medlemskort</h3>
               <div className="card-inner">
                 <img src="/images/logo.png" alt="Logo" width="60" />
                 <div>
                   <h4>{currentUser.email.split('@')[0]}</h4>
-                  <p>Status: <strong>Aktiv Medlem</strong></p>
+                  <p>Status: <strong style={{ color: '#00ff88' }}>Aktiv Medlem ⚡</strong></p>
                   <p>Roll: {userData.role}</p>
+                  <p style={{ fontSize: '0.85rem', color: '#aaaaaa', marginTop: '0.5rem' }}>
+                    💡 <em>Klicka på knappen "💬 KLUBBCHATT" nere till höger på sidan för att fälla ut klubbens realtidschatt oavsett var du befinner dig!</em>
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div className="dashboard-card chat-section">
-              <Chat />
             </div>
           </div>
         )}

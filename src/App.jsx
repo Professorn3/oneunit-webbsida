@@ -12,6 +12,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ComingSoon from './pages/ComingSoon'
 import RegisterInvite from './pages/RegisterInvite'
+import Chat from './components/Chat'
 import './App.css'
 
 function AppContent() {
@@ -47,6 +48,7 @@ function AppContent() {
           </Routes>
         </AnimatePresence>
       </main>
+      <Chat />
       <Footer />
     </>
   )
