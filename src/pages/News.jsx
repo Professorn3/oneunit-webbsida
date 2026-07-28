@@ -73,6 +73,7 @@ export default function News() {
   const [dbNews, setDbNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [articleToDelete, setArticleToDelete] = useState(null);
+  const [showAdminStudio, setShowAdminStudio] = useState(false);
 
   // Admin form state
   const [title, setTitle] = useState('');
@@ -178,13 +179,41 @@ export default function News() {
       </div>
 
       <div className="container">
-        {/* --- ADMIN NYHETS-STUDIO --- */}
+        {/* --- ADMIN NYHETS-STUDIO (Dolt bakom +-knapp) --- */}
         {isAdmin && (
-          <section className="news-admin-studio">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00f5ff', margin: 0 }}>👑 ADMIN NYHETS-STUDIO: SKRIV NYTT INLÄGG</h2>
-              <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
+          <div style={{ marginBottom: '3.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: showAdminStudio ? '1.5rem' : '0' }}>
+              <button
+                onClick={() => setShowAdminStudio(!showAdminStudio)}
+                className="btn btn-outline"
+                title="Klicka för att fälla ut / in nyhetsstudion"
+                style={{
+                  borderColor: '#00f5ff',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.7rem 1.6rem',
+                  borderRadius: '50px',
+                  fontWeight: '800',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 0 15px rgba(0, 245, 255, 0.2)',
+                  background: showAdminStudio ? '#00f5ff22' : 'transparent',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                <span style={{ fontSize: '1.4rem', lineHeight: '1', color: '#00f5ff', fontWeight: '900' }}>{showAdminStudio ? '✕' : '+'}</span>
+                <span>{showAdminStudio ? 'Stäng Nyhetsstudio' : 'Skapa Nyhet / Reportage'}</span>
+              </button>
             </div>
+
+            {showAdminStudio && (
+              <section className="news-admin-studio">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00f5ff', margin: 0 }}>👑 ADMIN NYHETS-STUDIO: SKRIV NYTT INLÄGG</h2>
+                  <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
+                </div>
 
             <form onSubmit={handleCreateNews}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', marginBottom: '1.2rem' }}>
@@ -271,6 +300,8 @@ export default function News() {
               </button>
             </form>
           </section>
+            )}
+          </div>
         )}
 
         {/* Featured */}

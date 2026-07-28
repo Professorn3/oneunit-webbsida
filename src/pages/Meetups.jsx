@@ -42,6 +42,7 @@ export default function Meetups() {
   const [meetups, setMeetups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [meetupToDelete, setMeetupToDelete] = useState(null);
+  const [showAdminStudio, setShowAdminStudio] = useState(false);
 
   // Admin Form State
   const [title, setTitle] = useState('');
@@ -149,6 +150,27 @@ export default function Meetups() {
   const displayMeetups = meetups.length > 0 ? meetups : DEFAULT_MEETUPS;
   const myDisplayName = currentUser ? currentUser.email.split('@')[0] : '';
 
+  if (!isMember) {
+    return (
+      <div className="meetups-page" style={{ paddingTop: '150px', paddingBottom: '150px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="container" style={{ maxWidth: '650px', textAlign: 'center' }}>
+          <div style={{ background: 'linear-gradient(145deg, #161b24 0%, #0c0e14 100%)', padding: '3.5rem 2.5rem', borderRadius: '24px', border: '1px solid #00f5ff44', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}>
+            <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🔒</div>
+            <h2 style={{ color: '#ffffff', fontSize: '2rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.5px' }}>EXKLUSIV MEDLEMSZON</h2>
+            <p style={{ color: '#a0a6b5', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+              Våra MC-träffar, körvägar och samlingsplatser är endast synliga för godkända medlemmar i brödraskapet. 
+              Gäster och besökare saknar behörighet att se schema och mötesinformation.
+            </p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <a href="/apply" className="btn btn-primary" style={{ padding: '0.8rem 2rem' }}>Ansök om Medlemskap</a>
+              <a href="/login" className="btn btn-outline" style={{ padding: '0.8rem 2rem' }}>Logga In</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <motion.div 
       className="meetups-page"
@@ -166,11 +188,39 @@ export default function Meetups() {
           </p>
         </header>
 
-        {/* Admin Verktyg: Skapa Nytt Meetup */}
+        {/* Admin Verktyg: Skapa Nytt Meetup (Dolt bakom +-knapp) */}
         {isAdmin && (
-          <div className="admin-meetup-creator">
-            <h3>👑 Admin Studio: Skapa Nytt Meetup / Ride</h3>
-            <form onSubmit={handleCreateMeetup} className="meetup-form-grid">
+          <div style={{ marginBottom: '3.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: showAdminStudio ? '1.5rem' : '0' }}>
+              <button
+                onClick={() => setShowAdminStudio(!showAdminStudio)}
+                className="btn btn-outline"
+                title="Klicka för att fälla ut / in skaparmodulen"
+                style={{
+                  borderColor: '#00f5ff',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.7rem 1.6rem',
+                  borderRadius: '50px',
+                  fontWeight: '800',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 0 15px rgba(0, 245, 255, 0.2)',
+                  background: showAdminStudio ? '#00f5ff22' : 'transparent',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                <span style={{ fontSize: '1.4rem', lineHeight: '1', color: '#00f5ff', fontWeight: '900' }}>{showAdminStudio ? '✕' : '+'}</span>
+                <span>{showAdminStudio ? 'Stäng Meetup-modul' : 'Skapa Ny Klubbträff / Meetup'}</span>
+              </button>
+            </div>
+
+            {showAdminStudio && (
+              <div className="admin-meetup-creator">
+                <h3>👑 Admin Studio: Skapa Nytt Meetup / Ride</h3>
+                <form onSubmit={handleCreateMeetup} className="meetup-form-grid">
               <div className="meetup-form-group">
                 <label>Titel på Ritt / Träff:*</label>
                 <input 
@@ -231,6 +281,8 @@ export default function Meetups() {
                 </button>
               </div>
             </form>
+          </div>
+            )}
           </div>
         )}
 

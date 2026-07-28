@@ -15,7 +15,7 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const { currentUser, userData } = useAuth()
+  const { currentUser, userData, isMember } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -43,18 +43,21 @@ export default function Navbar() {
 
         <nav className={`navbar__nav ${menuOpen ? 'navbar__nav--open' : ''}`} aria-label="Huvudnavigation">
           <ul className="navbar__list">
-            {navLinks.map((link) => (
-              <li key={link.path} className="navbar__item">
-                <NavLink
-                  to={link.path}
-                  className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
-                  onClick={() => setMenuOpen(false)}
-                  end={link.path === '/'}
-                >
-                  {link.label}
-                </NavLink>
-              </li>
-            ))}
+            {navLinks.map((link) => {
+              if (link.path === '/meetups' && !isMember) return null;
+              return (
+                <li key={link.path} className="navbar__item">
+                  <NavLink
+                    to={link.path}
+                    className={({ isActive }) => `navbar__link ${isActive ? 'navbar__link--active' : ''}`}
+                    onClick={() => setMenuOpen(false)}
+                    end={link.path === '/'}
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              );
+            })}
           </ul>
           <div className="navbar__actions" style={{display: 'flex', gap: '0.8rem', alignItems: 'center'}}>
             {!currentUser ? (

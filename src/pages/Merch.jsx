@@ -43,6 +43,7 @@ export default function Merch() {
   const [merchItems, setMerchItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [showAdminStudio, setShowAdminStudio] = useState(false);
 
   // Admin studio state
   const [title, setTitle] = useState('');
@@ -145,13 +146,41 @@ export default function Merch() {
           </p>
         </header>
 
-        {/* --- ADMIN STUDIO FÖR ATT LÄGGA TILL TRÖJOR / MERCH --- */}
+        {/* --- ADMIN STUDIO FÖR ATT LÄGGA TILL TRÖJOR / MERCH (Dolt bakom +-knapp) --- */}
         {isAdmin && (
-          <section className="merch-admin-studio">
-            <div className="studio-header">
-              <h2 className="studio-title">👑 ADMIN MERCH-STUDIO: LÄGG UT PLAGG</h2>
-              <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
+          <div style={{ marginBottom: '3.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: showAdminStudio ? '1.5rem' : '0' }}>
+              <button
+                onClick={() => setShowAdminStudio(!showAdminStudio)}
+                className="btn btn-outline"
+                title="Klicka för att fälla ut / in merch-studion"
+                style={{
+                  borderColor: '#00f5ff',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.7rem 1.6rem',
+                  borderRadius: '50px',
+                  fontWeight: '800',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 0 15px rgba(0, 245, 255, 0.2)',
+                  background: showAdminStudio ? '#00f5ff22' : 'transparent',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+              >
+                <span style={{ fontSize: '1.4rem', lineHeight: '1', color: '#00f5ff', fontWeight: '900' }}>{showAdminStudio ? '✕' : '+'}</span>
+                <span>{showAdminStudio ? 'Stäng Merch-modul' : 'Lägg Till Nytt Plagg'}</span>
+              </button>
             </div>
+
+            {showAdminStudio && (
+              <section className="merch-admin-studio">
+                <div className="studio-header">
+                  <h2 className="studio-title">👑 ADMIN MERCH-STUDIO: LÄGG UT PLAGG</h2>
+                  <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
+                </div>
 
             <form onSubmit={handleCreateMerch}>
               <div className="merch-form-grid">
@@ -221,6 +250,8 @@ export default function Merch() {
               </button>
             </form>
           </section>
+            )}
+          </div>
         )}
 
         {/* --- MERCH GRID --- */}
