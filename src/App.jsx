@@ -14,15 +14,18 @@ import Dashboard from './pages/Dashboard'
 import ComingSoon from './pages/ComingSoon'
 import RegisterInvite from './pages/RegisterInvite'
 import Chat from './components/Chat'
+import Merch from './pages/Merch'
+import ViewModeSwitcher from './components/ViewModeSwitcher'
 import './App.css'
 
 function AppContent() {
   const location = useLocation()
-  const { isAdmin } = useAuth()
+  const { isAdmin, actualIsAdmin } = useAuth()
   
   const isLockedRoute = location.pathname !== '/login' && location.pathname !== '/register'
   
-  if (!isAdmin && isLockedRoute) {
+  // Låt faktiska admins navigera hela sajten utan att fastna i ComingSoon när de testar gäst-vy
+  if (!isAdmin && !actualIsAdmin && isLockedRoute) {
     return <ComingSoon />
   }
 
@@ -36,6 +39,7 @@ function AppContent() {
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/news" element={<News />} />
             <Route path="/meetups" element={<Meetups />} />
+            <Route path="/merch" element={<Merch />} />
             <Route path="/apply" element={<Apply />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<RegisterInvite />} />
@@ -51,6 +55,7 @@ function AppContent() {
         </AnimatePresence>
       </main>
       <Chat />
+      <ViewModeSwitcher />
       <Footer />
     </>
   )

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { NavLink, Link } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 import './Navbar.css'
 
 const navLinks = [
@@ -7,12 +8,14 @@ const navLinks = [
   { path: '/gallery', label: 'Galleri' },
   { path: '/news', label: 'Nyheter' },
   { path: '/meetups', label: 'Meetups' },
+  { path: '/merch', label: 'Merch' },
   { path: '/apply', label: 'Ansök' },
 ]
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const { currentUser, userData } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 50)
@@ -24,6 +27,8 @@ export default function Navbar() {
     document.body.style.overflow = menuOpen ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
+
+  const displayName = userData?.firstName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Medlem');
 
   return (
     <header id="navbar" className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
@@ -51,13 +56,36 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          <div className="navbar__actions" style={{display: 'flex', gap: '1rem'}}>
-            <Link to="/apply" className="btn btn-primary navbar__cta" onClick={() => setMenuOpen(false)}>
-              Bli Medlem
-            </Link>
-            <Link to="/dashboard" className="btn btn-outline navbar__cta" onClick={() => setMenuOpen(false)}>
-              Mina Sidor
-            </Link>
+          <div className="navbar__actions" style={{display: 'flex', gap: '0.8rem', alignItems: 'center'}}>
+            {!currentUser ? (
+              <>
+                <Link to="/apply" className="btn btn-primary navbar__cta" onClick={() => setMenuOpen(false)}>
+                  Ansök
+                </Link>
+                <Link to="/login" className="btn btn-outline navbar__cta" onClick={() => setMenuOpen(false)}>
+                  Logga In
+                </Link>
+              </>
+            ) : (
+              <Link 
+                to="/dashboard" 
+                className="btn btn-outline navbar__cta" 
+                onClick={() => setMenuOpen(false)}
+                title="Gå till kontrollpaneler"
+                style={{
+                  borderColor: '#00ff88',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.6rem 1.4rem',
+                  boxShadow: '0 0 15px rgba(0, 255, 136, 0.2)'
+                }}
+              >
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00ff88', boxShadow: '0 0 10px #00ff88' }} />
+                <span>👤 {displayName}</span>
+              </Link>
+            )}
           </div>
         </nav>
 

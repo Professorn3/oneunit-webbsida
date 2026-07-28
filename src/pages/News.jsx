@@ -1,18 +1,24 @@
-import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
-import GlitchText from '../components/GlitchText'
-import ScrollReveal from '../components/ScrollReveal'
-import './News.css'
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
+import { compressImage } from '../utils/imageHelper';
+import GlitchText from '../components/GlitchText';
+import ScrollReveal from '../components/ScrollReveal';
+import ConfirmModal from '../components/ConfirmModal';
+import './News.css';
 
 const pageVariants = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   exit: { opacity: 0, transition: { duration: 0.3 } },
-}
+};
 
-const allNews = [
+const defaultNews = [
   {
-    id: 1,
+    id: 'default_1',
     date: '15 Jul 2026',
     category: 'Event',
     title: 'Sommarritt 2026 – En Episk Resa Genom Sverige',
@@ -21,7 +27,7 @@ const allNews = [
     featured: true,
   },
   {
-    id: 2,
+    id: 'default_2',
     date: '3 Jun 2026',
     category: 'Nyheter',
     title: 'Ny Avdelning Öppnar i Göteborg',
@@ -29,7 +35,7 @@ const allNews = [
     image: '/images/gallery_4.png',
   },
   {
-    id: 3,
+    id: 'default_3',
     date: '20 Maj 2026',
     category: 'Community',
     title: 'MC-Träff Stockholm – Bilder och Recap',
@@ -37,7 +43,7 @@ const allNews = [
     image: '/images/gallery_1.png',
   },
   {
-    id: 4,
+    id: 'default_4',
     date: '2 Apr 2026',
     category: 'MC',
     title: 'Vårens Första Ritt – Välkommen Säsong 2026!',
@@ -45,7 +51,7 @@ const allNews = [
     image: '/images/gallery_5.png',
   },
   {
-    id: 5,
+    id: 'default_5',
     date: '15 Mar 2026',
     category: 'Nyheter',
     title: 'Nytt i Regelverket 2026 – Vad Du Behöver Veta',
@@ -53,17 +59,103 @@ const allNews = [
     image: '/images/gallery_3.png',
   },
   {
-    id: 6,
+    id: 'default_6',
     date: '8 Feb 2026',
     category: 'Event',
     title: 'Winter Meet 2026 – Se Bilderna',
     excerpt: 'Även på vintern samlas vi. Årets Winter Meet i Örebro var en succé med goda råd, god mat och bra sällskap trots minusgrader.',
     image: '/images/hero_bg.png',
   },
-]
+];
 
 export default function News() {
-  const [featured, ...rest] = allNews
+  const { isAdmin, currentUser } = useAuth();
+  const [dbNews, setDbNews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [articleToDelete, setArticleToDelete] = useState(null);
+
+  // Admin form state
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState('Event');
+  const [excerpt, setExcerpt] = useState('');
+  const [dateStr, setDateStr] = useState(new Date().toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }));
+  const [imagePreview, setImagePreview] = useState(null);
+  const [creating, setCreating] = useState(false);
+
+  useEffect(() => {
+    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
+    const unsub = onSnapshot(q, (snapshot) => {
+      const list = [];
+      snapshot.forEach((docSnap) => {
+        list.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setDbNews(list);
+      setLoading(false);
+    }, (err) => {
+      console.error("Fel vid hämtning av nyheter:", err);
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, []);
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImage(file, 900, 0.75);
+      setImagePreview(dataUrl);
+    } catch (err) {
+      alert("Kunde inte hantera bilden: " + err.message);
+    }
+  };
+
+  const handleCreateNews = async (e) => {
+    e.preventDefault();
+    if (!isAdmin) return;
+    if (!title || !excerpt) {
+      alert("Vänligen fyll i titel och text för nyhetsinlägget!");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const imgUrl = imagePreview || '/images/gallery_2.png';
+
+      await addDoc(collection(db, 'news'), {
+        title,
+        category,
+        excerpt,
+        date: dateStr || new Date().toLocaleDateString('sv-SE'),
+        image: imgUrl,
+        createdAt: serverTimestamp(),
+        author: currentUser?.email || 'Admin',
+      });
+
+      // Reset
+      setTitle('');
+      setExcerpt('');
+      setImagePreview(null);
+    } catch (err) {
+      console.error("Fel vid publicering:", err);
+      alert("Kunde inte spara nyheten: " + err.message);
+    }
+    setCreating(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!isAdmin || !articleToDelete) return;
+    try {
+      await deleteDoc(doc(db, 'news', articleToDelete.id));
+      setArticleToDelete(null);
+    } catch (err) {
+      console.error("Fel vid radering:", err);
+    }
+  };
+
+  // Kombinera egna databasinlägg överst med de klassiska stanardinläggen nedanför
+  const allArticles = [...dbNews, ...defaultNews];
+  const [featured, ...rest] = allArticles;
 
   return (
     <motion.div
@@ -86,33 +178,148 @@ export default function News() {
       </div>
 
       <div className="container">
-        {/* Featured */}
-        <ScrollReveal className="news-page__featured-wrap">
-          <article className="news-page__featured card" id={`news-article-${featured.id}`}>
-            <div className="news-page__featured-img-wrap">
-              <img src={featured.image} alt={featured.title} className="news-page__featured-img" loading="eager" />
-              <div className="news-page__featured-img-overlay" />
+        {/* --- ADMIN NYHETS-STUDIO --- */}
+        {isAdmin && (
+          <section className="news-admin-studio">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00f5ff', margin: 0 }}>👑 ADMIN NYHETS-STUDIO: SKRIV NYTT INLÄGG</h2>
+              <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
             </div>
-            <div className="news-page__featured-body">
-              <div className="news-page__featured-meta">
-                <span className="tag">{featured.category}</span>
-                <span className="news-page__date">{featured.date}</span>
-                <span className="tag" style={{ borderColor: 'var(--color-accent-magenta)', color: 'var(--color-accent-magenta)' }}>Featured</span>
+
+            <form onSubmit={handleCreateNews}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.2rem', marginBottom: '1.2rem' }}>
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#c0c6d4', fontWeight: 600 }}>Artikelns Titel</label>
+                  <input
+                    type="text"
+                    placeholder="T.ex. Nya Klubbkåkar & Höstfest..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    style={{ background: 'rgba(8,10,15,0.8)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.8rem 1rem', borderRadius: '12px', color: '#fff' }}
+                    required
+                  />
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#c0c6d4', fontWeight: 600 }}>Kategori</label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    style={{ background: 'rgba(8,10,15,0.8)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.8rem 1rem', borderRadius: '12px', color: '#fff' }}
+                  >
+                    <option value="Event">Event</option>
+                    <option value="Nyheter">Nyheter</option>
+                    <option value="Community">Community</option>
+                    <option value="MC">MC & Ritt</option>
+                    <option value="Klubba">Klubbmöte</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#c0c6d4', fontWeight: 600 }}>Datumstämpel</label>
+                  <input
+                    type="text"
+                    value={dateStr}
+                    onChange={(e) => setDateStr(e.target.value)}
+                    style={{ background: 'rgba(8,10,15,0.8)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.8rem 1rem', borderRadius: '12px', color: '#fff' }}
+                    placeholder="T.ex. 28 Jul 2026"
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#c0c6d4', fontWeight: 600 }}>Innehåll / Reportagetext</label>
+                  <textarea
+                    rows={4}
+                    placeholder="Skriv repotage, nyheter, summeringar eller viktig info till medlemmar och besökare..."
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    style={{ background: 'rgba(8,10,15,0.8)', border: '1px solid rgba(255,255,255,0.15)', padding: '0.8rem 1rem', borderRadius: '12px', color: '#fff', fontFamily: 'inherit' }}
+                    required
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <label style={{ fontSize: '0.85rem', color: '#c0c6d4', fontWeight: 600 }}>Omslagsbild / Foto till artikeln</label>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(0, 245, 255, 0.1)', border: '1px dashed #00f5ff88', color: '#00f5ff', padding: '0.8rem 1.2rem', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                      <span>📷 Välj Bild från Dator eller Mobil</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                    {imagePreview && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#0a0b0e', padding: '0.4rem 0.8rem', borderRadius: '8px', border: '1px solid #00ff8844' }}>
+                        <img src={imagePreview} alt="Preview" style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                        <span style={{ fontSize: '0.8rem', color: '#00ff88' }}>✓ Omslag redo!</span>
+                        <button type="button" onClick={() => setImagePreview(null)} style={{ background: 'none', border: 'none', color: '#ff3b30', cursor: 'pointer', marginLeft: '0.5rem' }}>✕</button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <h2 className="news-page__featured-title">{featured.title}</h2>
-              <p className="news-page__featured-excerpt">{featured.excerpt}</p>
-              <span className="news-page__read">Läs hela artikeln →</span>
-            </div>
-          </article>
-        </ScrollReveal>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={creating}
+                style={{ marginTop: '0.8rem', width: '100%' }}
+              >
+                {creating ? '⏳ Publicerar live i databaskollision...' : '⚡ PUBLICERA NYHET NU'}
+              </button>
+            </form>
+          </section>
+        )}
+
+        {/* Featured */}
+        {featured && (
+          <ScrollReveal className="news-page__featured-wrap">
+            <article className="news-page__featured card" id={`news-article-${featured.id}`} style={{ position: 'relative' }}>
+              {isAdmin && !String(featured.id).startsWith('default_') && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setArticleToDelete(featured); }}
+                  className="btn-delete-news"
+                  title="Radera Nyhet"
+                >
+                  🗑️
+                </button>
+              )}
+              <div className="news-page__featured-img-wrap">
+                <img src={featured.image || '/images/gallery_2.png'} alt={featured.title} className="news-page__featured-img" loading="eager" />
+                <div className="news-page__featured-img-overlay" />
+              </div>
+              <div className="news-page__featured-body">
+                <div className="news-page__featured-meta">
+                  <span className="tag">{featured.category}</span>
+                  <span className="news-page__date">{featured.date}</span>
+                  <span className="tag" style={{ borderColor: 'var(--color-accent-magenta)', color: 'var(--color-accent-magenta)' }}>Featured</span>
+                </div>
+                <h2 className="news-page__featured-title">{featured.title}</h2>
+                <p className="news-page__featured-excerpt">{featured.excerpt}</p>
+                <span className="news-page__read">Läs hela artikeln →</span>
+              </div>
+            </article>
+          </ScrollReveal>
+        )}
 
         {/* Grid */}
         <div className="news-page__grid">
           {rest.map((item, i) => (
-            <ScrollReveal key={item.id} delay={i * 100}>
-              <article className="news-page__card card" id={`news-article-${item.id}`}>
+            <ScrollReveal key={item.id} delay={Math.min(i * 50, 300)}>
+              <article className="news-page__card card" id={`news-article-${item.id}`} style={{ position: 'relative' }}>
+                {isAdmin && !String(item.id).startsWith('default_') && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setArticleToDelete(item); }}
+                    className="btn-delete-news"
+                    title="Radera Nyhet"
+                  >
+                    🗑️
+                  </button>
+                )}
                 <div className="news-page__card-img-wrap">
-                  <img src={item.image} alt={item.title} className="news-page__card-img" loading="lazy" />
+                  <img src={item.image || '/images/gallery_1.png'} alt={item.title} className="news-page__card-img" loading="lazy" />
                 </div>
                 <div className="news-page__card-body">
                   <div className="news-page__card-meta">
@@ -138,6 +345,16 @@ export default function News() {
           </div>
         </ScrollReveal>
       </div>
+
+      <ConfirmModal
+        isOpen={!!articleToDelete}
+        title="Radera Nyhetsartikel?"
+        message={`Vill du verkligen radera "${articleToDelete?.title}"? Detta går inte att ångra.`}
+        confirmText="Ja, radera permanent"
+        type="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setArticleToDelete(null)}
+      />
     </motion.div>
-  )
+  );
 }

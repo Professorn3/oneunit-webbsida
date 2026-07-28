@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { db, auth } from '../firebase';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
@@ -21,11 +21,34 @@ export default function Dashboard() {
   const [campaignBody, setCampaignBody] = useState('');
   const [sendingCampaign, setSendingCampaign] = useState(false);
   const [campaignStatus, setCampaignStatus] = useState('');
+
+  // Systeminställningar & Klubbconfig för Admins
+  const [siteName, setSiteName] = useState('OneUnit MC - Official Website');
+  const [siteSlogan, setSiteSlogan] = useState('Broderskap, Respekt & Lojalitet På Vägarna');
+  const [announcementBanner, setAnnouncementBanner] = useState('');
+  const [enableChatMedia, setEnableChatMedia] = useState(true);
+  const [openForApplications, setOpenForApplications] = useState(true);
+  const [clubRules, setClubRules] = useState('1. Respektera alltid brodern och emblemet.\n2. Inga diskussioner om klubbärenden utanför officiella möten.\n3. Håll alltid mc:n redo för samlingsritten.\n4. Alla betalar sin kontingent i tid.');
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
   
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAdmin) {
+      // Läs systeminställningar från molnet
+      getDoc(doc(db, 'settings', 'general')).then((snap) => {
+        if (snap.exists()) {
+          const s = snap.data();
+          if (s.siteName !== undefined) setSiteName(s.siteName);
+          if (s.siteSlogan !== undefined) setSiteSlogan(s.siteSlogan);
+          if (s.announcementBanner !== undefined) setAnnouncementBanner(s.announcementBanner);
+          if (s.enableChatMedia !== undefined) setEnableChatMedia(s.enableChatMedia);
+          if (s.openForApplications !== undefined) setOpenForApplications(s.openForApplications);
+          if (s.clubRules !== undefined) setClubRules(s.clubRules);
+        }
+      }).catch(err => console.error("Fel vid laddning av inställningar:", err));
+
       // Lyssna på ansökningar
       const qApps = query(collection(db, 'applications'), orderBy('createdAt', 'desc'));
       const unsubApps = onSnapshot(qApps, (snapshot) => {
@@ -232,6 +255,12 @@ export default function Dashboard() {
               >
                 💌 E-postutskick (users & övriga)
               </button>
+              <button 
+                className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                ⚙️ Systeminställningar
+              </button>
             </div>
 
             {activeTab === 'applications' && (
@@ -358,6 +387,120 @@ export default function Dashboard() {
                     style={{ backgroundColor: '#00f5ff', color: '#000', fontWeight: 'bold', padding: '1rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1rem', marginTop: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}
                   >
                     {sendingCampaign ? '⏳ Registrerar utskicksorder...' : '🚀 Skicka E-postutskick Till Hela Gruppen Nu'}
+                  </button>
+                </form>
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div style={{ background: 'linear-gradient(145deg, #161b24 0%, #0c0e14 100%)', padding: '2.5rem', borderRadius: '20px', border: '1px solid rgba(0, 245, 255, 0.3)', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)' }}>
+                <h3 style={{ borderBottom: '2px solid #00f5ff', paddingBottom: '0.8rem', color: '#fff', margin: '0 0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <span>⚙️ SYSTEM- & KLUBBINSTÄLLNINGAR</span>
+                </h3>
+                <p style={{ color: '#a0a6b5', marginBottom: '2rem', lineHeight: '1.6' }}>
+                  Här administrerar du klubbens övergripande systemkonfiguration, välkomsttexter, tillåtande av fotouppladdning samt medlemsriktlinjer. Alla ändringar slår igenom omedelbart live på hela webbplatsen.
+                </p>
+
+                <form onSubmit={async (e) => {
+                  e.preventDefault();
+                  setSavingSettings(true);
+                  setSettingsSavedMsg('');
+                  try {
+                    await setDoc(doc(db, 'settings', 'general'), {
+                      siteName,
+                      siteSlogan,
+                      announcementBanner,
+                      enableChatMedia,
+                      openForApplications,
+                      clubRules,
+                      updatedAt: serverTimestamp(),
+                      updatedBy: currentUser?.email || 'Admin'
+                    }, { merge: true });
+                    setSettingsSavedMsg('✨ Inställningarna har sparats och är nu live på hela sajten!');
+                    setTimeout(() => setSettingsSavedMsg(''), 6000);
+                  } catch (err) {
+                    alert('Kunde inte spara inställningar: ' + err.message);
+                  }
+                  setSavingSettings(false);
+                }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                    <div>
+                      <label style={{ display: 'block', color: '#00f5ff', marginBottom: '0.5rem', fontWeight: '600' }}>Klubbens Officiella Webbnamn:</label>
+                      <input 
+                        type="text" 
+                        value={siteName}
+                        onChange={(e) => setSiteName(e.target.value)}
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: '#080a0f', color: '#fff' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', color: '#00f5ff', marginBottom: '0.5rem', fontWeight: '600' }}>Huvudslogan / Klubb-motto:</label>
+                      <input 
+                        type="text" 
+                        value={siteSlogan}
+                        onChange={(e) => setSiteSlogan(e.target.value)}
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', background: '#080a0f', color: '#fff' }}
+                      />
+                    </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ display: 'block', color: '#ffaa00', marginBottom: '0.5rem', fontWeight: '700' }}>📣 Live Meddelande / Banner på webbplatsen (valfritt):</label>
+                      <input 
+                        type="text" 
+                        placeholder="Skriv ett anslag som du vill att besökare eller medlemmar ska uppmärksammas på (t.ex. Nästa klubbmöte inställt / ny tid)..."
+                        value={announcementBanner}
+                        onChange={(e) => setAnnouncementBanner(e.target.value)}
+                        style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #ffaa0066', background: '#14110a', color: '#fff' }}
+                      />
+                    </div>
+
+                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '1.2rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', color: '#fff', fontWeight: '600' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={enableChatMedia}
+                          onChange={(e) => setEnableChatMedia(e.target.checked)}
+                          style={{ width: '20px', height: '20px', accentColor: '#00f5ff', cursor: 'pointer' }}
+                        />
+                        <span>Tillåt medlemmar att ladda upp Foton & GIFs i Klubbchatten</span>
+                      </label>
+                      
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', cursor: 'pointer', color: '#fff', fontWeight: '600' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={openForApplications}
+                          onChange={(e) => setOpenForApplications(e.target.checked)}
+                          style={{ width: '20px', height: '20px', accentColor: '#00ff88', cursor: 'pointer' }}
+                        />
+                        <span>Öppen för nya Medlemsansökningar & Ansök-knapp</span>
+                      </label>
+                    </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                      <label style={{ display: 'block', color: '#00ff88', marginBottom: '0.5rem', fontWeight: '700' }}>📜 Klubbens Officiella Riktlinjer & Regler (Redigerbar för alla medlemmar):</label>
+                      <textarea 
+                        rows={6}
+                        value={clubRules}
+                        onChange={(e) => setClubRules(e.target.value)}
+                        style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid rgba(0, 255, 136, 0.4)', background: '#0a0e0c', color: '#fff', fontFamily: 'inherit', lineHeight: '1.6' }}
+                      />
+                    </div>
+                  </div>
+
+                  {settingsSavedMsg && (
+                    <div style={{ padding: '1.2rem', borderRadius: '8px', background: '#00ff8822', border: '1px solid #00ff88', color: '#00ff88', fontWeight: 'bold', marginBottom: '1rem' }}>
+                      {settingsSavedMsg}
+                    </div>
+                  )}
+
+                  <button 
+                    type="submit" 
+                    disabled={savingSettings}
+                    className="btn btn-primary"
+                    style={{ backgroundColor: '#00ff88', color: '#000', fontWeight: '800', padding: '1rem 2rem', border: 'none', borderRadius: '30px', cursor: 'pointer', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 0 20px rgba(0, 255, 136, 0.3)' }}
+                  >
+                    {savingSettings ? '⏳ Sparar i databasen...' : '⚡ SPARA & PUBLICERA SYSTEMINSTÄLLNINGAR'}
                   </button>
                 </form>
               </div>

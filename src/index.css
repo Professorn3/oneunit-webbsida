@@ -138,6 +138,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: all var(--dur-fast) var(--ease-out);
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .btn::before {
@@ -146,6 +147,7 @@ h1, h2, h3, h4, h5, h6 {
   inset: 0;
   transform: translateX(-101%);
   transition: transform 0.4s var(--ease-out);
+  z-index: -1;
 }
 
 .btn:hover::before {

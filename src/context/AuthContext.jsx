@@ -13,6 +13,7 @@ export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [userData, setUserData] = useState(null); // holds role etc.
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'member' | 'guest'
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -45,11 +46,24 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
+  const actualIsAdmin = userData?.role === 'admin';
+
+  // Om användaren faktiskt är admin och väljer att byta vy (medlem / gäst)
+  const effectiveRole = actualIsAdmin && viewMode === 'member' ? 'member'
+                      : actualIsAdmin && viewMode === 'guest' ? 'guest'
+                      : userData?.role;
+
+  const effectiveUser = actualIsAdmin && viewMode === 'guest' ? null : currentUser;
+
   const value = {
-    currentUser,
-    userData,
-    isAdmin: userData?.role === 'admin',
-    isMember: userData?.role === 'member' || userData?.role === 'admin'
+    currentUser: effectiveUser,
+    actualUser: currentUser,
+    userData: actualIsAdmin && viewMode === 'guest' ? null : userData,
+    isAdmin: effectiveRole === 'admin',
+    isMember: effectiveRole === 'member' || effectiveRole === 'admin',
+    actualIsAdmin,
+    viewMode,
+    setViewMode
   };
 
   return (

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
 import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import { compressImage } from '../utils/imageHelper';
 import './Chat.css';
 
 // Utvalda MC & Broderskapets favorit-GIFs (Snabbreturer)
@@ -29,6 +30,7 @@ export default function Chat() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchedGifs, setSearchedGifs] = useState([]);
   const [loadingGifs, setLoadingGifs] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false);
   
   const messagesEndRef = useRef(null);
 
@@ -131,6 +133,32 @@ export default function Chat() {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    setUploadingImg(true);
+    try {
+      const dataUrl = await compressImage(file, 800, 0.7);
+      const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+      
+      await addDoc(collection(db, roomTarget), {
+        text: '',
+        imageUrl: dataUrl,
+        createdAt: serverTimestamp(),
+        uid: currentUser.uid,
+        email: currentUser.email,
+        senderName: userData?.firstName || currentUser.email.split('@')[0],
+        role: isAdmin ? 'admin' : 'member'
+      });
+    } catch (err) {
+      console.error("Fel vid bilduppladdning:", err);
+      alert("Kunde inte ladda upp bild: " + err.message);
+    }
+    setUploadingImg(false);
+    if (e.target) e.target.value = null;
+  };
+
   return (
     <>
       {/* Floating Toggle Button */}
@@ -203,10 +231,22 @@ export default function Chat() {
                     {msg.role === 'admin' ? '👑 ' : '🏍️ '}{senderDisplay} {msg.role === 'admin' ? '(Admin)' : ''}
                   </span>
                   
-                  {/* Om det är en GIF */}
+                  {/* Om det är en GIF eller Bild */}
                   {msg.gifUrl ? (
                     <div className="msg-bubble gif-bubble">
                       <img src={msg.gifUrl} alt="Chat GIF" className="msg-gif-img" loading="lazy" />
+                    </div>
+                  ) : msg.imageUrl ? (
+                    <div className="msg-bubble gif-bubble" style={{ overflow: 'hidden', padding: 0 }}>
+                      <img 
+                        src={msg.imageUrl} 
+                        alt="Chat Foto" 
+                        className="msg-gif-img" 
+                        loading="lazy" 
+                        style={{ borderRadius: '8px', maxHeight: '250px', width: '100%', objectFit: 'cover', cursor: 'pointer' }} 
+                        onClick={() => window.open(msg.imageUrl, '_blank')} 
+                        title="Klicka för att öppna bilden" 
+                      />
                     </div>
                   ) : (
                     <div className="msg-bubble">{msg.text}</div>
@@ -285,6 +325,21 @@ export default function Chat() {
           >
             🎬 GIF
           </button>
+
+          <label 
+            className="btn-gif-toggle" 
+            title="Ladda upp foto från dator / telefon" 
+            style={{ cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0.6rem', fontSize: '0.85rem' }}
+          >
+            {uploadingImg ? '⏳' : '📷 Foto'}
+            <input 
+              type="file" 
+              accept="image/*" 
+              onChange={handleImageUpload} 
+              disabled={uploadingImg} 
+              style={{ display: 'none' }} 
+            />
+          </label>
           <input 
             type="text" 
             value={newMessage}

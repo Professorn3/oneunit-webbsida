@@ -1,0 +1,273 @@
+/* ============================================================================
+ * ONEUNIT - MERCH & CLUB GEAR PAGE STYLES
+ * ============================================================================ */
+
+.merch-page {
+  padding: 110px 0 80px;
+  min-height: 100vh;
+  color: #ffffff;
+}
+
+.merch-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.merch-eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: #00f5ff;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.merch-title {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #b2bac7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.merch-subtitle {
+  max-width: 650px;
+  margin: 0 auto 2rem;
+  color: #a0a6b5;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+/* --- Admin Merch Studio --- */
+.merch-admin-studio {
+  background: linear-gradient(145deg, #181c26 0%, #11141c 100%);
+  border: 1px solid #00f5ff44;
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 4rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 245, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.merch-admin-studio::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #00f5ff 0%, #ff0077 100%);
+}
+
+.studio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.studio-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #00f5ff;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.merch-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #c0c6d4;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  background: rgba(8, 10, 15, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #00f5ff;
+  box-shadow: 0 0 12px rgba(0, 245, 255, 0.25);
+}
+
+.photo-upload-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background: rgba(0, 245, 255, 0.1);
+  border: 1px dashed #00f5ff88;
+  color: #00f5ff;
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.photo-upload-label:hover {
+  background: rgba(0, 245, 255, 0.2);
+  border-color: #00f5ff;
+}
+
+/* --- Merch Grid & Cards --- */
+.merch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 2.5rem;
+}
+
+.merch-card {
+  background: linear-gradient(145deg, #171922 0%, #0d0f14 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+}
+
+.merch-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(0, 245, 255, 0.4);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 245, 255, 0.12);
+}
+
+.merch-img-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  background-color: #0a0b0e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.merch-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.merch-card:hover .merch-img {
+  transform: scale(1.08);
+}
+
+.merch-tag {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid #00f5ff88;
+  color: #00f5ff;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0.3rem 0.7rem;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+}
+
+.btn-delete-merch {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 59, 48, 0.85);
+  color: #fff;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4);
+}
+
+.btn-delete-merch:hover {
+  background: #ff3b30;
+  transform: scale(1.1);
+}
+
+.merch-content {
+  padding: 1.8rem 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.merch-item-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 0.8rem;
+  letter-spacing: -0.01em;
+}
+
+.merch-item-desc {
+  color: #9aa1b0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.merch-footer-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #00ff88;
+  font-size: 0.85rem;
+  font-weight: 700;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .merch-admin-studio {
+    padding: 1.5rem;
+  }
+  
+  .merch-grid {
+    grid-template-columns: 1fr;
+  }
+}
