@@ -10,6 +10,7 @@ const navLinks = [
   { path: '/meetups', label: 'Meetups' },
   { path: '/merch', label: 'Merch' },
   { path: '/apply', label: 'Ansök' },
+  { path: '/rules', label: 'Regler' },
 ]
 
 export default function Navbar() {
@@ -49,6 +50,7 @@ export default function Navbar() {
       <ul className="navbar__list">
         {navLinks.map((link) => {
           if (link.path === '/meetups' && !isMember) return null;
+          if (link.path === '/rules' && !isMember) return null;
           return (
             <li key={link.path} className="navbar__item">
               <NavLink

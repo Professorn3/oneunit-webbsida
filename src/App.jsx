@@ -15,6 +15,7 @@ import ComingSoon from './pages/ComingSoon'
 import RegisterInvite from './pages/RegisterInvite'
 import Chat from './components/Chat'
 import Merch from './pages/Merch'
+import Rules from './pages/Rules'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
 import './App.css'
 import ScrollToTop from './components/ScrollToTop'
@@ -50,6 +51,14 @@ function AppContent() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/rules" 
+              element={
+                <ProtectedRoute requiredRole="member">
+                  <Rules />
                 </ProtectedRoute>
               } 
             />
