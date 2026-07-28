@@ -1,11 +1,12 @@
 /* Hero Section */
 .hero {
   position: relative;
-  height: 100vh;
-  min-height: 700px;
+  min-height: 100vh;
   display: flex;
   align-items: center;
+  justify-content: center;
   overflow: hidden;
+  padding: 120px 0 80px;
 }
 
 /* Background */
@@ -110,12 +111,14 @@
 
 .hero__title {
   font-family: var(--font-display);
-  font-size: clamp(6rem, 18vw, 18rem);
-  line-height: 0.85;
+  font-size: clamp(3.5rem, min(11vw, 15vh), 9.5rem);
+  line-height: 0.9;
   letter-spacing: -0.02em;
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .hero--loaded .hero__title {

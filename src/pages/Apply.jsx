@@ -13,11 +13,10 @@ const pageVariants = {
 }
 
 const requirements = [
-  { icon: '🏍', text: 'Har ett giltigt MC-körkort (minst A2)' },
-  { icon: '⚙️', text: 'Äger en motorcykel med motor ≥ 500cc' },
-  { icon: '🤝', text: 'Respekterar broderskap och lojalitet' },
-  { icon: '📍', text: 'Är bosatt i Sverige' },
-  { icon: '🔞', text: 'Är minst 21 år gammal' },
+  { icon: '▪', text: 'Har ett giltigt MC-körkort (minst A2)' },
+  { icon: '▪', text: 'Äger en motorcykel med motor ≥ 500cc' },
+  { icon: '▪', text: 'Respekterar broderskap och lojalitet' },
+  { icon: '▪', text: 'Är bosatt i Sverige' },
 ]
 
 export default function Apply() {
@@ -34,6 +33,10 @@ export default function Apply() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!form.name.trim() || !form.age.trim() || !form.city.trim() || !form.email.trim() || !form.phone.trim() || !form.bike.trim() || !form.experience || !form.reason.trim() || !form.howFound) {
+      alert("Vänligen fyll i alla fält och spalter i formuläret innan du skickar in din ansökan.")
+      return
+    }
     setLoading(true)
     
     try {
@@ -110,7 +113,6 @@ export default function Apply() {
               className="apply-page__form"
               onSubmit={handleSubmit}
               aria-label="Ansökningsformulär"
-              noValidate
             >
               <h2 className="apply-page__section-title">Fyll i Formuläret</h2>
 
@@ -137,7 +139,7 @@ export default function Apply() {
                     type="number"
                     className="form-input"
                     placeholder="ex. 28"
-                    min="21"
+                    min="16"
                     max="80"
                     value={form.age}
                     onChange={handleChange}
@@ -179,7 +181,7 @@ export default function Apply() {
               {/* Row 3 */}
               <div className="apply-page__row">
                 <div className="form-group">
-                  <label className="form-label" htmlFor="apply-phone">Telefonnummer</label>
+                  <label className="form-label" htmlFor="apply-phone">Telefonnummer *</label>
                   <input
                     id="apply-phone"
                     name="phone"
@@ -188,6 +190,7 @@ export default function Apply() {
                     placeholder="ex. 070-123 45 67"
                     value={form.phone}
                     onChange={handleChange}
+                    required
                   />
                 </div>
                 <div className="form-group">
@@ -242,13 +245,14 @@ export default function Apply() {
 
               {/* How found */}
               <div className="form-group">
-                <label className="form-label" htmlFor="apply-how-found">Hur hittade du oss?</label>
+                <label className="form-label" htmlFor="apply-how-found">Hur hittade du oss? *</label>
                 <select
                   id="apply-how-found"
                   name="howFound"
                   className="form-select"
                   value={form.howFound}
                   onChange={handleChange}
+                  required
                 >
                   <option value="">Välj alternativ...</option>
                   <option value="social">Sociala medier</option>

@@ -48,7 +48,7 @@ export default function Hero() {
       <div className="container hero__content">
         {/* Logo tillfälligt borttaget enligt önskemål */}
         <div className="hero__text">
-          <p className="hero__eyebrow">⚡ OFFICIELL HEMSIDA FÖR ONEUNIT MC ⚡</p>
+          <p className="hero__eyebrow">OFFICIELL HEMSIDA FÖR ONEUNIT MC</p>
           <h1 className="hero__title">
             <GlitchText text="ONE" tag="span" className="hero__title-line" />
             <br />

@@ -32,6 +32,7 @@ export default function Navbar() {
 
   return (
     <header id="navbar" className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
+      <div className="navbar__backdrop" aria-hidden="true" />
       <div className="container navbar__inner">
         <Link to="/" className="navbar__logo" onClick={() => setMenuOpen(false)}>
           <img src="/images/logo.png?v=2" alt="OneUnit MC" onError={(e) => {
@@ -86,7 +87,7 @@ export default function Navbar() {
                 }}
               >
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00ff88', boxShadow: '0 0 10px #00ff88' }} />
-                <span>👤 {displayName}</span>
+                <span>{displayName}</span>
               </Link>
             )}
           </div>

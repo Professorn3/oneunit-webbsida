@@ -6,18 +6,32 @@
   right: 0;
   z-index: 1000;
   padding: 1.25rem 0;
-  transition: background 0.4s ease, padding 0.4s ease, backdrop-filter 0.4s ease;
+  transition: padding 0.4s ease;
+}
+
+.navbar__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: transparent;
+  pointer-events: none;
+  transition: background 0.4s ease, backdrop-filter 0.4s ease;
 }
 
 .navbar--scrolled {
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid rgba(0, 245, 255, 0.1);
   padding: 0.75rem 0;
 }
 
+.navbar--scrolled .navbar__backdrop {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 .navbar__inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -138,16 +152,23 @@
 
   .navbar__nav {
     position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.97);
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(4, 6, 9, 0.98);
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-    gap: 3rem;
+    padding: 6.5rem 2rem 3rem;
+    gap: 2rem;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-20px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    z-index: 1000;
+    overflow-y: auto;
   }
 
   .navbar__nav--open {

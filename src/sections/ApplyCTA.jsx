@@ -40,7 +40,7 @@ export default function ApplyCTA() {
               Skicka in Ansökan
             </Link>
             <div className="apply-cta__badge">
-              <span>🏍</span>
+              <span style={{ color: '#00f5ff' }}>▪</span>
               <span>Öppen för alla erfarna ryttare</span>
             </div>
           </div>
