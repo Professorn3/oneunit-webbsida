@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
+import ConfirmModal from '../components/ConfirmModal';
 import './Meetups.css';
 
 // Standard-evenemang om inget lagts in i Firestore ännu
@@ -40,6 +41,7 @@ export default function Meetups() {
   const { currentUser, isAdmin, isMember } = useAuth();
   const [meetups, setMeetups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [meetupToDelete, setMeetupToDelete] = useState(null);
 
   // Admin Form State
   const [title, setTitle] = useState('');
@@ -133,11 +135,11 @@ export default function Meetups() {
     }
   };
 
-  const handleDeleteMeetup = async (id) => {
-    if (!isAdmin) return;
-    if (!window.confirm("Vill du verkligen rader detta Meetup permanent?")) return;
+  const confirmDeleteMeetup = async () => {
+    if (!isAdmin || !meetupToDelete) return;
     try {
-      await deleteDoc(doc(db, 'meetups', id));
+      await deleteDoc(doc(db, 'meetups', meetupToDelete.id));
+      setMeetupToDelete(null);
     } catch (err) {
       console.error("Fel vid radering:", err);
     }
@@ -299,7 +301,7 @@ export default function Meetups() {
 
                     {isAdmin && !event.id.startsWith('default_') && (
                       <button 
-                        onClick={() => handleDeleteMeetup(event.id)} 
+                        onClick={() => setMeetupToDelete(event)} 
                         className="btn-delete-meetup"
                         title="Radera Meetup"
                       >
@@ -313,6 +315,17 @@ export default function Meetups() {
           })}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!meetupToDelete}
+        title="Radera Meetup"
+        message={`Vill du verkligen radera "${meetupToDelete?.title}" permanent? Detta går inte att ångra.`}
+        confirmText="Ja, radera permanent"
+        cancelText="Avbryt"
+        type="danger"
+        onConfirm={confirmDeleteMeetup}
+        onCancel={() => setMeetupToDelete(null)}
+      />
     </motion.div>
   );
 }

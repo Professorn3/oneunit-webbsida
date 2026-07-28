@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
+import ConfirmModal from '../components/ConfirmModal';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const [members, setMembers] = useState([]);
   const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'members' | 'campaigns'
   const [searchQuery, setSearchQuery] = useState('');
+  const [confirmConfig, setConfirmConfig] = useState(null);
   
   // E-post Utskicksstudio (Kampanjhantering mot Brevo)
   const [campaignTarget, setCampaignTarget] = useState('users');
@@ -54,34 +56,41 @@ export default function Dashboard() {
     }
   }, [isAdmin]);
 
-  const handleSendCampaign = async (e) => {
+  const handleSendCampaign = (e) => {
     e.preventDefault();
     if (!isAdmin) return;
     if (!campaignSubject || !campaignBody) {
       alert("Vänligen fyll i både ämne och dokumenttext!");
       return;
     }
-    if (!window.confirm(`Vill du verkligen starta ett e-postutskick till ALLA inlagda i kollektionen "${campaignTarget}"?`)) return;
-
-    setSendingCampaign(true);
-    setCampaignStatus('');
-    try {
-      await addDoc(collection(db, 'mail_campaigns'), {
-        targetCollection: campaignTarget,
-        subject: campaignSubject,
-        bodyText: campaignBody,
-        status: 'pending',
-        createdAt: serverTimestamp(),
-        sentBy: currentUser?.email || 'admin'
-      });
-      setCampaignStatus('✅ Utskicken till "' + campaignTarget + '" har nu startats! Vår molnfunktion anropar just nu Brevo och levererar mejlen.');
-      setCampaignSubject('');
-      setCampaignBody('');
-    } catch (err) {
-      console.error("Fel vid utskick:", err);
-      alert("Kunde inte starta utskicken: " + err.message);
-    }
-    setSendingCampaign(false);
+    setConfirmConfig({
+      title: "Starta e-postutskick?",
+      message: `Vill du verkligen starta ett e-postutskick till ALLA inlagda i kollektionen "${campaignTarget}"?`,
+      confirmText: "Ja, starta utskick",
+      type: "warning",
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        setSendingCampaign(true);
+        setCampaignStatus('');
+        try {
+          await addDoc(collection(db, 'mail_campaigns'), {
+            targetCollection: campaignTarget,
+            subject: campaignSubject,
+            bodyText: campaignBody,
+            status: 'pending',
+            createdAt: serverTimestamp(),
+            sentBy: currentUser?.email || 'admin'
+          });
+          setCampaignStatus('✅ Utskicken till "' + campaignTarget + '" har nu startats! Vår molnfunktion anropar just nu Brevo och levererar mejlen.');
+          setCampaignSubject('');
+          setCampaignBody('');
+        } catch (err) {
+          console.error("Fel vid utskick:", err);
+          alert("Kunde inte starta utskicken: " + err.message);
+        }
+        setSendingCampaign(false);
+      }
+    });
   };
 
   const handleLogout = async () => {
@@ -89,51 +98,73 @@ export default function Dashboard() {
     navigate('/');
   };
 
-  const handleApproveAndInvite = async (app) => {
+  const handleApproveAndInvite = (app) => {
     if (!isAdmin) return;
-    if (!window.confirm(`Vill du verkligen godkänna ${app.firstName} och skicka en inbjudan?`)) return;
+    setConfirmConfig({
+      title: "Godkänn ansökan?",
+      message: `Vill du verkligen godkänna ${app.firstName} och skicka en inbjudningslänk till ${app.email}?`,
+      confirmText: "Ja, godkänn & bjud in",
+      type: "success",
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        try {
+          // 1. Skapa en inbjudnings-token i databasen
+          const inviteRef = await addDoc(collection(db, 'invites'), {
+            email: app.email,
+            createdAt: serverTimestamp(),
+            used: false
+          });
 
-    try {
-      // 1. Skapa en inbjudnings-token i databasen
-      const inviteRef = await addDoc(collection(db, 'invites'), {
-        email: app.email,
-        createdAt: serverTimestamp(),
-        used: false
-      });
+          // Länken som användaren ska klicka på
+          const inviteLink = `https://oneunit.com/register?token=${inviteRef.id}`;
 
-      // Länken som användaren ska klicka på
-      const inviteLink = `https://oneunit.com/register?token=${inviteRef.id}`;
+          // 2. Öppna ditt vanliga mail-program automatiskt med en färdig mall
+          const subject = encodeURIComponent("Välkommen till OneUnit MC!");
+          const body = encodeURIComponent(`Hej ${app.firstName}!\n\nDin ansökan har blivit godkänd.\n\nKlicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:\n${inviteLink}\n\nVälkommen till brödraskapet!\n\n/OneUnit MC Admin`);
+          window.location.href = `mailto:${app.email}?subject=${subject}&body=${body}`;
 
-      // 2. Öppna ditt vanliga mail-program automatiskt med en färdig mall
-      const subject = encodeURIComponent("Välkommen till OneUnit MC!");
-      const body = encodeURIComponent(`Hej ${app.firstName}!\n\nDin ansökan har blivit godkänd.\n\nKlicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:\n${inviteLink}\n\nVälkommen till brödraskapet!\n\n/OneUnit MC Admin`);
-      window.location.href = `mailto:${app.email}?subject=${subject}&body=${body}`;
-
-      // 3. Ta bort eller markera ansökan som godkänd så den försvinner från listan
-      await updateDoc(doc(db, 'applications', app.id), {
-        status: 'approved'
-      });
-      
-    } catch (err) {
-      console.error(err);
-      alert('Något gick fel när inbjudan skulle skapas.');
-    }
+          // 3. Ta bort eller markera ansökan som godkänd så den försvinner från listan
+          await updateDoc(doc(db, 'applications', app.id), {
+            status: 'approved'
+          });
+          
+        } catch (err) {
+          console.error(err);
+          alert('Något gick fel när inbjudan skulle skapas.');
+        }
+      }
+    });
   };
 
-  const handleDenyApplication = async (appId) => {
-    if (!window.confirm("Vill du verkligen radera denna ansökan?")) return;
-    await deleteDoc(doc(db, 'applications', appId));
+  const handleDenyApplication = (appId) => {
+    setConfirmConfig({
+      title: "Radera ansökan?",
+      message: "Vill du verkligen radera denna ansökan permanent? Detta går inte att ångra.",
+      confirmText: "Ja, radera ansökan",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        await deleteDoc(doc(db, 'applications', appId));
+      }
+    });
   };
 
-  const handleRemoveMember = async (memberId, email) => {
+  const handleRemoveMember = (memberId, email) => {
     if (email === currentUser.email) {
       alert("Du kan inte radera dig själv!");
       return;
     }
-    if (!window.confirm(`Är du helt säker på att du vill kasta ut ${email} från klubben? Deras konto raderas från systemet.`)) return;
-    
-    await deleteDoc(doc(db, 'users', memberId));
-    // Obs: Detta tar bort deras rättigheter i databasen. För att radera Auth-kontot helt krävs Firebase Admin SDK (Backend), men detta räcker för att spärra dem från sidan.
+    setConfirmConfig({
+      title: "Kasta ut medlem?",
+      message: `Är du helt säker på att du vill kasta ut ${email} från klubben? Deras konto raderas från systemet.`,
+      confirmText: "Ja, kasta ut",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        await deleteDoc(doc(db, 'users', memberId));
+        // Obs: Detta tar bort deras rättigheter i databasen. För att radera Auth-kontot helt krävs Firebase Admin SDK (Backend), men detta räcker för att spärra dem från sidan.
+      }
+    });
   };
 
   // Filtrera medlemmar baserat på sökning
@@ -334,6 +365,17 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        isOpen={!!confirmConfig}
+        title={confirmConfig?.title}
+        message={confirmConfig?.message}
+        confirmText={confirmConfig?.confirmText}
+        cancelText={confirmConfig?.cancelText}
+        type={confirmConfig?.type}
+        onConfirm={confirmConfig?.onConfirm}
+        onCancel={() => setConfirmConfig(null)}
+      />
     </div>
   );
 }
