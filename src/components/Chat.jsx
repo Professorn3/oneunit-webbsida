@@ -172,7 +172,14 @@ export default function Chat() {
             </button>
             <button 
               className={`chat-room-tab ${activeRoom === 'admin_chat' ? 'active' : ''}`}
-              onClick={() => isAdmin ? { setActiveRoom('admin_chat'), setShowGifPicker(false) } : alert("🛡️ Endast för administratörs-staben!")}
+              onClick={() => {
+                if (isAdmin) {
+                  setActiveRoom('admin_chat');
+                  setShowGifPicker(false);
+                } else {
+                  alert("🛡️ Endast för administratörs-staben!");
+                }
+              }}
               disabled={!isAdmin}
               title={isAdmin ? "Byt till privat admin-kanal" : "Låst: Endast för klubbens admins"}
             >
