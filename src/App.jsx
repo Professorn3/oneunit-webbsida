@@ -5,6 +5,7 @@ import Footer from './components/Footer'
 import Home from './pages/Home'
 import Gallery from './pages/Gallery'
 import News from './pages/News'
+import Meetups from './pages/Meetups'
 import Apply from './pages/Apply'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -34,6 +35,7 @@ function AppContent() {
             <Route path="/" element={<Home />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path="/news" element={<News />} />
+            <Route path="/meetups" element={<Meetups />} />
             <Route path="/apply" element={<Apply />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<RegisterInvite />} />
