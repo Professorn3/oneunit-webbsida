@@ -138,7 +138,7 @@ export default function Merch() {
     >
       <div className="container">
         <header className="merch-hero">
-          <p className="merch-eyebrow">⚡ OneUnit MC · Club Gear & Klädsel ⚡</p>
+          <p className="merch-eyebrow">ONEUNIT MC · CLUB GEAR & KLÄDSEL</p>
           <h1 className="merch-title">OFFICIELL MERCHANDISE</h1>
           <p className="merch-subtitle">
             Här visas klubbens officiella sortiment av huvtröjor, t-shirts, kepsar och tillbehör. 
@@ -178,7 +178,7 @@ export default function Merch() {
             {showAdminStudio && (
               <section className="merch-admin-studio">
                 <div className="studio-header">
-                  <h2 className="studio-title">👑 ADMIN MERCH-STUDIO: LÄGG UT PLAGG</h2>
+                  <h2 className="studio-title">ADMIN MERCH-STUDIO: LÄGG UT PLAGG</h2>
                   <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
                 </div>
 
@@ -221,7 +221,7 @@ export default function Merch() {
                   <label>Bild / Foto på Plagget</label>
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <label className="photo-upload-label">
-                      <span>📷 Välj eller Fota från Mobil / Dator</span>
+                      <span>Välj eller Fota från Mobil / Dator</span>
                       <input 
                         type="file" 
                         accept="image/*" 
@@ -246,7 +246,7 @@ export default function Merch() {
                 disabled={creating}
                 style={{ marginTop: '1rem', width: '100%' }}
               >
-                {creating ? '⏳ Sparar i molnkatalog...' : '⚡ PUBLICERA MERCH NU'}
+                {creating ? 'Sparar i molnkatalog...' : 'PUBLICERA MERCH NU'}
               </button>
             </form>
           </section>
@@ -268,8 +268,9 @@ export default function Merch() {
                       className="btn-delete-merch" 
                       onClick={() => setItemToDelete(item)}
                       title="Radera plagg"
+                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px' }}
                     >
-                      🗑️
+                      Radera
                     </button>
                   )}
                   <img src={item.image || '/images/gallery_1.png'} alt={item.title} className="merch-img" loading="lazy" />

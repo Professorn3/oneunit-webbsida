@@ -196,7 +196,7 @@ export default function Chat() {
               className={`chat-room-tab ${activeRoom === 'club_chat' ? 'active' : ''}`}
               onClick={() => { setActiveRoom('club_chat'); setShowGifPicker(false); }}
             >
-              🏍️ Medlemschatt
+              Medlemschatt
             </button>
             <button 
               className={`chat-room-tab ${activeRoom === 'admin_chat' ? 'active' : ''}`}
@@ -205,13 +205,13 @@ export default function Chat() {
                   setActiveRoom('admin_chat');
                   setShowGifPicker(false);
                 } else {
-                  alert("🛡️ Endast för administratörs-staben!");
+                  alert("Endast för administratörs-staben!");
                 }
               }}
               disabled={!isAdmin}
               title={isAdmin ? "Byt till privat admin-kanal" : "Låst: Endast för klubbens admins"}
             >
-              {isAdmin ? '🛡️ Admin-chatt' : '🔒 Admin-chatt'}
+              {isAdmin ? 'Admin-chatt' : 'Admin-chatt (Låst)'}
             </button>
           </div>
         </header>
@@ -262,7 +262,7 @@ export default function Chat() {
         {showGifPicker && (
           <div className="gif-picker-panel">
             <div className="gif-picker-header">
-              <span>🎬 Välj eller Sök Biker-GIF:</span>
+              <span style={{ fontWeight: 'bold' }}>Välj eller Sök Biker-GIF:</span>
               <button 
                 onClick={() => setShowGifPicker(false)} 
                 style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
@@ -276,13 +276,13 @@ export default function Chat() {
                 className={`btn-gif-tab ${gifTab === 'curated' ? 'active' : ''}`}
                 onClick={() => setGifTab('curated')}
               >
-                ⚡ MC & Klubb Favoriter
+                MC & Klubb-Favoriter
               </button>
               <button 
                 className={`btn-gif-tab ${gifTab === 'search' ? 'active' : ''}`}
                 onClick={() => setGifTab('search')}
               >
-                🔍 Sök Live
+                Sök Live
               </button>
             </div>
 
@@ -300,17 +300,17 @@ export default function Chat() {
               </form>
             )}
 
-            {loadingGifs && <p style={{ fontSize: '0.8rem', color: '#aaaaaa' }}>⏳ Söker GIFs live i molnet...</p>}
+            {loadingGifs && <p style={{ fontSize: '0.8rem', color: '#aaaaaa' }}>Söker GIFs live i molnet...</p>}
 
             <div className="gif-grid">
               {(gifTab === 'curated' ? CURATED_MC_GIFS : searchedGifs).map((g) => (
-                <div key={g.id || g.url} className="gif-item-thumb" onClick={() => handleSendGif(g.url)} title="Klicka för att skicka direkt!">
+                <div key={g.id || g.url} className="gif-item-thumb" onClick={() => handleSendGif(g.url)} title="Klicka för att skicka direkt">
                   <img src={g.url} alt="GIF Thumb" />
                 </div>
               ))}
             </div>
             {gifTab === 'search' && searchedGifs.length === 0 && !loadingGifs && (
-              <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>Skriv ett sökord ovan och tryck Enter!</p>
+              <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>Skriv ett sökord ovan och tryck Enter</p>
             )}
           </div>
         )}
@@ -322,16 +322,17 @@ export default function Chat() {
             className={`btn-gif-toggle ${showGifPicker ? 'active' : ''}`}
             onClick={() => setShowGifPicker(!showGifPicker)}
             title="Öppna GIF-studio"
+            style={{ fontWeight: 700 }}
           >
-            🎬 GIF
+            GIF
           </button>
 
           <label 
             className="btn-gif-toggle" 
             title="Ladda upp foto från dator / telefon" 
-            style={{ cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0.6rem', fontSize: '0.85rem' }}
+            style={{ cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0.6rem', fontSize: '0.85rem', fontWeight: 700 }}
           >
-            {uploadingImg ? '⏳' : '📷 Foto'}
+            {uploadingImg ? '...' : 'FOTO'}
             <input 
               type="file" 
               accept="image/*" 

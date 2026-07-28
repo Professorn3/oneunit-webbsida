@@ -10,29 +10,29 @@ import './Meetups.css';
 const DEFAULT_MEETUPS = [
   {
     id: 'default_1',
-    title: '🔥 Vårpremiär: Kustvägen mot Varberg & BBQ',
+    title: 'Vårpremiär: Kustvägen mot Varberg & BBQ',
     date: 'Lördag 15 Maj - 11:00',
     location: 'Samling vid Klubben / Centralporten',
     route: 'Göteborg -> Kungsbacka -> Kustvägen till Varbergs Fästning',
-    description: 'Vår första officiella gemensamma långkörning för sæsonen! Vi cruisar söderut längs den natursköna kustvägen, stannar vid havet för gruppfoton, och avslutar med en maxad BBQ vid hamnen. Hojar tankade och redo!',
+    description: 'Vår första officiella gemensamma långkörning för säsongen! Vi cruisar söderut längs den natursköna kustvägen, stannar vid havet för gruppfoton, och avslutar med en maxad BBQ vid hamnen. Hojar tankade och redo!',
     attendees: ['Alex (Captain)', 'Rider_Marcus', 'Viktor_MC', 'Adam']
   },
   {
     id: 'default_2',
-    title: '⚡ Midnattsritt: Urban Light Cruise',
+    title: 'Midnattsritt: Urban Light Cruise',
     date: 'Fredag 4 Juni - 21:30',
     location: 'Götaverken / Frihamnen',
-    route: 'Cityhamnen -> Hisingsbron -> Älvsborgsbroberg -> Nattfik',
+    route: 'Cityhamnen -> Hisingsbron -> Älvsborgsbron -> Nattfik',
     description: 'En mäktig nattlig rullning genom Göteborgs upplysta gatunät och broar. Perfekt för nattfotografering med glimmande ljus och djupt motorlyft i tunnelsträckorna.',
     attendees: ['Oliver', 'Adam', 'Kajsa_Rider', 'Erik_OneUnit']
   },
   {
     id: 'default_3',
-    title: '🏆 OneUnit Annual Summer End Run & Biker Fest',
+    title: 'OneUnit Annual Summer End Run & Biker Fest',
     date: 'Lördag 28 Augusti - 12:00',
     location: 'Huvuddammarna',
     route: '12 mil inåt landet -> Sjökrog -> Kvällsfest på Klubbhaket',
-    description: 'Årets största höjdpunkt! En fantastisk dagskärning på svepande landsvägar följt av prisutdelning (Årets Hoj, Bästa Ljud) och exklusiv medlemskväll. Missa inte!',
+    description: 'Årets största höjdpunkt! En fantastisk dagskörning på svepande landsvägar följt av prisutdelning (Årets Hoj, Bästa Ljud) och exklusiv medlemskväll. Missa inte!',
     attendees: ['Hela Styrelsen', 'Adam', 'Micke', 'David_R', 'Leo', 'Stefan_V2']
   }
 ];
@@ -95,7 +95,7 @@ export default function Meetups() {
       setLocation('');
       setRoute('');
       setDescription('');
-      alert("⚡ Ny Klubbträff har nu publicerats live!");
+      alert("Ny Klubbträff har nu publicerats live!");
     } catch (err) {
       console.error(err);
       alert("Fel vid skapande: " + err.message);
@@ -155,9 +155,9 @@ export default function Meetups() {
       <div className="meetups-page" style={{ paddingTop: '150px', paddingBottom: '150px', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div className="container" style={{ maxWidth: '650px', textAlign: 'center' }}>
           <div style={{ background: 'linear-gradient(145deg, #161b24 0%, #0c0e14 100%)', padding: '3.5rem 2.5rem', borderRadius: '24px', border: '1px solid #00f5ff44', boxShadow: '0 20px 50px rgba(0,0,0,0.8)' }}>
-            <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>🔒</div>
-            <h2 style={{ color: '#ffffff', fontSize: '2rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.5px' }}>EXKLUSIV MEDLEMSZON</h2>
-            <p style={{ color: '#a0a6b5', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2rem' }}>
+            <div style={{ textTransform: 'uppercase', color: '#00f5ff', letterSpacing: '2px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>BEHÖRIGHET KRÄVS</div>
+            <h2 style={{ color: '#ffffff', fontSize: '2.2rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.5px' }}>EXKLUSIV MEDLEMSZON</h2>
+            <p style={{ color: '#a0a6b5', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
               Våra MC-träffar, körvägar och samlingsplatser är endast synliga för godkända medlemmar i brödraskapet. 
               Gäster och besökare saknar behörighet att se schema och mötesinformation.
             </p>
@@ -180,7 +180,7 @@ export default function Meetups() {
     >
       <div className="container">
         <header className="meetups-hero">
-          <p className="meetups-eyebrow">⚡ OneUnit MC · Broderskap På Vägarna ⚡</p>
+          <p className="meetups-eyebrow">ONEUNIT MC · BRODERSKAP PÅ VÄGARNA</p>
           <h1 className="meetups-title">MEETUPS & KLUBBTRÄFFAR</h1>
           <p className="meetups-subtitle">
             Haka på klubben på nästa arrangerade ritt, bandag eller samling. 
@@ -219,13 +219,13 @@ export default function Meetups() {
 
             {showAdminStudio && (
               <div className="admin-meetup-creator">
-                <h3>👑 Admin Studio: Skapa Nytt Meetup / Ride</h3>
+                <h3>ADMIN STUDIO: SKAPA NYTT MEETUP / RIDE</h3>
                 <form onSubmit={handleCreateMeetup} className="meetup-form-grid">
               <div className="meetup-form-group">
                 <label>Titel på Ritt / Träff:*</label>
                 <input 
                   type="text" 
-                  placeholder="t.ex. 🔥 Sommarsvepet: Nattcorsa & BBQ"
+                  placeholder="t.ex. Sommarsvepet: Nattcruise & BBQ"
                   value={title} 
                   onChange={(e) => setTitle(e.target.value)} 
                   required 
@@ -277,7 +277,7 @@ export default function Meetups() {
 
               <div className="meetup-form-group full-width">
                 <button type="submit" disabled={creating} className="btn btn-primary" style={{ padding: '1rem', fontWeight: 'bold', fontSize: '1.05rem', backgroundColor: '#00f5ff', color: '#000', cursor: 'pointer' }}>
-                  {creating ? '⏳ Publicerar mot klubben...' : '🚀 PUBLICERA KLUBBTRÄFF NU'}
+                  {creating ? 'Publicerar mot klubben...' : 'PUBLICERA KLUBBTRÄFF NU'}
                 </button>
               </div>
             </form>
@@ -295,7 +295,7 @@ export default function Meetups() {
             return (
               <div key={event.id} className="meetup-card">
                 <div>
-                  <span className="meetup-card-badge">🏍️ Kommande Ritt</span>
+                  <span className="meetup-card-badge">Kommande Ritt</span>
                 </div>
                 
                 <div className="meetup-card-body">

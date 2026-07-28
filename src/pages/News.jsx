@@ -211,7 +211,7 @@ export default function News() {
             {showAdminStudio && (
               <section className="news-admin-studio">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00f5ff', margin: 0 }}>👑 ADMIN NYHETS-STUDIO: SKRIV NYTT INLÄGG</h2>
+                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#00f5ff', margin: 0 }}>ADMIN NYHETS-STUDIO: SKRIV NYTT INLÄGG</h2>
                   <span className="tag" style={{ backgroundColor: '#00f5ff22', borderColor: '#00f5ff', color: '#00f5ff' }}>Aktiv Modul</span>
                 </div>
 
@@ -271,7 +271,7 @@ export default function News() {
                   <label style={{ fontSize: '0.85rem', color: '#c0c6d4', fontWeight: 600 }}>Omslagsbild / Foto till artikeln</label>
                   <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'rgba(0, 245, 255, 0.1)', border: '1px dashed #00f5ff88', color: '#00f5ff', padding: '0.8rem 1.2rem', borderRadius: '12px', fontWeight: 600, cursor: 'pointer' }}>
-                      <span>📷 Välj Bild från Dator eller Mobil</span>
+                      <span>Välj Bild från Dator eller Mobil</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -296,7 +296,7 @@ export default function News() {
                 disabled={creating}
                 style={{ marginTop: '0.8rem', width: '100%' }}
               >
-                {creating ? '⏳ Publicerar live i databaskollision...' : '⚡ PUBLICERA NYHET NU'}
+                {creating ? 'Publicerar live...' : 'PUBLICERA NYHET NU'}
               </button>
             </form>
           </section>
@@ -313,8 +313,9 @@ export default function News() {
                   onClick={(e) => { e.stopPropagation(); setArticleToDelete(featured); }}
                   className="btn-delete-news"
                   title="Radera Nyhet"
+                  style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px' }}
                 >
-                  🗑️
+                  Radera
                 </button>
               )}
               <div className="news-page__featured-img-wrap">
@@ -345,8 +346,9 @@ export default function News() {
                     onClick={(e) => { e.stopPropagation(); setArticleToDelete(item); }}
                     className="btn-delete-news"
                     title="Radera Nyhet"
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px' }}
                   >
-                    🗑️
+                    Radera
                   </button>
                 )}
                 <div className="news-page__card-img-wrap">

@@ -26,6 +26,7 @@ const navLinks = [
   { path: '/', label: 'Hem' },
   { path: '/gallery', label: 'Galleri' },
   { path: '/news', label: 'Nyheter' },
+  { path: '/merch', label: 'Merch' },
   { path: '/apply', label: 'Ansök' },
 ]
 
@@ -85,13 +86,19 @@ export default function Footer() {
 
         <div className="footer__divider" />
 
-        <div className="footer__bottom">
-          <p className="footer__copy">
-            © {new Date().getFullYear()} OneUnit MC. Alla rättigheter förbehållna.
-          </p>
-          <p className="footer__copy footer__copy--muted">
-            One Unit. One Brotherhood.
-          </p>
+        <div className="footer__bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', paddingBottom: '1rem' }}>
+          <div>
+            <p className="footer__copy" style={{ margin: '0 0 0.2rem 0', fontWeight: 600 }}>
+              © {new Date().getFullYear()} OneUnit MC. Alla rättigheter förbehållna.
+            </p>
+            <p className="footer__copy footer__copy--muted" style={{ margin: 0 }}>
+              One Unit. One Brotherhood.
+            </p>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', background: 'linear-gradient(145deg, #10141d 0%, #0a0c12 100%)', padding: '0.5rem 1.4rem', borderRadius: '50px', border: '1px solid rgba(0, 245, 255, 0.25)', boxShadow: '0 0 20px rgba(0, 245, 255, 0.08)' }}>
+            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: '#a0a6b5', fontWeight: 600 }}>Powered by</span>
+            <span style={{ fontFamily: "'Inter', sans-serif", fontSize: '1rem', fontWeight: 900, color: '#00f5ff', letterSpacing: '2.5px', textShadow: '0 0 12px rgba(0,245,255,0.7)' }}>AKABIT</span>
+          </div>
         </div>
       </div>
     </footer>

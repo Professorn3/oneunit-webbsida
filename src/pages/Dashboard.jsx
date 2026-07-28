@@ -104,7 +104,7 @@ export default function Dashboard() {
             createdAt: serverTimestamp(),
             sentBy: currentUser?.email || 'admin'
           });
-          setCampaignStatus('✅ Utskicken till "' + campaignTarget + '" har nu startats! Vår molnfunktion anropar just nu Brevo och levererar mejlen.');
+          setCampaignStatus('Utskicken till "' + campaignTarget + '" har nu startats! Vår molnfunktion anropar just nu Brevo och levererar mejlen.');
           setCampaignSubject('');
           setCampaignBody('');
         } catch (err) {
@@ -221,10 +221,10 @@ export default function Dashboard() {
                 <img src="/images/logo.png" alt="Logo" width="60" />
                 <div>
                   <h4>{currentUser.email.split('@')[0]}</h4>
-                  <p>Status: <strong style={{ color: '#00ff88' }}>Aktiv Medlem ⚡</strong></p>
+                  <p>Status: <strong style={{ color: '#00ff88' }}>Aktiv Medlem</strong></p>
                   <p>Roll: {userData.role}</p>
                   <p style={{ fontSize: '0.85rem', color: '#aaaaaa', marginTop: '0.5rem' }}>
-                    💡 <em>Klicka på knappen "💬 KLUBBCHATT" nere till höger på sidan för att fälla ut klubbens realtidschatt oavsett var du befinner dig!</em>
+                    <em>Klicka på knappen "Klubbchatt" nere till höger på sidan för att fälla ut klubbens realtidschatt oavsett var du befinner dig!</em>
                   </p>
                 </div>
               </div>
@@ -253,13 +253,13 @@ export default function Dashboard() {
                 className={`btn ${activeTab === 'campaigns' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => setActiveTab('campaigns')}
               >
-                💌 E-postutskick (users & övriga)
+                E-postutskick (users & övriga)
               </button>
               <button 
                 className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => setActiveTab('settings')}
               >
-                ⚙️ Systeminställningar
+                Systeminställningar
               </button>
             </div>
 
@@ -306,8 +306,8 @@ export default function Dashboard() {
                 <div className="members-grid">
                   {filteredMembers.map(member => (
                     <div key={member.id} className="member-item">
-                      <div className="member-avatar">
-                        {member.role === 'admin' ? '👑' : '🏍'}
+                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase' }}>
+                        {member.role === 'admin' ? 'ADM' : 'MED'}
                       </div>
                       <div className="member-details">
                         <p className="member-email">{member.email}</p>
@@ -331,7 +331,7 @@ export default function Dashboard() {
 
             {activeTab === 'campaigns' && (
               <div className="campaign-studio card" style={{ padding: '2rem', marginTop: '1.5rem', border: '1px solid #00f5ff44', borderRadius: '14px', background: '#080808' }}>
-                <h3 style={{ color: '#00f5ff', marginTop: 0, marginBottom: '0.5rem', fontSize: '1.5rem' }}>⚡ OneUnit Massutskick-Studio via Brevo</h3>
+                <h3 style={{ color: '#00f5ff', marginTop: 0, marginBottom: '0.5rem', fontSize: '1.5rem' }}>OneUnit Massutskick-Studio via Brevo</h3>
                 <p style={{ color: '#aaaaaa', marginBottom: '2rem', fontSize: '0.95rem' }}>
                   Härifrån kan du skicka ut meddelanden med rubrik och din egen text (Body) till en hel databassamling samtidigt (t.ex. <strong>users</strong> eller prenumeranter).
                 </p>
@@ -344,9 +344,9 @@ export default function Dashboard() {
                       onChange={(e) => setCampaignTarget(e.target.value)}
                       style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontSize: '1rem', cursor: 'pointer' }}
                     >
-                      <option value="users">👑 Medlemskap & Register (kollektionen: "users")</option>
-                      <option value="newsletter_emails">📬 Nyhetsbrevs-listan ("newsletter_emails")</option>
-                      <option value="applications">📋 Medlemssökande ("applications")</option>
+                      <option value="users">Medlemskap & Register (kollektionen: "users")</option>
+                      <option value="newsletter_emails">Nyhetsbrevs-listan ("newsletter_emails")</option>
+                      <option value="applications">Medlemssökande ("applications")</option>
                     </select>
                   </div>
 
@@ -386,7 +386,7 @@ export default function Dashboard() {
                     className="btn btn-primary"
                     style={{ backgroundColor: '#00f5ff', color: '#000', fontWeight: 'bold', padding: '1rem', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '1.1rem', marginTop: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}
                   >
-                    {sendingCampaign ? '⏳ Registrerar utskicksorder...' : '🚀 Skicka E-postutskick Till Hela Gruppen Nu'}
+                    {sendingCampaign ? 'Registrerar utskicksorder...' : 'Skicka E-postutskick Till Hela Gruppen Nu'}
                   </button>
                 </form>
               </div>
@@ -395,7 +395,7 @@ export default function Dashboard() {
             {activeTab === 'settings' && (
               <div style={{ background: 'linear-gradient(145deg, #161b24 0%, #0c0e14 100%)', padding: '2.5rem', borderRadius: '20px', border: '1px solid rgba(0, 245, 255, 0.3)', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)' }}>
                 <h3 style={{ borderBottom: '2px solid #00f5ff', paddingBottom: '0.8rem', color: '#fff', margin: '0 0 1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <span>⚙️ SYSTEM- & KLUBBINSTÄLLNINGAR</span>
+                  <span>SYSTEM- & KLUBBINSTÄLLNINGAR</span>
                 </h3>
                 <p style={{ color: '#a0a6b5', marginBottom: '2rem', lineHeight: '1.6' }}>
                   Här administrerar du klubbens övergripande systemkonfiguration, välkomsttexter, tillåtande av fotouppladdning samt medlemsriktlinjer. Alla ändringar slår igenom omedelbart live på hela webbplatsen.
@@ -416,7 +416,7 @@ export default function Dashboard() {
                       updatedAt: serverTimestamp(),
                       updatedBy: currentUser?.email || 'Admin'
                     }, { merge: true });
-                    setSettingsSavedMsg('✨ Inställningarna har sparats och är nu live på hela sajten!');
+                    setSettingsSavedMsg('Inställningarna har sparats och är nu live på hela sajten!');
                     setTimeout(() => setSettingsSavedMsg(''), 6000);
                   } catch (err) {
                     alert('Kunde inte spara inställningar: ' + err.message);
@@ -445,7 +445,7 @@ export default function Dashboard() {
                     </div>
 
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={{ display: 'block', color: '#ffaa00', marginBottom: '0.5rem', fontWeight: '700' }}>📣 Live Meddelande / Banner på webbplatsen (valfritt):</label>
+                      <label style={{ display: 'block', color: '#ffaa00', marginBottom: '0.5rem', fontWeight: '700' }}>Live Meddelande / Banner på webbplatsen (valfritt):</label>
                       <input 
                         type="text" 
                         placeholder="Skriv ett anslag som du vill att besökare eller medlemmar ska uppmärksammas på (t.ex. Nästa klubbmöte inställt / ny tid)..."
@@ -478,7 +478,7 @@ export default function Dashboard() {
                     </div>
 
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <label style={{ display: 'block', color: '#00ff88', marginBottom: '0.5rem', fontWeight: '700' }}>📜 Klubbens Officiella Riktlinjer & Regler (Redigerbar för alla medlemmar):</label>
+                      <label style={{ display: 'block', color: '#00ff88', marginBottom: '0.5rem', fontWeight: '700' }}>Klubbens Officiella Riktlinjer & Regler (Redigerbar för alla medlemmar):</label>
                       <textarea 
                         rows={6}
                         value={clubRules}
@@ -500,7 +500,7 @@ export default function Dashboard() {
                     className="btn btn-primary"
                     style={{ backgroundColor: '#00ff88', color: '#000', fontWeight: '800', padding: '1rem 2rem', border: 'none', borderRadius: '30px', cursor: 'pointer', fontSize: '1.1rem', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 0 20px rgba(0, 255, 136, 0.3)' }}
                   >
-                    {savingSettings ? '⏳ Sparar i databasen...' : '⚡ SPARA & PUBLICERA SYSTEMINSTÄLLNINGAR'}
+                    {savingSettings ? 'Sparar i databasen...' : 'SPARA & PUBLICERA SYSTEMINSTÄLLNINGAR'}
                   </button>
                 </form>
               </div>

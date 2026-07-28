@@ -10,7 +10,7 @@ export default function ViewModeSwitcher() {
   return (
     <div className="view-mode-switcher" aria-label="Testa hur sidan ser ut ur olika perspektiv">
       <div className="switcher-label">
-        <span>👁️ Testvy:</span>
+        <span style={{ textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '1px', fontWeight: 800 }}>VY:</span>
       </div>
       <div className="switcher-buttons">
         <button
@@ -19,7 +19,7 @@ export default function ViewModeSwitcher() {
           onClick={() => setViewMode('admin')}
           title="Full administratörsbehörighet"
         >
-          👑 Admin
+          Admin
         </button>
         <button
           type="button"
@@ -27,7 +27,7 @@ export default function ViewModeSwitcher() {
           onClick={() => setViewMode('member')}
           title="Se hur sidan ser ut för en inloggad klubbmedlem"
         >
-          🏍️ Medlem
+          Medlem
         </button>
         <button
           type="button"
@@ -35,7 +35,7 @@ export default function ViewModeSwitcher() {
           onClick={() => setViewMode('guest')}
           title="Se hur sidan ser ut för en besökare som INTE är medlem"
         >
-          👤 Gäst
+          Gäst
         </button>
       </div>
     </div>
