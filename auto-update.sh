@@ -3,8 +3,8 @@
 # ONEUNIT MC - AUTOMATISERAT SCRIPT FÖR UNRAID / TOWER & WATCHTOWER
 # ==============================================================================
 # Klistra in detta direkt i ditt "User Scripts"-plugin i Unraid!
-# Scriptet kontrollerar GitHub, laddar ner sista uppdateringar och bygger 
-# om din Docker-container med 100% idiotsäkra, nativa Docker-kommandon.
+# Scriptet tvingar fram en 100% ren synkronisering med din GitHub origin/main
+# utan att någonsin stanna på lokala filändringar eller merge-fel!
 # ==============================================================================
 
 PROJECT_DIR="/mnt/user/appdata/oneunit-webbsida"
@@ -21,15 +21,16 @@ if [ -d "$PROJECT_DIR" ]; then
   REMOTE_VER=$(git rev-parse origin/main)
   
   if [ "$LOCAL_VER" != "$REMOTE_VER" ]; then
-    echo "[$(date)] 🚀 Ny kod hittades på GitHub! Laddar ner..."
-    git pull origin main
+    echo "[$(date)] 🚀 Ny kod hittades på GitHub! Återställer och synkroniserar exakt mot molnet..."
+    git reset --hard origin/main
+    git clean -fd
     
     echo "[$(date)] 📦 Bygger ny Docker Image till Watchtower..."
     docker build -t oneunit-webbsida:latest .
     
     echo "[$(date)] 🔄 Startar om containern..."
     docker stop oneunit-webbsida 2>/dev/null
-    docker rm oneunit-webbsida 2>/dev/null
+    docker rm -f oneunit-webbsida 2>/dev/null
     docker run -d \
       --name oneunit-webbsida \
       --restart unless-stopped \
@@ -37,7 +38,7 @@ if [ -d "$PROJECT_DIR" ]; then
       --label com.centurylinklabs.watchtower.enable=true \
       oneunit-webbsida:latest
     
-    echo "[$(date)] ✅ Succé! Nyaste Hemsidan laddad och aktiverad!"
+    echo "[$(date)] ✅ Succé! Nyaste Hemsidan laddad och aktiverad under Watchtower!"
   else
     echo "[$(date)] 👍 Hemsidan är redan 100% uppdaterad (inga nya push på GitHub)."
   fi
