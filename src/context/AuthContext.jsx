@@ -49,7 +49,8 @@ export function AuthProvider({ children }) {
   const actualIsAdmin = userData?.role === 'admin';
 
   // Om användaren faktiskt är admin och väljer att byta vy (medlem / gäst)
-  const effectiveRole = actualIsAdmin && viewMode === 'member' ? 'member'
+  const effectiveRole = userData?.isBanned ? 'banned'
+                      : actualIsAdmin && viewMode === 'member' ? 'member'
                       : actualIsAdmin && viewMode === 'guest' ? 'guest'
                       : userData?.role;
 
@@ -61,6 +62,7 @@ export function AuthProvider({ children }) {
     userData: actualIsAdmin && viewMode === 'guest' ? null : userData,
     isAdmin: effectiveRole === 'admin',
     isMember: effectiveRole === 'member' || effectiveRole === 'admin',
+    isBanned: effectiveRole === 'banned',
     actualIsAdmin,
     viewMode,
     setViewMode

@@ -204,7 +204,92 @@
 
 .member-date {
   color: var(--color-muted);
-  font-size: 0.75rem;
+  font-size: 0.95rem;
+}
+
+/* =========================================
+   MEMBER MANAGEMENT MODAL
+   ========================================= */
+.manage-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.manage-modal-content {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+.manage-modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface-2);
+}
+
+.manage-modal-header h2 {
+  font-size: 1.2rem;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.manage-modal-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.manage-modal-close:hover {
+  color: #fff;
+}
+
+.manage-modal-body {
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.manage-section h3 {
+  font-size: 1rem;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0.5rem;
+}
+
+.manage-chat-logs {
+  margin-top: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 1rem;
+  background: #000;
 }
 
 .btn-remove-member {
