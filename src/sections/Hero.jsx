@@ -67,8 +67,8 @@ export default function Hero() {
             <Link to="/apply" id="hero-apply-btn" className="btn btn-primary">
               Ansök om Medlemskap
             </Link>
-            <Link to="/gallery" id="hero-gallery-btn" className="btn btn-outline">
-              Se Galleri
+            <Link to="/about" id="hero-gallery-btn" className="btn btn-outline">
+              Om Oss
             </Link>
           </div>
         </div>

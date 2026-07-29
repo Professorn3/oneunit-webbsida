@@ -5,7 +5,7 @@ import './Navbar.css'
 
 const navLinks = [
   { path: '/', label: 'Hem' },
-  { path: '/gallery', label: 'Galleri' },
+  { path: '/about', label: 'Om Oss' },
   { path: '/news', label: 'Nyheter' },
   { path: '/meetups', label: 'Meetups' },
   { path: '/merch', label: 'Merch' },
