@@ -33,16 +33,14 @@ export default function Hero() {
     <section ref={heroRef} className="hero" aria-label="Startsida hero">
       {/* Background */}
       <div className="hero__bg-wrapper" aria-hidden="true">
-        <video
+        <iframe
           className="hero__bg-video"
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/images/hero_bg.png"
-        >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-motorcyclist-riding-a-dark-motorcycle-41940-large.mp4" type="video/mp4" />
-        </video>
+          src="https://www.youtube.com/embed/7icDijGRKlY?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&start=60&end=120&loop=1&playlist=7icDijGRKlY"
+          title="OneUnit Background"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
         <div className="hero__overlay" />
         <div className="hero__overlay hero__overlay--gradient" />
       </div>
