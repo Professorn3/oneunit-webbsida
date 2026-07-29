@@ -14,7 +14,7 @@ export default function Hero() {
 
     const onScroll = () => {
       const scrollY = window.scrollY
-      const bg = hero.querySelector('.hero__bg')
+      const bg = hero.querySelector('.hero__bg-video')
       if (bg) bg.style.transform = `translateY(${scrollY * 0.4}px)`
     }
 
@@ -33,10 +33,16 @@ export default function Hero() {
     <section ref={heroRef} className="hero" aria-label="Startsida hero">
       {/* Background */}
       <div className="hero__bg-wrapper" aria-hidden="true">
-        <div
-          className="hero__bg"
-          style={{ backgroundImage: 'url(/images/hero_bg.png)' }}
-        />
+        <video
+          className="hero__bg-video"
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/images/hero_bg.png"
+        >
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-motorcyclist-riding-a-dark-motorcycle-41940-large.mp4" type="video/mp4" />
+        </video>
         <div className="hero__overlay" />
         <div className="hero__overlay hero__overlay--gradient" />
       </div>

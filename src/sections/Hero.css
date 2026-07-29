@@ -16,11 +16,12 @@
   z-index: 0;
 }
 
-.hero__bg {
+.hero__bg-video {
   position: absolute;
   inset: -20%;
-  background-size: cover;
-  background-position: center;
+  width: 140%;
+  height: 140%;
+  object-fit: cover;
   filter: brightness(0.4) saturate(0.8);
   will-change: transform;
 }
