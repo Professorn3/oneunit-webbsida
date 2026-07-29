@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import GlitchText from '../components/GlitchText'
+import ReactPlayer from 'react-player'
 import './Hero.css'
 
 export default function Hero() {
   const heroRef = useRef(null)
   const scrollIndicatorRef = useRef(null)
+  const playerRef = useRef(null)
 
   // Parallax on scroll
   useEffect(() => {
@@ -29,18 +31,44 @@ export default function Hero() {
     setTimeout(() => el.classList.add('hero--loaded'), 100)
   }, [])
 
+  const handleProgress = (state) => {
+    if (state.playedSeconds >= 119) {
+      if (playerRef.current) {
+        playerRef.current.seekTo(60, 'seconds')
+      }
+    }
+  }
+
   return (
     <section ref={heroRef} className="hero" aria-label="Startsida hero">
       {/* Background */}
       <div className="hero__bg-wrapper" aria-hidden="true">
-        <iframe
-          className="hero__bg-video"
-          src="https://www.youtube.com/embed/7icDijGRKlY?autoplay=1&mute=1&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&start=60&end=120&loop=1&playlist=7icDijGRKlY"
-          title="OneUnit Background"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-        />
+        <div className="hero__bg-video">
+          <ReactPlayer
+            ref={playerRef}
+            url="https://www.youtube.com/watch?v=7icDijGRKlY"
+            playing={true}
+            muted={true}
+            controls={false}
+            width="100%"
+            height="100%"
+            onProgress={handleProgress}
+            progressInterval={500}
+            config={{
+              youtube: {
+                playerVars: {
+                  start: 60,
+                  controls: 0,
+                  disablekb: 1,
+                  modestbranding: 1,
+                  rel: 0,
+                  showinfo: 0,
+                  iv_load_policy: 3
+                }
+              }
+            }}
+          />
+        </div>
         <div className="hero__overlay" />
         <div className="hero__overlay hero__overlay--gradient" />
       </div>
