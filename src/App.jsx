@@ -18,6 +18,8 @@ import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import Rules from './pages/Rules'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
+import ScrollProgress from './components/ScrollProgress'
+import PageTransition from './components/PageTransition'
 import './App.css'
 import ScrollToTop from './components/ScrollToTop'
 
@@ -34,25 +36,26 @@ function AppContent() {
 
   return (
     <>
+      <ScrollProgress />
       <ScrollToTop />
       <Navbar />
       <main>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/gallery" element={<Gallery />} />
-            <Route path="/news" element={<News />} />
-            <Route path="/meetups" element={<Meetups />} />
-            <Route path="/merch" element={<Merch />} />
-            <Route path="/apply" element={<Apply />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<RegisterInvite />} />
+            <Route path="/" element={<PageTransition><Home /></PageTransition>} />
+            <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+            <Route path="/gallery" element={<PageTransition><Gallery /></PageTransition>} />
+            <Route path="/news" element={<PageTransition><News /></PageTransition>} />
+            <Route path="/meetups" element={<PageTransition><Meetups /></PageTransition>} />
+            <Route path="/merch" element={<PageTransition><Merch /></PageTransition>} />
+            <Route path="/apply" element={<PageTransition><Apply /></PageTransition>} />
+            <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+            <Route path="/register" element={<PageTransition><RegisterInvite /></PageTransition>} />
             <Route 
               path="/dashboard" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <PageTransition><Dashboard /></PageTransition>
                 </ProtectedRoute>
               } 
             />
@@ -60,7 +63,7 @@ function AppContent() {
               path="/rules" 
               element={
                 <ProtectedRoute requiredRole="member">
-                  <Rules />
+                  <PageTransition><Rules /></PageTransition>
                 </ProtectedRoute>
               } 
             />
