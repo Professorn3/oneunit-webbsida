@@ -111,9 +111,6 @@ export default function Hero() {
             <br />
             <GlitchText text="UNIT" tag="span" className="hero__title-line hero__title-line--outline" />
           </h1>
-          <p className="hero__subtitle">
-            Gemenskap&nbsp;·&nbsp;Respekt&nbsp;·&nbsp;Lojalitet
-          </p>
           <div className="hero__actions">
             <Link to="/apply" id="hero-apply-btn" className="btn btn-primary">
               Ansök om Medlemskap
