@@ -26,7 +26,7 @@ export default function About() {
           >
             <h2>VILKA ÄR ONEUNIT MC?</h2>
             <p>
-              OneUnit MC är inte bara en motorcykelklubb. Vi är ett brödraskap bundet av en passion för frihet, lojalitet och kärleken till den öppna vägen. Vi grundades med en enkel vision: att skapa en gemenskap där varje medlem är en del av något större, en enda enhet, en <strong>OneUnit</strong>.
+              OneUnit MC är inte bara en motorcykelklubb. Vi är en gemenskap bundet av en passion för frihet, lojalitet och kärleken till den öppna vägen. Vi grundades med en enkel vision: att skapa en gemenskap där varje medlem är en del av något större, en enda enhet, en <strong>OneUnit</strong>.
             </p>
           </motion.div>
 
@@ -38,7 +38,7 @@ export default function About() {
           >
             <h2>VÅRA VÄRDERINGAR</h2>
             <p>
-              Respekt är vår valuta. Vi dömer ingen efter bakgrund eller titel utan efter hur man agerar och står vid sitt ord. På vägarna lämnar vi aldrig en broder eller syster bakom oss. Vi står starka tillsammans i vått och torrt.
+              Respekt är vår valuta. Vi dömer ingen efter bakgrund eller titel utan efter hur man agerar och står vid sitt ord. På vägarna lämnar vi aldrig en medlem bakom oss. Vi står starka tillsammans i vått och torrt.
             </p>
           </motion.div>
 

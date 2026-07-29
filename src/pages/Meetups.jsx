@@ -180,7 +180,7 @@ export default function Meetups() {
     >
       <div className="container">
         <header className="meetups-hero">
-          <p className="meetups-eyebrow">ONEUNIT MC · BRODERSKAP PÅ VÄGARNA</p>
+          <p className="meetups-eyebrow">ONEUNIT MC · GEMENSKAP PÅ VÄGARNA</p>
           <h1 className="meetups-title">MEETUPS & KLUBBTRÄFFAR</h1>
           <p className="meetups-subtitle">
             Haka på klubben på nästa arrangerade ritt, bandag eller samling. 
@@ -268,7 +268,7 @@ export default function Meetups() {
                 <label>Beskrivning & Information:</label>
                 <textarea 
                   rows={3} 
-                  placeholder="Skriv detaljer om klädsel, tankning, pauser eller evenemangets mål..."
+                  placeholder="Skriv detaljer om tankning, pauser eller evenemangets mål..."
                   value={description} 
                   onChange={(e) => setDescription(e.target.value)} 
                   required
@@ -321,7 +321,7 @@ export default function Meetups() {
                   {/* Deltagare / RSVP Lista */}
                   <div className="meetup-attendees-box">
                     <p className="attendees-title">
-                      <span>Anmälda Biker-Broder & Syster:</span>
+                      <span>Anmälda Medlemmar:</span>
                       <span style={{ color: '#fff' }}>({attendeesList.length} st)</span>
                     </p>
                     <div className="attendee-chips">

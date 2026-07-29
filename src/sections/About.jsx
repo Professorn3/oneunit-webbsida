@@ -1,15 +1,31 @@
+import { useEffect, useState } from 'react'
+import { db } from '../firebase'
+import { collection, getDocs } from 'firebase/firestore'
 import ScrollReveal from '../components/ScrollReveal'
 import TextReveal from '../components/TextReveal'
 import './About.css'
 
-const stats = [
-  { value: '2019', label: 'Grundat' },
-  { value: '40+', label: 'Medlemmar' },
-  { value: '5', label: 'Städer' },
-  { value: '∞', label: 'Broderskap' },
-]
-
 export default function About() {
+  const [memberCount, setMemberCount] = useState(0)
+
+  useEffect(() => {
+    const fetchCount = async () => {
+      try {
+        const snap = await getDocs(collection(db, 'users'))
+        setMemberCount(snap.size)
+      } catch (err) {
+        console.error("Kunde inte hämta antal medlemmar:", err)
+      }
+    }
+    fetchCount()
+  }, [])
+
+  const stats = [
+    { value: '2026', label: 'Grundat' },
+    { value: memberCount > 0 ? memberCount : '...', label: 'Medlemmar' },
+    { value: '2', label: 'Städer' },
+  ]
+
   return (
     <section className="about section" aria-labelledby="about-heading">
       <div className="container">
@@ -32,21 +48,21 @@ export default function About() {
               <p className="about__body">
                 OneUnit MC är inte bara ett motorcykelgäng – det är en livsstil. 
                 Vi bygger gemenskap baserat på respekt, lojalitet och kärleken till 
-                friheten på hjul. Sedan 2019 har vi vuxit till ett tight-knit brödraskapet 
+                friheten på hjul. Sedan 2026 har vi vuxit till en stark gemenskap 
                 med ryttare från hela landet.
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={300}>
               <p className="about__body">
-                Varje ritt är en ny historia. Varje bror är en del av helheten. 
+                Varje ritt är en ny historia. Varje medlem är en del av helheten. 
                 Det är vad OneUnit betyder – vi är alla en enhet, starkare tillsammans.
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={400}>
               <div className="about__values">
-                {['Lojalitet', 'Respekt', 'Frihet', 'Broderskap'].map((v) => (
+                {['Lojalitet', 'Respekt', 'Frihet', 'Gemenskap'].map((v) => (
                   <span key={v} className="tag">{v}</span>
                 ))}
               </div>
@@ -58,7 +74,7 @@ export default function About() {
             <div className="about__image-frame">
               <img
                 src="/images/gallery_4.png"
-                alt="OneUnit MC brödraskapet"
+                alt="OneUnit MC gemenskap"
                 className="about__image"
                 loading="lazy"
               />

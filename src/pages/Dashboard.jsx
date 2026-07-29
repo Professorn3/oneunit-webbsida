@@ -29,11 +29,11 @@ export default function Dashboard() {
 
   // Systeminställningar & Klubbconfig för Admins
   const [siteName, setSiteName] = useState('OneUnit MC - Official Website');
-  const [siteSlogan, setSiteSlogan] = useState('Broderskap, Respekt & Lojalitet På Vägarna');
+  const [siteSlogan, setSiteSlogan] = useState('Gemenskap, Respekt & Lojalitet På Vägarna');
   const [announcementBanner, setAnnouncementBanner] = useState('');
   const [enableChatMedia, setEnableChatMedia] = useState(true);
   const [openForApplications, setOpenForApplications] = useState(true);
-  const [clubRules, setClubRules] = useState('1. Respektera alltid brodern och emblemet.\n2. Inga diskussioner om klubbärenden utanför officiella möten.\n3. Håll alltid mc:n redo för samlingsritten.\n4. Alla betalar sin kontingent i tid.');
+  const [clubRules, setClubRules] = useState('1. Respektera alltid medlemmarna och emblemet.\n2. Inga diskussioner om klubbärenden utanför officiella möten.\n3. Håll alltid mc:n redo för samlingsritten.\n4. Alla betalar sin kontingent i tid.');
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
   

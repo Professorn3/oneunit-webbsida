@@ -15,7 +15,7 @@ const pageVariants = {
 const requirements = [
   { icon: '▪', text: 'Har ett giltigt MC-körkort (minst A2)' },
   { icon: '▪', text: 'Äger en motorcykel med motor ≥ 500cc' },
-  { icon: '▪', text: 'Respekterar broderskap och lojalitet' },
+  { icon: '▪', text: 'Respekterar gemenskap och lojalitet' },
   { icon: '▪', text: 'Är bosatt i Sverige' },
 ]
 
