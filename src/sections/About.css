@@ -90,13 +90,13 @@
 }
 
 .about__image-frame:hover .about__image-border {
-  border-color: var(--color-accent-cyan);
+  border-color: #ffffff;
 }
 
 /* Stats */
 .about__stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 2px;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
@@ -117,9 +117,9 @@
   font-family: var(--font-display);
   font-size: clamp(3rem, 5vw, 5rem);
   line-height: 1;
-  color: var(--color-accent-cyan);
+  color: #ffffff;
   margin-bottom: 0.5rem;
-  text-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
 .about__stat-label {
