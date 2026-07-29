@@ -4,6 +4,7 @@ import GlitchText from '../components/GlitchText'
 import ScrollReveal from '../components/ScrollReveal'
 import { db } from '../firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { swedishCities } from '../utils/cities'
 import './Apply.css'
 
 const pageVariants = {
@@ -152,16 +153,19 @@ export default function Apply() {
               <div className="apply-page__row">
                 <div className="form-group">
                   <label className="form-label" htmlFor="apply-city">Stad / Ort *</label>
-                  <input
+                  <select
                     id="apply-city"
                     name="city"
-                    type="text"
-                    className="form-input"
-                    placeholder="ex. Stockholm"
+                    className="form-select"
                     value={form.city}
                     onChange={handleChange}
                     required
-                  />
+                  >
+                    <option value="" disabled>Välj din stad...</option>
+                    {swedishCities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
                   <label className="form-label" htmlFor="apply-email">E-post *</label>
