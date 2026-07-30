@@ -68,14 +68,9 @@ export default function Navbar() {
       </ul>
       <div className="navbar__actions" style={{display: 'flex', gap: '0.8rem', alignItems: 'center'}}>
         {!currentUser ? (
-          <>
-            <Link to="/apply" className="btn btn-primary navbar__cta" onClick={() => setMenuOpen(false)}>
-              Ansök
-            </Link>
-            <Link to="/login" className="btn btn-outline navbar__cta" onClick={() => setMenuOpen(false)}>
-              Logga In
-            </Link>
-          </>
+          <Link to="/login" className="btn btn-outline navbar__cta" onClick={() => setMenuOpen(false)}>
+            Logga In
+          </Link>
         ) : (
           <Link 
             to="/dashboard" 
