@@ -16,17 +16,17 @@ const pageVariants = {
 };
 
 const defaultItems = [
-  { id: 'def_1', src: '/images/gallery_1.png', title: 'Nattritt', category: 'Ritter', type: 'image' },
-  { id: 'def_2', src: '/images/gallery_2.png', title: 'Formation', category: 'Ritter', type: 'image' },
-  { id: 'def_3', src: '/images/gallery_3.png', title: 'Maskinen', category: 'MC', type: 'image' },
+  { id: 'def_1', src: '/images/gallery_1.png', title: 'Nattritt', category: 'Community', type: 'image' },
+  { id: 'def_2', src: '/images/gallery_2.png', title: 'Formation', category: 'Community', type: 'image' },
+  { id: 'def_3', src: '/images/gallery_3.png', title: 'Maskinen', category: 'Motorcyklar', type: 'image' },
   { id: 'def_4', src: '/images/gallery_4.png', title: 'Brödraskapet', category: 'Community', type: 'image' },
-  { id: 'def_5', src: '/images/gallery_5.png', title: 'Tunnel', category: 'Ritter', type: 'image' },
-  { id: 'def_6', src: '/images/hero_bg.png', title: 'Dimma', category: 'MC', type: 'image' },
+  { id: 'def_5', src: '/images/gallery_5.png', title: 'Tunnel', category: 'Motorcyklar', type: 'image' },
+  { id: 'def_6', src: '/images/hero_bg.png', title: 'Dimma', category: 'Motorcyklar', type: 'image' },
   { id: 'def_7', src: '/images/gallery_1.png', title: 'City Lights', category: 'Community', type: 'image' },
   { id: 'def_8', src: '/images/gallery_4.png', title: 'Gänget', category: 'Community', type: 'image' },
 ];
 
-const categories = ['Alla', 'Ritter', 'MC', 'Community'];
+const categories = ['Alla', 'Motorcyklar', 'Community'];
 
 export default function Gallery() {
   const { currentUser, isMember, isAdmin } = useAuth();
@@ -39,7 +39,7 @@ export default function Gallery() {
   // Upload Studio State
   const [showUploadStudio, setShowUploadStudio] = useState(false);
   const [title, setTitle] = useState('');
-  const [uploadCategory, setUploadCategory] = useState('Ritter');
+  const [uploadCategory, setUploadCategory] = useState('Motorcyklar');
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
@@ -122,10 +122,48 @@ export default function Gallery() {
     }
   };
 
-  const combinedItems = [...dbItems, ...defaultItems];
-  const filtered = activeCategory === 'Alla'
-    ? combinedItems
-    : combinedItems.filter(item => item.category === activeCategory);
+  // Mappa om gamla kategorier till de nya för att undvika databasstrul
+  const mappedDbItems = dbItems.map(item => {
+    let cat = item.category;
+    if (cat === 'Ritter' || cat === 'Community') cat = 'Community';
+    if (cat === 'MC' || cat === 'Motorcyklar') cat = 'Motorcyklar';
+    return { ...item, category: cat };
+  });
+
+  const combinedItems = [...mappedDbItems, ...defaultItems];
+  let filtered = [];
+
+  if (activeCategory === 'Alla') {
+    const communityItems = combinedItems.filter(item => item.category === 'Community');
+    const otherItems = combinedItems.filter(item => item.category !== 'Community');
+    
+    let commIndex = 0;
+    let otherIndex = 0;
+    
+    // Första 10 prioriterar Community starkt
+    while (commIndex < communityItems.length || otherIndex < otherItems.length) {
+      if (filtered.length < 10) {
+        if (filtered.length % 3 !== 2 && commIndex < communityItems.length) {
+          filtered.push(communityItems[commIndex++]);
+        } else if (otherIndex < otherItems.length) {
+          filtered.push(otherItems[otherIndex++]);
+        } else if (commIndex < communityItems.length) {
+          filtered.push(communityItems[commIndex++]);
+        }
+      } else {
+        // Efter 10 blandas de
+        if (filtered.length % 2 === 0 && commIndex < communityItems.length) {
+          filtered.push(communityItems[commIndex++]);
+        } else if (otherIndex < otherItems.length) {
+          filtered.push(otherItems[otherIndex++]);
+        } else if (commIndex < communityItems.length) {
+          filtered.push(communityItems[commIndex++]);
+        }
+      }
+    }
+  } else {
+    filtered = combinedItems.filter(item => item.category === activeCategory);
+  }
 
   return (
     <motion.div
@@ -207,8 +245,7 @@ export default function Gallery() {
                         onChange={(e) => setUploadCategory(e.target.value)}
                         style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', color: '#fff' }}
                       >
-                        <option value="Ritter">Ritter</option>
-                        <option value="MC">MC</option>
+                        <option value="Motorcyklar">Motorcyklar</option>
                         <option value="Community">Community</option>
                       </select>
                     </div>
