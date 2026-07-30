@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import GlitchText from '../components/GlitchText'
+import ScrambleText from '../components/ScrambleText'
 import ScrollReveal from '../components/ScrollReveal'
 import { db } from '../firebase'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
@@ -69,9 +70,9 @@ export default function Apply() {
         <div className="container">
           <p className="section-label">Ansökan</p>
           <h1 className="apply-page__title">
-            <GlitchText text="ANSÖK OM" tag="span" className="apply-page__title-line" />
+            <ScrambleText text="BLI EN DEL" className="apply-page__title-line" />
             <br />
-            <GlitchText text="MEDLEMSKAP" tag="span" className="apply-page__title-line apply-page__title-line--outline" continuous />
+            <ScrambleText text="AV OSS" className="apply-page__title-line apply-page__title-line--outline" />
           </h1>
           <p className="apply-page__subtitle">
             Vi väljer noggrant. Är du rätt person?

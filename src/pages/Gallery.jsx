@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
@@ -42,6 +42,11 @@ export default function Gallery() {
   const [uploadCategory, setUploadCategory] = useState('Ritter');
   const [imagePreview, setImagePreview] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  // Parallax hooks
+  const { scrollYProgress } = useScroll();
+  const yFast = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const yMedium = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
   useEffect(() => {
     const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
@@ -254,8 +259,11 @@ export default function Gallery() {
 
         {/* Grid */}
         <div className="gallery-page__grid" role="list">
-          {filtered.map((item, i) => (
+          {filtered.map((item, i) => {
+            const parallaxY = i % 3 === 1 ? yFast : i % 3 === 2 ? yMedium : 0;
+            return (
             <ScrollReveal key={item.id} delay={i * 40} className="gallery-page__item" role="listitem" style={{ position: 'relative' }}>
+              <motion.div style={{ y: parallaxY, height: '100%' }}>
               {(isAdmin || (currentUser && currentUser.email === item.uploaderEmail)) && !String(item.id).startsWith('def_') && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setItemToDelete(item); }}
@@ -310,8 +318,9 @@ export default function Gallery() {
                   </span>
                 </div>
               </button>
+              </motion.div>
             </ScrollReveal>
-          ))}
+          )})}
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from '../components/ConfirmModal';
+import ScrambleText from '../components/ScrambleText';
 import './Meetups.css';
 
 // Standard-evenemang om inget lagts in i Firestore ännu
@@ -180,8 +181,8 @@ export default function Meetups() {
     >
       <div className="container">
         <header className="meetups-hero">
-          <p className="meetups-eyebrow">ONEUNIT MC · GEMENSKAP PÅ VÄGARNA</p>
-          <h1 className="meetups-title">MEETUPS & KLUBBTRÄFFAR</h1>
+          <p className="meetups-eyebrow">Träffar & Rides</p>
+          <h1 className="meetups-title"><ScrambleText text="MEETUPS" /></h1>
           <p className="meetups-subtitle">
             Haka på klubben på nästa arrangerade ritt, bandag eller samling. 
             Anmäl ditt deltagande direkt nedan och rid sida vid sida i formation.

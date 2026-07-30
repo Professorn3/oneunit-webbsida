@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import ScrambleText from '../components/ScrambleText'
 import './About.css'
 
 export default function About() {
@@ -13,7 +14,7 @@ export default function About() {
     >
       <div className="container">
         <header className="about-header">
-          <h1 className="about-title">OM <span>OSS</span></h1>
+          <h1 className="about-title"><ScrambleText text="OM OSS" /></h1>
           <div className="about-divider" />
         </header>
 
