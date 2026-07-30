@@ -44,6 +44,7 @@ export default function Meetups() {
   const [loading, setLoading] = useState(true);
   const [meetupToDelete, setMeetupToDelete] = useState(null);
   const [showAdminStudio, setShowAdminStudio] = useState(false);
+  const [mapOpenFor, setMapOpenFor] = useState(null);
 
   // Admin Form State
   const [title, setTitle] = useState('');
@@ -310,12 +311,31 @@ export default function Meetups() {
                     <li>
                       <span className="meetup-meta-icon">📍</span>
                       <strong>Samling:</strong> {event.location}
+                      <button 
+                        onClick={() => setMapOpenFor(mapOpenFor === event.id ? null : event.id)} 
+                        style={{ marginLeft: '10px', background: 'transparent', border: '1px solid #444', color: '#00f5ff', padding: '2px 8px', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
+                      >
+                        {mapOpenFor === event.id ? 'Dölj karta' : 'Visa på karta'}
+                      </button>
                     </li>
                     <li>
                       <span className="meetup-meta-icon">🛣️</span>
                       <strong>Rutt:</strong> {event.route}
                     </li>
                   </ul>
+
+                  {mapOpenFor === event.id && (
+                    <div style={{ marginTop: '1rem', width: '100%', borderRadius: '8px', overflow: 'hidden', border: '1px solid #333' }}>
+                      <iframe 
+                        width="100%" 
+                        height="200" 
+                        style={{ border: 0 }} 
+                        loading="lazy" 
+                        allowFullScreen 
+                        src={`https://www.google.com/maps?q=${encodeURIComponent(event.location)}&output=embed`}>
+                      </iframe>
+                    </div>
+                  )}
 
                   <p className="meetup-desc">{event.description}</p>
 
