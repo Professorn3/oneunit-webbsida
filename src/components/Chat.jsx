@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
-import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, arrayUnion } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import './Chat.css';
@@ -31,6 +31,11 @@ export default function Chat() {
   const [searchedGifs, setSearchedGifs] = useState([]);
   const [loadingGifs, setLoadingGifs] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
+
+  // Poll State
+  const [showPollCreator, setShowPollCreator] = useState(false);
+  const [pollQuestion, setPollQuestion] = useState('');
+  const [pollOptions, setPollOptions] = useState(['Ja', 'Nej', 'Kanske']);
   
   const messagesEndRef = useRef(null);
 
@@ -159,6 +164,64 @@ export default function Chat() {
     if (e.target) e.target.value = null;
   };
 
+  const handleTogglePin = async (msgId, currentPin) => {
+    if (!isAdmin) return;
+    try {
+      const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+      await updateDoc(doc(db, roomTarget, msgId), { isPinned: !currentPin });
+    } catch(err) { console.error(err); }
+  };
+
+  const handleSendPoll = async (e) => {
+    e.preventDefault();
+    if (!pollQuestion.trim()) return;
+    const validOptions = pollOptions.filter(o => o.trim() !== '');
+    if (validOptions.length < 2) {
+      alert("En omröstning behöver minst 2 alternativ.");
+      return;
+    }
+
+    const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+    try {
+      await addDoc(collection(db, roomTarget), {
+        isPoll: true,
+        question: pollQuestion,
+        options: validOptions.map(opt => ({ text: opt, votes: 0 })),
+        votedUsers: [], // Array of uids who voted
+        createdAt: serverTimestamp(),
+        uid: currentUser.uid,
+        email: currentUser.email,
+        senderName: userData?.firstName || currentUser.email.split('@')[0],
+        role: isAdmin ? 'admin' : 'member'
+      });
+      setShowPollCreator(false);
+      setPollQuestion('');
+      setPollOptions(['Ja', 'Nej', 'Kanske']);
+    } catch (err) {
+      alert("Fel vid skapande av omröstning: " + err.message);
+    }
+  };
+
+  const handleVote = async (msgId, optionIndex, msgData) => {
+    if (msgData.votedUsers?.includes(currentUser.uid)) {
+      alert("Du har redan röstat på denna.");
+      return;
+    }
+    const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+    const updatedOptions = [...msgData.options];
+    updatedOptions[optionIndex].votes += 1;
+    
+    try {
+      await updateDoc(doc(db, roomTarget, msgId), {
+        options: updatedOptions,
+        votedUsers: arrayUnion(currentUser.uid)
+      });
+    } catch(err) { console.error(err); }
+  };
+
+  const pinnedMessages = messages.filter(m => m.isPinned);
+  const regularMessages = messages.filter(m => !m.isPinned);
+
   return (
     <>
       {/* Floating Toggle Button */}
@@ -215,22 +278,79 @@ export default function Chat() {
         </header>
 
         <div className="chat-messages">
-          {messages.length === 0 ? (
+          {pinnedMessages.length > 0 && (
+            <div className="chat-pinned-section">
+              <div style={{ fontSize: '0.7rem', color: '#00f5ff', textTransform: 'uppercase', marginBottom: '0.5rem', fontWeight: 800 }}>📌 Fäst Meddelande</div>
+              {pinnedMessages.map(msg => (
+                <div key={'pin-'+msg.id} className="chat-message received" style={{ borderLeft: '3px solid #00f5ff', background: 'rgba(0,245,255,0.05)' }}>
+                  <div className="msg-bubble" style={{ background: 'transparent', padding: '0.5rem' }}>
+                    <strong>{msg.senderName}:</strong> {msg.text || (msg.isPoll ? `[Omröstning] ${msg.question}` : '[Media]')}
+                    {isAdmin && <button onClick={() => handleTogglePin(msg.id, true)} style={{ marginLeft: '10px', background: 'none', border: 'none', color: '#ff0055', cursor: 'pointer', fontSize: '0.8rem' }}>Lossa</button>}
+                  </div>
+                </div>
+              ))}
+              <hr style={{ borderColor: '#222', margin: '1rem 0' }} />
+            </div>
+          )}
+
+          {regularMessages.length === 0 && pinnedMessages.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#666', marginTop: '2rem' }}>
               Välkommen till {activeRoom === 'club_chat' ? 'Klubbchatten' : 'Adminchatten'}! Skriv något eller släng in en fet GIF nedan. ⚡
             </p>
           ) : (
-            messages.map(msg => {
+            regularMessages.map(msg => {
               const isMe = msg.uid === currentUser.uid;
               const senderDisplay = msg.senderName || msg.email?.split('@')[0] || 'Medlem';
               return (
                 <div key={msg.id} className={`chat-message ${isMe ? 'sent' : 'received'}`}>
-                  <span className="msg-sender">
-                    {msg.role === 'admin' ? '👑 ' : '🏍️ '}{senderDisplay} {msg.role === 'admin' ? '(Admin)' : ''}
-                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: isMe ? 'flex-end' : 'flex-start', gap: '0.5rem' }}>
+                    <span className="msg-sender">
+                      {msg.role === 'admin' ? '👑 ' : '🏍️ '}{senderDisplay} {msg.role === 'admin' ? '(Admin)' : ''}
+                    </span>
+                    {isAdmin && (
+                      <button onClick={() => handleTogglePin(msg.id, !!msg.isPinned)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.8rem' }} title="Fäst meddelande">📌</button>
+                    )}
+                  </div>
                   
-                  {/* Om det är en GIF eller Bild */}
-                  {msg.gifUrl ? (
+                  {msg.isPoll ? (
+                    <div className="msg-bubble poll-bubble" style={{ border: '1px solid #333', minWidth: '200px' }}>
+                      <div style={{ fontWeight: 'bold', marginBottom: '0.8rem', color: '#00f5ff' }}>📊 {msg.question}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        {msg.options.map((opt, i) => {
+                          const totalVotes = msg.options.reduce((acc, curr) => acc + curr.votes, 0);
+                          const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+                          const hasVoted = msg.votedUsers?.includes(currentUser.uid);
+                          return (
+                            <button 
+                              key={i}
+                              onClick={() => handleVote(msg.id, i, msg)}
+                              disabled={hasVoted}
+                              style={{
+                                background: hasVoted ? 'rgba(255,255,255,0.1)' : '#111',
+                                border: '1px solid #444',
+                                borderRadius: '4px',
+                                padding: '0.5rem',
+                                color: '#fff',
+                                cursor: hasVoted ? 'default' : 'pointer',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                textAlign: 'left',
+                                display: 'flex',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, background: 'rgba(0, 245, 255, 0.2)', width: `${percentage}%`, transition: 'width 0.5s' }} />
+                              <span style={{ position: 'relative', zIndex: 1 }}>{opt.text}</span>
+                              <span style={{ position: 'relative', zIndex: 1, fontSize: '0.8rem', color: '#00f5ff' }}>{opt.votes > 0 ? `${opt.votes} (${percentage}%)` : ''}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '0.5rem', textAlign: 'right' }}>
+                        {msg.votedUsers?.length || 0} röster
+                      </div>
+                    </div>
+                  ) : msg.gifUrl ? (
                     <div className="msg-bubble gif-bubble">
                       <img src={msg.gifUrl} alt="Chat GIF" className="msg-gif-img" loading="lazy" />
                     </div>
@@ -313,12 +433,49 @@ export default function Chat() {
           </div>
         )}
 
+        {/* Poll Creator Modal/Panel */}
+        {showPollCreator && (
+          <div className="gif-picker-panel" style={{ height: 'auto', bottom: '70px' }}>
+            <div className="gif-picker-header">
+              <span style={{ fontWeight: 'bold' }}>Skapa Omröstning</span>
+              <button onClick={() => setShowPollCreator(false)} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
+            </div>
+            <form onSubmit={handleSendPoll} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', padding: '1rem' }}>
+              <input type="text" placeholder="Ställ en fråga (t.ex. Vart kör vi?)" value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} required style={{ padding: '0.8rem', borderRadius: '6px', border: '1px solid #333', background: '#0a0a0a', color: '#fff' }} />
+              
+              {pollOptions.map((opt, i) => (
+                <input key={i} type="text" placeholder={`Alternativ ${i+1}`} value={opt} onChange={e => {
+                  const newOpts = [...pollOptions];
+                  newOpts[i] = e.target.value;
+                  setPollOptions(newOpts);
+                }} style={{ padding: '0.6rem', borderRadius: '4px', border: '1px solid #222', background: '#111', color: '#fff' }} />
+              ))}
+              
+              {pollOptions.length < 5 && (
+                <button type="button" onClick={() => setPollOptions([...pollOptions, ''])} style={{ background: 'none', border: 'none', color: '#00f5ff', cursor: 'pointer', textAlign: 'left', fontSize: '0.8rem' }}>+ Lägg till alternativ</button>
+              )}
+              
+              <button type="submit" className="btn btn-primary" style={{ marginTop: '0.5rem', padding: '0.8rem' }}>Skapa Omröstning</button>
+            </form>
+          </div>
+        )}
+
         {/* Input area */}
         <form onSubmit={handleSend} className="chat-input-area">
           <button 
             type="button" 
+            className={`btn-gif-toggle ${showPollCreator ? 'active' : ''}`}
+            onClick={() => { setShowPollCreator(!showPollCreator); setShowGifPicker(false); }}
+            title="Skapa Omröstning"
+            style={{ fontWeight: 700, fontSize: '0.8rem' }}
+          >
+            📊
+          </button>
+          
+          <button 
+            type="button" 
             className={`btn-gif-toggle ${showGifPicker ? 'active' : ''}`}
-            onClick={() => setShowGifPicker(!showGifPicker)}
+            onClick={() => { setShowGifPicker(!showGifPicker); setShowPollCreator(false); }}
             title="Öppna GIF-studio"
             style={{ fontWeight: 700 }}
           >
@@ -345,7 +502,7 @@ export default function Chat() {
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={activeRoom === 'club_chat' ? "Skriv till hela klubben..." : "Skriv i interna adminkanalen..."}
             maxLength={500}
-            onFocus={() => setShowGifPicker(false)}
+            onFocus={() => { setShowGifPicker(false); setShowPollCreator(false); }}
           />
           <button type="submit" className="btn-send">Skicka</button>
         </form>

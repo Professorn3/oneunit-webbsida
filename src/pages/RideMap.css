@@ -1,0 +1,37 @@
+.ridemap-page {
+  padding-top: 100px;
+  min-height: 100vh;
+}
+
+.ridemap-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.ridemap-header h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.ridemap-header p {
+  color: var(--color-muted);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ridemap-container {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Force dark mode tiles (optional tricky way) */
+.leaflet-layer,
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out,
+.leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}

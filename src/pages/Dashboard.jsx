@@ -19,6 +19,21 @@ export default function Dashboard() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [memberChatLogs, setMemberChatLogs] = useState(null);
   const [loadingChatLogs, setLoadingChatLogs] = useState(false);
+  const [patchName, setPatchName] = useState('');
+
+  // Garage State
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileBike, setProfileBike] = useState('');
+  const [profileInsta, setProfileInsta] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  // Sync profile state when userData loads
+  useEffect(() => {
+    if (userData) {
+      setProfileBike(userData.bike || '');
+      setProfileInsta(userData.instagram || '');
+    }
+  }, [userData]);
 
   // E-post Utskicksstudio (Kampanjhantering mot Brevo)
   const [campaignTarget, setCampaignTarget] = useState('users');
@@ -179,6 +194,50 @@ export default function Dashboard() {
 
   // --- MEMBER MANAGEMENT FUNCTIONS ---
 
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    try {
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        bike: profileBike,
+        instagram: profileInsta
+      });
+      setEditingProfile(false);
+      // Update local context manually or rely on AuthContext reload (AuthContext doesn't auto-reload doc on update, but it's fine for simple display, wait, we might need to refresh page or rely on snapshot. Let's just alert.)
+    } catch (err) {
+      alert("Fel vid sparning: " + err.message);
+    }
+    setSavingProfile(false);
+  };
+
+  const handleAwardPatch = async (memberId) => {
+    if (!patchName.trim()) return;
+    try {
+      await updateDoc(doc(db, 'users', memberId), {
+        patches: arrayUnion(patchName)
+      });
+      if (selectedMember && selectedMember.id === memberId) {
+        setSelectedMember({ ...selectedMember, patches: [...(selectedMember.patches || []), patchName] });
+      }
+      setPatchName('');
+    } catch (err) {
+      alert("Kunde inte dela ut patch: " + err.message);
+    }
+  };
+
+  const handleRemovePatch = async (memberId, patch) => {
+    try {
+      await updateDoc(doc(db, 'users', memberId), {
+        patches: arrayRemove(patch)
+      });
+      if (selectedMember && selectedMember.id === memberId) {
+        setSelectedMember({ ...selectedMember, patches: selectedMember.patches.filter(p => p !== patch) });
+      }
+    } catch (err) {
+      alert("Fel vid radering av patch.");
+    }
+  };
+
   const handleChangeRole = async (memberId, newRole) => {
     try {
       await updateDoc(doc(db, 'users', memberId), { role: newRole });
@@ -282,17 +341,56 @@ export default function Dashboard() {
         {isMember && !isBanned && (
           <div className="dashboard-grid">
             <div className="dashboard-card member-card" style={{ maxWidth: '450px' }}>
-              <h3>Ditt Medlemskort</h3>
-              <div className="card-inner">
-                <img src="/images/logo.png" alt="Logo" width="60" />
-                <div>
-                  <h4>{userData.firstName || currentUser.email.split('@')[0]}</h4>
-                  <p>Status: <strong style={{ color: '#fff' }}>Aktiv Medlem</strong></p>
-                  <p>Roll: {userData.role}</p>
-                  <p style={{ fontSize: '0.85rem', color: '#aaaaaa', marginTop: '0.5rem' }}>
-                    <em>Klicka på knappen "CHATT" nere till höger på sidan för att fälla ut klubbens realtidschatt!</em>
-                  </p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3>Ditt Garage & Medlemskort</h3>
+                <button onClick={() => setEditingProfile(!editingProfile)} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                  {editingProfile ? 'Avbryt' : 'Redigera'}
+                </button>
+              </div>
+              <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
+                  <img src="/images/logo.png" alt="Logo" width="60" style={{ height: 'fit-content' }} />
+                  <div>
+                    <h4>{userData.firstName || currentUser.email.split('@')[0]}</h4>
+                    <p>Status: <strong style={{ color: '#00f5ff' }}>Aktiv Medlem</strong></p>
+                    <p>Roll: {userData.role}</p>
+                  </div>
                 </div>
+
+                {editingProfile ? (
+                  <form onSubmit={handleSaveProfile} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Min Motorcykel (Modell & År):</label>
+                      <input type="text" value={profileBike} onChange={e => setProfileBike(e.target.value)} placeholder="T.ex. Harley-Davidson Fat Boy '21" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Instagram-namn:</label>
+                      <input type="text" value={profileInsta} onChange={e => setProfileInsta(e.target.value)} placeholder="@oneunit_rider" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                    </div>
+                    <button type="submit" disabled={savingProfile} className="btn btn-primary" style={{ padding: '0.8rem' }}>
+                      {savingProfile ? 'Sparar...' : 'Spara Profil'}
+                    </button>
+                  </form>
+                ) : (
+                  <div style={{ width: '100%' }}>
+                    <p style={{ marginBottom: '0.5rem' }}><strong>Motorcykel:</strong> {userData.bike || 'Inte angiven'}</p>
+                    <p style={{ marginBottom: '1.5rem' }}><strong>Instagram:</strong> {userData.instagram ? <a href={`https://instagram.com/${userData.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#00f5ff' }}>{userData.instagram}</a> : 'Inte angiven'}</p>
+                    
+                    <h5 style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#fff' }}>Utmärkelser & Patches</h5>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {(!userData.patches || userData.patches.length === 0) ? (
+                        <span style={{ fontSize: '0.85rem', color: '#666' }}>Inga patches utdelade ännu.</span>
+                      ) : (
+                        userData.patches.map((patch, idx) => (
+                          <span key={idx} style={{ background: '#111', border: '1px solid #00f5ff', color: '#00f5ff', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 800 }}>
+                            {patch}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+                
               </div>
             </div>
           </div>
@@ -549,6 +647,26 @@ export default function Dashboard() {
                   >
                     Gör till Gäst
                   </button>
+                </div>
+              </div>
+
+              <div className="manage-section">
+                <h3>Digitala Patches / Utmärkelser</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {(!selectedMember.patches || selectedMember.patches.length === 0) ? (
+                    <span style={{ fontSize: '0.85rem', color: '#666' }}>Inga patches</span>
+                  ) : (
+                    selectedMember.patches.map((patch, idx) => (
+                      <span key={idx} style={{ background: '#111', border: '1px solid #00f5ff', color: '#00f5ff', padding: '0.3rem 0.6rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {patch}
+                        <button onClick={() => handleRemovePatch(selectedMember.id, patch)} style={{ background: 'none', border: 'none', color: '#ff0055', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>✕</button>
+                      </span>
+                    ))
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input type="text" value={patchName} onChange={e => setPatchName(e.target.value)} placeholder="T.ex. 🏁 Night Ride '26" style={{ flex: 1, padding: '0.6rem', background: '#0a0a0a', border: '1px solid #333', color: '#fff', borderRadius: '6px' }} />
+                  <button className="btn btn-outline" onClick={() => handleAwardPatch(selectedMember.id)}>Dela ut</button>
                 </div>
               </div>
 

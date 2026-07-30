@@ -17,6 +17,7 @@ import RegisterInvite from './pages/RegisterInvite'
 import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import Rules from './pages/Rules'
+import RideMap from './pages/RideMap'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
 import ScrollProgress from './components/ScrollProgress'
 import PageTransition from './components/PageTransition'
@@ -49,6 +50,14 @@ function AppContent() {
             <Route path="/meetups" element={<PageTransition><Meetups /></PageTransition>} />
             <Route path="/merch" element={<PageTransition><Merch /></PageTransition>} />
             <Route path="/apply" element={<PageTransition><Apply /></PageTransition>} />
+            <Route 
+              path="/ridemap" 
+              element={
+                <ProtectedRoute>
+                  <PageTransition><RideMap /></PageTransition>
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
             <Route path="/register" element={<PageTransition><RegisterInvite /></PageTransition>} />
             <Route 
