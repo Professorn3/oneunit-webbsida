@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
 import './Login.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
@@ -27,6 +28,22 @@ export default function Login() {
     setLoading(false);
   };
 
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Vänligen fyll i din e-postadress först för att återställa lösenordet.');
+      setMsg('');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setMsg('En länk för att återställa ditt lösenord har skickats till din e-post.');
+      setError('');
+    } catch (err) {
+      setError('Ett fel uppstod vid återställning av lösenord. Kontrollera e-postadressen.');
+      setMsg('');
+    }
+  };
+
   return (
     <div className="login-page">
       <div className="container">
@@ -37,6 +54,7 @@ export default function Login() {
           </p>
 
           {error && <div className="login-error">{error}</div>}
+          {msg && <div style={{ color: '#00ff88', marginBottom: '1rem', textAlign: 'center', background: 'rgba(0,255,136,0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid #00ff88' }}>{msg}</div>}
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
@@ -50,7 +68,10 @@ export default function Login() {
               />
             </div>
             <div className="form-group">
-              <label htmlFor="password">Lösenord</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem' }}>
+                <label htmlFor="password" style={{ margin: 0 }}>Lösenord</label>
+                <button type="button" onClick={handleResetPassword} style={{ background: 'none', border: 'none', color: '#00f5ff', cursor: 'pointer', fontSize: '0.85rem' }}>Glömt lösenord?</button>
+              </div>
               <input 
                 type="password" 
                 id="password" 
