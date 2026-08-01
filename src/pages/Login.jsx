@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../firebase';
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from 'firebase/auth';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import './Login.css';
 
 export default function Login() {
@@ -34,14 +35,19 @@ export default function Login() {
       setMsg('');
       return;
     }
+    setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email);
-      setMsg('En länk för att återställa ditt lösenord har skickats till din e-post.');
+      const functions = getFunctions();
+      const sendCustomReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
+      await sendCustomReset({ email });
+      
+      setMsg('Ett officiellt återställningsmail har skickats till din e-post.');
       setError('');
     } catch (err) {
-      setError('Ett fel uppstod vid återställning av lösenord. Kontrollera e-postadressen.');
+      setError('Ett fel uppstod vid återställning av lösenord: ' + err.message);
       setMsg('');
     }
+    setLoading(false);
   };
 
   return (

@@ -198,3 +198,62 @@ ${bodyText}
   }
 });
 
+// ============================================================================
+// 4. ANPASSAD LÖSENORDSÅTERSTÄLLNING
+// ============================================================================
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+
+exports.sendCustomPasswordResetEmail = onCall(async (request) => {
+  const email = request.data.email;
+  
+  if (!email) {
+    throw new HttpsError('invalid-argument', 'E-postadress saknas.');
+  }
+
+  try {
+    // Generera länk via Firebase Auth
+    const resetLink = await admin.auth().generatePasswordResetLink(email);
+
+    // Skapa mailet
+    const mailOptions = {
+      from: SENDER_EMAIL,
+      to: email,
+      subject: "Återställ ditt lösenord hos OneUnit 🔐",
+      html: `
+        <div style="font-family: 'Arial', sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 35px; border-radius: 16px; border: 1px solid #1f1f1f; max-width: 600px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,245,255,0.05);">
+          <div style="text-align: center; margin-bottom: 25px;">
+            <h1 style="color: #00f5ff; margin: 0; font-size: 26px; letter-spacing: 2px;">ONE UNIT</h1>
+            <p style="color: #666; font-size: 12px; margin-top: 5px; text-transform: uppercase;">Exklusivt MC Broderskap</p>
+          </div>
+          
+          <h2 style="color: #ffffff; font-size: 22px; margin-top: 15px; border-bottom: 1px solid #222; padding-bottom: 15px;">Återställ ditt lösenord</h2>
+          
+          <p style="color: #dddddd; font-size: 16px; line-height: 1.7;">Vi har tagit emot en begäran om att återställa lösenordet för ditt OneUnit-konto.</p>
+          
+          <div style="text-align: center; margin: 35px 0;">
+            <a href="${resetLink}" style="background-color: #00f5ff; color: #000; text-decoration: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block; letter-spacing: 1px;">ÅTERSTÄLL LÖSENORD</a>
+          </div>
+          
+          <p style="color: #777; font-size: 14px;">Om du inte begärde detta kan du bortse från detta mail. Ditt lösenord förblir säkert.</p>
+          
+          <hr style="border: 0; height: 1px; background: #222222; margin: 30px 0;" />
+          <p style="color: #777777; font-size: 13px; text-align: center; margin: 0;">
+            Ride safe and stay loyal,<br />
+            <strong style="color: #00f5ff;">OneUnit Crew</strong>
+          </p>
+        </div>
+      `,
+    };
+
+    // Skicka mailet via Brevo
+    await transporter.sendMail(mailOptions);
+    console.log("Anpassat lösenordsmail skickat till:", email);
+    
+    return { success: true, message: "E-post skickad." };
+
+  } catch (error) {
+    console.error("Fel vid skapande/skickande av återställningslänk:", error);
+    throw new HttpsError('internal', 'Kunde inte skicka återställningslänken: ' + error.message);
+  }
+});
+
