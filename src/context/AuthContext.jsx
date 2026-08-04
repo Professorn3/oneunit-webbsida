@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -16,34 +16,38 @@ export function AuthProvider({ children }) {
   const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'member' | 'guest'
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    let unsubscribeSnap;
+    
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       
       if (user) {
-        // Check if user exists in Firestore
         const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
         
-        if (userSnap.exists()) {
-          setUserData(userSnap.data());
-        } else {
-          // Create new user profile with 'guest' role
-          const newUserData = {
-            email: user.email,
-            role: 'guest',
-            createdAt: new Date().toISOString()
-          };
-          await setDoc(userRef, newUserData);
-          setUserData(newUserData);
-        }
+        unsubscribeSnap = onSnapshot(userRef, (userSnap) => {
+          if (userSnap.exists()) {
+            setUserData(userSnap.data());
+            setLoading(false);
+          } else {
+            const newUserData = {
+              email: user.email,
+              role: 'guest',
+              createdAt: new Date().toISOString()
+            };
+            setDoc(userRef, newUserData);
+          }
+        });
       } else {
         setUserData(null);
+        setLoading(false);
+        if (unsubscribeSnap) unsubscribeSnap();
       }
-      
-      setLoading(false);
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnap) unsubscribeSnap();
+    };
   }, []);
 
   const actualIsAdmin = userData?.role === 'admin';

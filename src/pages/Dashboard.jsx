@@ -6,6 +6,7 @@ import { signOut } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
+import { compressImage } from '../utils/imageHelper';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -158,6 +159,20 @@ export default function Dashboard() {
       alert('Kunde inte skicka återställningslänk: ' + err.message);
     }
     setResetLoading(false);
+  };
+
+  const handleProfilePicUpload = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    try {
+      const dataUrl = await compressImage(file, 300, 0.7); // Compress avatar
+      await updateDoc(doc(db, 'users', currentUser.uid), {
+        photoURL: dataUrl
+      });
+    } catch (err) {
+      alert("Kunde inte ladda upp profilbild: " + err.message);
+    }
   };
 
   const handleApproveAndInvite = (app) => {
@@ -379,12 +394,23 @@ export default function Dashboard() {
               )}
               
               <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start', marginTop: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
-                  <img src="/images/logo.png" alt="Logo" width="60" style={{ height: 'fit-content' }} />
+                <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem', alignItems: 'center' }}>
+                  
+                  <div style={{ position: 'relative', width: '70px', height: '70px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>
+                    <img src={userData.photoURL || "/images/logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    
+                    {editingProfile && (
+                      <label style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '0.65rem', textAlign: 'center', cursor: 'pointer', padding: '4px 0', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                        Ändra
+                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfilePicUpload} />
+                      </label>
+                    )}
+                  </div>
+                  
                   <div>
-                    <h4>{userData.firstName || currentUser.email.split('@')[0]}</h4>
-                    <p>Status: <strong style={{ color: '#00f5ff' }}>Aktiv Medlem</strong></p>
-                    <p>Roll: {userData.role}</p>
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1.2rem' }}>{userData.firstName || currentUser.email.split('@')[0]}</h4>
+                    <p style={{ margin: '0 0 0.2rem 0', fontSize: '0.9rem' }}>Status: <strong style={{ color: '#00f5ff' }}>Aktiv Medlem</strong></p>
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>Roll: {userData.role}</p>
                   </div>
                 </div>
 
@@ -501,8 +527,8 @@ export default function Dashboard() {
                 <div className="members-grid">
                   {filteredMembers.map(member => (
                     <div key={member.id} className="member-item" style={{ border: member.isBanned ? '1px solid #ff0055' : '' }}>
-                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: member.isBanned ? '#ff0055' : '' }}>
-                        {member.isBanned ? 'BAN' : (member.role === 'admin' ? 'ADM' : 'MED')}
+                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: member.isBanned ? '#ff0055' : (member.photoURL ? 'transparent' : '#111') }}>
+                        {member.photoURL ? <img src={member.photoURL} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} /> : (member.isBanned ? 'BAN' : (member.role === 'admin' ? 'ADM' : 'MED'))}
                       </div>
                       <div className="member-details">
                         <p className="member-name" style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>
