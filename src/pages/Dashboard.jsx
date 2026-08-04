@@ -67,8 +67,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let unsubApps, unsubContacts, unsubMembers;
+
     if (isAdmin) {
-      // Läs systeminställningar från molnet
       getDoc(doc(db, 'settings', 'general')).then((snap) => {
         if (snap.exists()) {
           const s = snap.data();
@@ -81,46 +82,43 @@ export default function Dashboard() {
         }
       }).catch(err => console.error("Fel vid laddning av inställningar:", err));
 
-      // Lyssna på ansökningar
       const qApps = query(collection(db, 'applications'), orderBy('createdAt', 'desc'));
-      const unsubApps = onSnapshot(qApps, (snapshot) => {
+      unsubApps = onSnapshot(qApps, (snapshot) => {
         const apps = [];
         snapshot.forEach((doc) => {
           const data = { id: doc.id, ...doc.data() };
-          if (data.status !== 'approved') {
-            apps.push(data); // Visa bara de som INTE är godkända
-          }
+          if (data.status !== 'approved') apps.push(data);
         });
         setApplications(apps);
       });
 
-      // Lyssna på medlemmar
-      const qMembers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-      const unsubMembers = onSnapshot(qMembers, (snapshot) => {
-        const mems = [];
-        snapshot.forEach((doc) => {
-          mems.push({ id: doc.id, ...doc.data() });
-        });
-        setMembers(mems);
-      });
-
-      // Lyssna på kontaktmeddelanden
       const qContacts = query(collection(db, 'contacts'), orderBy('createdAt', 'desc'));
-      const unsubContacts = onSnapshot(qContacts, (snapshot) => {
+      unsubContacts = onSnapshot(qContacts, (snapshot) => {
         const msgs = [];
         snapshot.forEach((doc) => {
           msgs.push({ id: doc.id, ...doc.data() });
         });
         setContacts(msgs);
       });
-
-      return () => {
-        unsubApps();
-        unsubMembers();
-        unsubContacts();
-      };
     }
-  }, [isAdmin]);
+
+    if (isMember) {
+      const qMembers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+      unsubMembers = onSnapshot(qMembers, (snapshot) => {
+        const mems = [];
+        snapshot.forEach((doc) => {
+          mems.push({ id: doc.id, ...doc.data() });
+        });
+        setMembers(mems);
+      });
+    }
+
+    return () => {
+      if (unsubApps) unsubApps();
+      if (unsubContacts) unsubContacts();
+      if (unsubMembers) unsubMembers();
+    };
+  }, [isAdmin, isMember]);
 
   const handleSendCampaign = (e) => {
     e.preventDefault();
@@ -523,6 +521,32 @@ export default function Dashboard() {
                 
               </div>
             </div>
+            
+            <div className="dashboard-card member-directory-card" style={{ width: '100%', marginTop: '2rem' }}>
+              <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '1rem', marginBottom: '1.5rem' }}>Klubbmedlemmar ({members.filter(m => m.role === 'member' || m.role === 'admin').length})</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
+                {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (
+                  <div key={member.id} style={{ background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
+                      {member.photoURL ? <img src={member.photoURL} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.firstName ? member.firstName[0].toUpperCase() : 'M')}
+                    </div>
+                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.firstName || member.email.split('@')[0]}</h4>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#aaa', minHeight: '2.5rem' }}>
+                      {member.bike || 'Hoj ej angiven'}
+                    </p>
+                    {member.instagram ? (
+                      <a href={`https://instagram.com/${member.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#00f5ff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        📸 Instagram
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '0.85rem', color: '#444' }}>Inget konto</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
           </div>
         )}
 
