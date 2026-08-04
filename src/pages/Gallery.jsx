@@ -296,7 +296,6 @@ export default function Gallery() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: showUploadStudio ? '1.5rem' : '0' }}>
               <button
                 onClick={() => setShowUploadStudio(!showUploadStudio)}
-                className="btn btn-outline"
                 title="Klicka för att ladda upp foto till galleriet"
                 style={{
                   borderColor: '#00f5ff',
@@ -357,7 +356,7 @@ export default function Gallery() {
                     <div style={{ gridColumn: '1 / -1' }}>
                       <label style={{ display: 'block', color: '#c0c6d4', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Välj Bild från Mobil eller Dator:</label>
                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <label className="btn btn-outline" style={{ padding: '0.7rem 1.4rem', cursor: 'pointer', borderColor: 'rgba(255,255,255,0.3)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <label className="btn" style={{ padding: '0.7rem 1.4rem', cursor: 'pointer', borderColor: 'rgba(255,255,255,0.3)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid #444', color: '#fff', background: '#222' }}>
                           <span>Välj Bild eller Video (Max 60s)</span>
                           <input type="file" accept="image/*,video/*" onChange={handleImageSelect} style={{ display: 'none' }} />
                         </label>
