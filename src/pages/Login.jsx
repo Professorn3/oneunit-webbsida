@@ -37,7 +37,7 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const functions = getFunctions();
+      const functions = getFunctions(auth.app, 'europe-west1');
       const sendCustomReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
       await sendCustomReset({ email });
       
