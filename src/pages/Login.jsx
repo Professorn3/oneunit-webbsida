@@ -39,7 +39,7 @@ export default function Login() {
     try {
       const functions = getFunctions(auth.app, 'europe-west1');
       const sendCustomReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
-      await sendCustomReset({ email });
+      await sendCustomReset({ email, origin: window.location.origin });
       
       setMsg('Ett officiellt återställningsmail har skickats till din e-post.');
       setError('');

@@ -1,0 +1,117 @@
+.auth-action-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  padding: 8rem 0 4rem;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(0, 245, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(255, 0, 85, 0.03) 0%, transparent 50%);
+}
+
+.auth-action-card {
+  background: var(--color-surface);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 3rem;
+  max-width: 450px;
+  width: 100%;
+  margin: 0 auto;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-action-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+}
+
+.auth-action-title {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+  letter-spacing: 2px;
+}
+
+.auth-action-subtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: 2rem;
+  font-size: 0.95rem;
+}
+
+.auth-action-error {
+  background: rgba(255, 0, 85, 0.1);
+  color: #ff0055;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 0, 85, 0.2);
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.auth-action-success {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.auth-action-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.auth-action-form label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.auth-action-form input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  transition: all 0.3s ease;
+}
+
+.auth-action-form input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: rgba(0, 245, 255, 0.05);
+}
+
+.auth-action-btn {
+  width: 100%;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.auth-action-toggle {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}

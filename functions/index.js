@@ -205,6 +205,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 
 exports.sendCustomPasswordResetEmail = onCall(async (request) => {
   const email = request.data.email;
+  const origin = request.data.origin || "https://oneunit.se";
   
   if (!email) {
     throw new HttpsError('invalid-argument', 'E-postadress saknas.');
@@ -212,7 +213,11 @@ exports.sendCustomPasswordResetEmail = onCall(async (request) => {
 
   try {
     // Generera länk via Firebase Auth
-    const resetLink = await admin.auth().generatePasswordResetLink(email);
+    const resetLinkRaw = await admin.auth().generatePasswordResetLink(email);
+    
+    // Byt ut Firebase-domänen mot vår egen
+    const url = new URL(resetLinkRaw);
+    const resetLink = `${origin}/auth-action${url.search}`;
 
     // Skapa mailet
     const mailOptions = {

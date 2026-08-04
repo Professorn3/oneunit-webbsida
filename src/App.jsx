@@ -14,6 +14,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ComingSoon from './pages/ComingSoon'
 import RegisterInvite from './pages/RegisterInvite'
+import AuthAction from './pages/AuthAction'
 import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import Rules from './pages/Rules'
@@ -27,7 +28,7 @@ function AppContent() {
   const location = useLocation()
   const { isAdmin, actualIsAdmin } = useAuth()
   
-  const isLockedRoute = location.pathname !== '/login' && location.pathname !== '/register'
+  const isLockedRoute = location.pathname !== '/login' && location.pathname !== '/register' && location.pathname !== '/auth-action'
   
   // Låt faktiska admins navigera hela sajten utan att fastna i ComingSoon när de testar gäst-vy
   if (!isAdmin && !actualIsAdmin && isLockedRoute) {
@@ -50,6 +51,7 @@ function AppContent() {
             <Route path="/merch" element={<PageTransition><Merch /></PageTransition>} />
             <Route path="/apply" element={<PageTransition><Apply /></PageTransition>} />
             <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+            <Route path="/auth-action" element={<PageTransition><AuthAction /></PageTransition>} />
             <Route path="/register" element={<PageTransition><RegisterInvite /></PageTransition>} />
             <Route 
               path="/dashboard" 
