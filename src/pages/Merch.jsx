@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import ConfirmModal from '../components/ConfirmModal';
@@ -44,6 +44,13 @@ export default function Merch() {
   const [loading, setLoading] = useState(true);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [showAdminStudio, setShowAdminStudio] = useState(false);
+
+  // Edit State
+  const [itemToEdit, setItemToEdit] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('Hoodie');
+  const [editDescription, setEditDescription] = useState('');
+  const [editing, setEditing] = useState(false);
 
   // Admin studio state
   const [title, setTitle] = useState('');
@@ -124,6 +131,24 @@ export default function Merch() {
     } catch (err) {
       console.error("Fel vid radering:", err);
     }
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!itemToEdit || !editTitle.trim() || !editDescription.trim()) return;
+    setEditing(true);
+    try {
+      await updateDoc(doc(db, 'merch', itemToEdit.id), {
+        title: editTitle,
+        category: editCategory,
+        description: editDescription
+      });
+      setItemToEdit(null);
+    } catch (err) {
+      console.error("Fel vid uppdatering av merch:", err);
+      alert("Kunde inte uppdatera merch-plagget.");
+    }
+    setEditing(false);
   };
 
   // Visa databaskatalogen, eller standard OM databasen är tom
@@ -264,14 +289,29 @@ export default function Merch() {
                 <div className="merch-img-wrapper">
                   <span className="merch-tag">{item.category}</span>
                   {isAdmin && !item.id.startsWith('default_') && (
-                    <button 
-                      className="btn-delete-merch" 
-                      onClick={() => setItemToDelete(item)}
-                      title="Radera plagg"
-                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px' }}
-                    >
-                      Radera
-                    </button>
+                    <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setItemToEdit(item); 
+                          setEditTitle(item.title || '');
+                          setEditCategory(item.category || 'Hoodie');
+                          setEditDescription(item.description || '');
+                        }}
+                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(0, 245, 255, 0.9)', color: '#000', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                        title="Redigera Merch"
+                      >
+                        Redigera
+                      </button>
+                      <button 
+                        className="btn-delete-merch" 
+                        onClick={() => setItemToDelete(item)}
+                        title="Radera plagg"
+                        style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                      >
+                        Radera
+                      </button>
+                    </div>
                   )}
                   <img src={item.image || '/images/gallery_1.png'} alt={item.title} className="merch-img" loading="lazy" />
                 </div>
@@ -302,6 +342,62 @@ export default function Merch() {
         onConfirm={confirmDelete}
         onCancel={() => setItemToDelete(null)}
       />
+
+      {/* Edit Modal */}
+      {itemToEdit && (
+        <div className="upload-studio-overlay" onClick={() => setItemToEdit(null)}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%' }}>
+            <div className="upload-studio-header">
+              <h2 className="glitch-text" data-text="REDIGERA MERCH">REDIGERA MERCH</h2>
+              <button className="close-btn" onClick={() => setItemToEdit(null)} aria-label="Stäng redigerare">×</button>
+            </div>
+            
+            <form onSubmit={handleSaveEdit} className="upload-studio-form">
+              <div className="form-group">
+                <label>Plaggets Namn / Titel</label>
+                <input 
+                  type="text" 
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  placeholder="T.ex. OneUnit Hoodie"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Kategori</label>
+                <select 
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  style={{ background: '#222', color: '#fff', border: '1px solid #444', padding: '0.8rem', borderRadius: '4px', width: '100%' }}
+                >
+                  <option value="Hoodie">Hoodie / Tröja</option>
+                  <option value="T-Shirt">T-Shirt</option>
+                  <option value="Keps">Keps & Mössa</option>
+                  <option value="Jacka">Jacka / Väst</option>
+                  <option value="Accessoar">Accessoar / Tillbehör</option>
+                  <option value="Ryggmärke">Ryggmärke</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Beskrivning</label>
+                <textarea 
+                  value={editDescription}
+                  onChange={e => setEditDescription(e.target.value)}
+                  placeholder="Beskriv plagget..."
+                  rows="4"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={editing}>
+                {editing ? 'Sparar...' : 'Spara Ändringar'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

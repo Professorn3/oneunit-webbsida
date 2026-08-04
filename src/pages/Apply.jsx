@@ -15,10 +15,9 @@ const pageVariants = {
 }
 
 const requirements = [
-  { icon: '▪', text: 'Har ett giltigt körkort (minst A2)' },
-  { icon: '▪', text: 'Äger en motorcykel med motor ≥ 500cc' },
-  { icon: '▪', text: 'Respekterar gemenskap och lojalitet' },
-  { icon: '▪', text: 'Är bosatt i Sverige' },
+  { icon: '▪', text: 'Har ett giltigt körkort (minst A2). Det handlar inte om att diskriminera A1, utan om att hålla en balanserad nivå i våra rides där effekten måste hänga med så att formationen inte fallerar.' },
+  { icon: '▪', text: 'Förstår innebörden av respekt och lojalitet till gruppen.' },
+  { icon: '▪', text: 'Strikt sekretess: Man får absolut inte läcka information om medlemslistan, interna diskussioner, mötesplatser eller specifik intern information.' },
 ]
 
 export default function Apply() {
@@ -27,16 +26,22 @@ export default function Apply() {
   const [form, setForm] = useState({
     name: '', age: '', city: '', email: '', phone: '',
     bike: '', experience: '', reason: '', howFound: '',
+    agreed: false
   })
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    setForm(prev => ({ ...prev, [e.target.name]: value }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim() || !form.age.trim() || !form.city.trim() || !form.email.trim() || !form.phone.trim() || !form.bike.trim() || !form.experience || !form.reason.trim() || !form.howFound) {
       alert("Vänligen fyll i alla fält och spalter i formuläret innan du skickar in din ansökan.")
+      return
+    }
+    if (!form.agreed) {
+      alert("Du måste acceptera kraven och sekretessen för att kunna skicka in ansökan.")
       return
     }
     setLoading(true)
@@ -117,6 +122,11 @@ export default function Apply() {
               aria-label="Ansökningsformulär"
             >
               <h2 className="apply-page__section-title">Fyll i Formuläret</h2>
+              <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '1rem', borderRadius: '8px', marginBottom: '2rem' }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#ffaaaa' }}>
+                  <strong>OBS!</strong> Den information du fyller i här läcker vi absolut inte vidare, utan det är enbart admins som har möjlighet att se detta. Detta är bara så vi har kontaktuppgifter till er om vi exempelvis skulle tappa bort varandra ute på vägarna. Allt hanteras under strikt sekretess.
+                </p>
+              </div>
 
               {/* Row 1 */}
               <div className="apply-page__row">
@@ -127,7 +137,6 @@ export default function Apply() {
                     name="name"
                     type="text"
                     className="form-input"
-                    placeholder="För- och Efternamn"
                     value={form.name}
                     onChange={handleChange}
                     required
@@ -140,7 +149,6 @@ export default function Apply() {
                     name="age"
                     type="number"
                     className="form-input"
-                    placeholder="ex. 28"
                     min="16"
                     max="80"
                     value={form.age}
@@ -175,7 +183,6 @@ export default function Apply() {
                     name="email"
                     type="email"
                     className="form-input"
-                    placeholder="din@email.se"
                     value={form.email}
                     onChange={handleChange}
                     required
@@ -192,7 +199,6 @@ export default function Apply() {
                     name="phone"
                     type="tel"
                     className="form-input"
-                    placeholder="ex. 070-123 45 67"
                     value={form.phone}
                     onChange={handleChange}
                     required
@@ -205,7 +211,6 @@ export default function Apply() {
                     name="bike"
                     type="text"
                     className="form-input"
-                    placeholder="ex. Harley-Davidson Sportster 1200"
                     value={form.bike}
                     onChange={handleChange}
                     required
@@ -241,7 +246,6 @@ export default function Apply() {
                   id="apply-reason"
                   name="reason"
                   className="form-textarea"
-                  placeholder="Berätta om dig själv och varför du vill bli en del av OneUnit..."
                   value={form.reason}
                   onChange={handleChange}
                   required
@@ -268,7 +272,22 @@ export default function Apply() {
                 </select>
               </div>
 
-              <button id="apply-submit-btn" type="submit" className="btn btn-primary apply-page__submit" disabled={loading}>
+              <div className="form-group checkbox-group" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', marginTop: '1rem', marginBottom: '2rem' }}>
+                <input 
+                  type="checkbox" 
+                  id="apply-agreed" 
+                  name="agreed"
+                  checked={form.agreed}
+                  onChange={handleChange}
+                  style={{ marginTop: '0.3rem', width: '20px', height: '20px', cursor: 'pointer' }}
+                  required 
+                />
+                <label htmlFor="apply-agreed" style={{ fontSize: '0.9rem', lineHeight: '1.4', cursor: 'pointer' }}>
+                  Jag har läst och förstår kraven. Jag accepterar full sekretess gällande medlemslistor, diskussioner och träffar.
+                </label>
+              </div>
+
+              <button id="apply-submit-btn" type="submit" className="btn btn-primary apply-page__submit" disabled={loading || !form.agreed}>
                 {loading ? 'Skickar...' : 'Skicka Ansökan'}
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M5 12h14M12 5l7 7-7 7"/>

@@ -185,8 +185,8 @@ export default function Meetups() {
           <p className="meetups-eyebrow">Träffar & Rides</p>
           <h1 className="meetups-title"><ScrambleText text="MEETUPS" /></h1>
           <p className="meetups-subtitle">
-            Haka på klubben på nästa arrangerade ritt, bandag eller samling. 
-            Anmäl ditt deltagande direkt nedan och rid sida vid sida i formation.
+            Häng med på Oneunit nästa arrangerade ride eller träff. 
+            Anmäl dig nedanför om du har möjlighet att komma, då ser vi även intresset för en meetup.
           </p>
         </header>
 
