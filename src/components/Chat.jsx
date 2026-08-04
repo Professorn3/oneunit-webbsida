@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase';
-import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, arrayUnion } from 'firebase/firestore';
+import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, arrayUnion, deleteDoc, getDocs } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import './Chat.css';
@@ -172,6 +172,27 @@ export default function Chat() {
     } catch(err) { console.error(err); }
   };
 
+  const handleDeleteMessage = async (msgId) => {
+    if (!isAdmin) return;
+    if (!window.confirm("Radera detta meddelande?")) return;
+    try {
+      const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+      await deleteDoc(doc(db, roomTarget, msgId));
+    } catch(err) { console.error(err); }
+  };
+
+  const handleClearChat = async () => {
+    if (!isAdmin) return;
+    if (!window.confirm("Är du säker på att du vill rensa HELA chatten i detta rum?")) return;
+    try {
+      const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+      const q = query(collection(db, roomTarget));
+      const snapshot = await getDocs(q);
+      const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, roomTarget, d.id)));
+      await Promise.all(deletePromises);
+    } catch(err) { console.error("Kunde inte rensa chatt", err); }
+  };
+
   const handleSendPoll = async (e) => {
     e.preventDefault();
     if (!pollQuestion.trim()) return;
@@ -275,6 +296,11 @@ export default function Chat() {
               {isAdmin ? 'Admin-chatt' : 'Admin-chatt (Låst)'}
             </button>
           </div>
+          {isAdmin && (
+            <div style={{ textAlign: 'right', marginTop: '0.5rem', marginRight: '1rem' }}>
+              <button onClick={handleClearChat} style={{ background: 'transparent', border: '1px solid #ff3b30', color: '#ff3b30', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.2s' }}>Rensa Chatt</button>
+            </div>
+          )}
         </header>
 
         <div className="chat-messages">
@@ -285,7 +311,12 @@ export default function Chat() {
                 <div key={'pin-'+msg.id} className="chat-message received" style={{ borderLeft: '3px solid #00f5ff', background: 'rgba(0,245,255,0.05)' }}>
                   <div className="msg-bubble" style={{ background: 'transparent', padding: '0.5rem' }}>
                     <strong>{msg.senderName}:</strong> {msg.text || (msg.isPoll ? `[Omröstning] ${msg.question}` : '[Media]')}
-                    {isAdmin && <button onClick={() => handleTogglePin(msg.id, true)} style={{ marginLeft: '10px', background: 'none', border: 'none', color: '#ff0055', cursor: 'pointer', fontSize: '0.8rem' }}>Lossa</button>}
+                    {isAdmin && (
+                      <span style={{ display: 'inline-flex', gap: '8px', marginLeft: '10px' }}>
+                        <button onClick={() => handleTogglePin(msg.id, true)} style={{ background: 'none', border: 'none', color: '#ff0055', cursor: 'pointer', fontSize: '0.8rem' }}>Lossa</button>
+                        <button onClick={() => handleDeleteMessage(msg.id)} style={{ background: 'none', border: 'none', color: '#ff3b30', cursor: 'pointer', fontSize: '0.8rem' }}>Radera</button>
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -308,7 +339,10 @@ export default function Chat() {
                       {msg.role === 'admin' ? '👑 ' : '🏍️ '}{senderDisplay} {msg.role === 'admin' ? '(Admin)' : ''}
                     </span>
                     {isAdmin && (
-                      <button onClick={() => handleTogglePin(msg.id, !!msg.isPinned)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.8rem' }} title="Fäst meddelande">📌</button>
+                      <span style={{ display: 'flex', gap: '4px' }}>
+                        <button onClick={() => handleTogglePin(msg.id, !!msg.isPinned)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer', fontSize: '0.8rem' }} title="Fäst meddelande">📌</button>
+                        <button onClick={() => handleDeleteMessage(msg.id)} style={{ background: 'none', border: 'none', color: '#ff3b30', cursor: 'pointer', fontSize: '0.8rem' }} title="Radera meddelande">🗑️</button>
+                      </span>
                     )}
                   </div>
                   
