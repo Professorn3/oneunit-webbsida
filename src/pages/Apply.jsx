@@ -93,7 +93,7 @@ export default function Apply() {
             <h2 className="apply-page__success-title">Ansökan Mottagen</h2>
             <p className="apply-page__success-text">
               Tack för din ansökan, <strong>{form.name}</strong>. Vi granskar alla ansökningar noggrant 
-              och återkommer via e-post inom 2–4 veckor. Tills dess – håll motorn igång.
+              och återkommer via e-post vanligtvis inom 1 vecka. Tills dess – håll motorn igång.
             </p>
             <p className="apply-page__success-sub">One Unit. One Brotherhood.</p>
           </div>
@@ -295,7 +295,7 @@ export default function Apply() {
               </button>
 
               <p className="apply-page__disclaimer">
-                Din ansökan behandlas konfidentiellt. Vi kontaktar dig via angiven e-post inom 2–4 veckor.
+                Din ansökan behandlas konfidentiellt. Vi kontaktar dig via angiven e-post vanligtvis inom 1 vecka.
               </p>
             </form>
           </ScrollReveal>
