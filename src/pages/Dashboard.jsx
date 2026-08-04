@@ -359,11 +359,11 @@ export default function Dashboard() {
 
         {isMember && !isBanned && (
           <div className="dashboard-grid">
-            <div className="dashboard-card member-card" style={{ maxWidth: '450px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3>Ditt Garage & Medlemskort</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={handleChangePassword} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} disabled={resetLoading}>
+            <div className="dashboard-card member-card" style={{ maxWidth: '500px', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+                <h3 style={{ margin: 0, flex: '1 1 auto' }}>Ditt Garage & Medlemskort</h3>
+                <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto' }}>
+                  <button onClick={handleChangePassword} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }} disabled={resetLoading}>
                     {resetLoading ? 'Skickar...' : 'Byt Lösenord'}
                   </button>
                   <button onClick={() => setEditingProfile(!editingProfile)} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
@@ -373,12 +373,12 @@ export default function Dashboard() {
               </div>
               
               {resetMsg && (
-                <div style={{ padding: '1rem', background: 'rgba(0,255,136,0.1)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', margin: '1rem 1.5rem 0 1.5rem', fontSize: '0.9rem' }}>
+                <div style={{ padding: '1rem', background: 'rgba(0,255,136,0.1)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', margin: '1rem 0 0 0', fontSize: '0.9rem' }}>
                   {resetMsg}
                 </div>
               )}
               
-              <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start', marginTop: '1.5rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
                   <img src="/images/logo.png" alt="Logo" width="60" style={{ height: 'fit-content' }} />
                   <div>
