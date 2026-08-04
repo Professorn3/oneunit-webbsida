@@ -3,10 +3,10 @@
   position: relative;
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   overflow: hidden;
-  padding: 120px 0 80px;
+  padding: 120px 0 140px;
 }
 
 /* Background */
