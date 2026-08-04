@@ -91,12 +91,7 @@ export default function Navbar() {
       <header id="navbar" className={`navbar ${scrolled ? 'navbar--scrolled' : ''} ${menuOpen ? 'navbar--menu-open' : ''} ${hidden && !menuOpen ? 'navbar--hidden' : ''}`}>
         <div className="navbar__backdrop" aria-hidden="true" />
         <div className="container navbar__inner">
-          <Link to="/" className="navbar__logo" onClick={() => setMenuOpen(false)}>
-            <img src="/images/logo.png?v=2" alt="OneUnit MC" onError={(e) => {
-              e.target.style.display = 'none'
-              e.target.nextSibling.style.display = 'block'
-            }} />
-            <span className="navbar__logo-text" style={{ display: 'none' }}>ONE<span>UNIT</span></span>
+          <Link to="/" className="navbar__logo" onClick={() => setMenuOpen(false)} style={{ display: 'none' }}>
           </Link>
 
           <nav className="navbar__nav-desktop" aria-label="Huvudnavigation">

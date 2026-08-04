@@ -108,7 +108,6 @@ export default function Hero() {
         <div className="hero__text">
           <h1 className="hero__title">
             <GlitchText text="ONE" tag="span" className="hero__title-line" />
-            <br />
             <GlitchText text="UNIT" tag="span" className="hero__title-line hero__title-line--outline" />
           </h1>
           <div className="hero__actions">
