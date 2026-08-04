@@ -16,16 +16,7 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-const defaultItems = [
-  { id: 'def_1', src: '/images/gallery_1.png', title: 'Nattritt', category: 'Community', type: 'image' },
-  { id: 'def_2', src: '/images/gallery_2.png', title: 'Formation', category: 'Community', type: 'image' },
-  { id: 'def_3', src: '/images/gallery_3.png', title: 'Maskinen', category: 'Motorcyklar', type: 'image' },
-  { id: 'def_4', src: '/images/gallery_4.png', title: 'Brödraskapet', category: 'Community', type: 'image' },
-  { id: 'def_5', src: '/images/gallery_5.png', title: 'Tunnel', category: 'Motorcyklar', type: 'image' },
-  { id: 'def_6', src: '/images/hero_bg.png', title: 'Dimma', category: 'Motorcyklar', type: 'image' },
-  { id: 'def_7', src: '/images/gallery_1.png', title: 'City Lights', category: 'Community', type: 'image' },
-  { id: 'def_8', src: '/images/gallery_4.png', title: 'Gänget', category: 'Community', type: 'image' },
-];
+const defaultItems = [];
 
 const categories = ['Alla', 'Motorcyklar', 'Community'];
 

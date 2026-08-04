@@ -5,14 +5,7 @@ import { db } from '../firebase'
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore'
 import './GalleryPreview.css'
 
-const defaultGalleryItems = [
-  { src: '/images/gallery_1.png', label: 'Nattritt' },
-  { src: '/images/gallery_2.png', label: 'Formation' },
-  { src: '/images/gallery_3.png', label: 'Maskinen' },
-  { src: '/images/gallery_4.png', label: 'Brödraskapet' },
-  { src: '/images/gallery_5.png', label: 'Tunnel' },
-  { src: '/images/hero_bg.png', label: 'Dimma' },
-]
+const defaultGalleryItems = [];
 
 export default function GalleryPreview() {
   const sectionRef = useRef(null)
@@ -74,6 +67,8 @@ export default function GalleryPreview() {
     window.addEventListener('scroll', updateScroll, { passive: true })
     return () => window.removeEventListener('scroll', updateScroll)
   }, [])
+
+  if (galleryItems.length === 0) return null;
 
   return (
     <section ref={sectionRef} className="gallery-preview" aria-labelledby="gallery-preview-heading">

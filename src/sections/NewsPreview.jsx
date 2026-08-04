@@ -1,36 +1,28 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
 import TextReveal from '../components/TextReveal'
+import { db } from '../firebase'
+import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
 import './NewsPreview.css'
 
-const news = [
-  {
-    id: 1,
-    date: '15 Jul 2026',
-    category: 'Event',
-    title: 'Sommarritt 2026 – Recap',
-    excerpt: 'En episk ritt genom södra Sverige med 35 ryttare. Sol, asfalts och brödraskapet starkare än någonsin.',
-    image: '/images/gallery_2.png',
-  },
-  {
-    id: 2,
-    date: '3 Jun 2026',
-    category: 'Nyheter',
-    title: 'Ny Avdelning i Göteborg',
-    excerpt: 'OneUnit expanderar. Vi är stolta att välkomna vår nya avdelning i Göteborg med 8 founding members.',
-    image: '/images/gallery_1.png',
-  },
-  {
-    id: 3,
-    date: '20 Maj 2026',
-    category: 'Community',
-    title: 'Träff Sthlm – Bilder',
-    excerpt: 'Årets första stora träff i Stockholm. Hundratals motorcyklar, musik och gemenskap. Se bilderna här.',
-    image: '/images/gallery_5.png',
-  },
-]
-
 export default function NewsPreview() {
+  const [news, setNews] = useState([])
+
+  useEffect(() => {
+    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(3))
+    const unsub = onSnapshot(q, (snapshot) => {
+      const list = []
+      snapshot.forEach(doc => {
+        list.push({ id: doc.id, ...doc.data() })
+      })
+      setNews(list)
+    })
+    return () => unsub()
+  }, [])
+
+  if (news.length === 0) return null;
+
   return (
     <section className="news-preview section" aria-labelledby="news-preview-heading">
       <div className="container">
