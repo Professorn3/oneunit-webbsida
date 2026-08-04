@@ -281,21 +281,18 @@ export default function Chat() {
             >
               Medlemschatt
             </button>
-            <button 
-              className={`chat-room-tab ${activeRoom === 'admin_chat' ? 'active' : ''}`}
-              onClick={() => {
-                if (isAdmin) {
+            {isAdmin && (
+              <button 
+                className={`chat-room-tab ${activeRoom === 'admin_chat' ? 'active' : ''}`}
+                onClick={() => {
                   setActiveRoom('admin_chat');
                   setShowGifPicker(false);
-                } else {
-                  alert("Endast för administratörs-staben!");
-                }
-              }}
-              disabled={!isAdmin}
-              title={isAdmin ? "Byt till privat admin-kanal" : "Låst: Endast för klubbens admins"}
-            >
-              {isAdmin ? 'Admin-chatt' : 'Admin-chatt (Låst)'}
-            </button>
+                }}
+                title="Byt till privat admin-kanal"
+              >
+                Admin-chatt
+              </button>
+            )}
           </div>
           {isAdmin && (
             <div style={{ textAlign: 'right', marginTop: '0.5rem', marginRight: '1rem' }}>
