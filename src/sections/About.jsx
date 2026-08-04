@@ -37,7 +37,7 @@ export default function About() {
             </ScrollReveal>
 
             <TextReveal
-              text="Vi rider som ett. Vi lever som ett."
+              text="Vi rullar som ett. Vi lever som ett."
               tag="h2"
               id="about-heading"
               className="about__heading"
@@ -46,17 +46,18 @@ export default function About() {
 
             <ScrollReveal delay={200}>
               <p className="about__body">
-                OneUnit är inte bara en förening – det är en livsstil. 
-                Vi bygger gemenskap baserat på respekt, lojalitet och kärleken till 
-                friheten på hjul. Sedan 2026 har vi vuxit till en stark gemenskap 
-                med ryttare från hela landet.
+                OneUnit är inte bara en grupp personer, det är en livsstil. 
+                Vi bygger gemenskap baserat på respekt och lojalitet till 
+                friheten på hjul. Vi har vuxit till ett gäng grabbar som 
+                byggt ihop en gemenskap med riders från hela landet.
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={300}>
               <p className="about__body">
-                Varje ritt är en ny historia. Varje medlem är en del av helheten. 
-                Det är vad OneUnit betyder – vi är alla en enhet, starkare tillsammans.
+                Varje ride är en ny upplevelse där varje medlem är en del av helheten, 
+                det är vad OneUnit betyder. Vi rullar som en pakt, vi är alla en enhet 
+                och tillsammans stabilare.
               </p>
             </ScrollReveal>
 
