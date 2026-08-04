@@ -7,37 +7,6 @@ import { compressImage } from '../utils/imageHelper';
 import ConfirmModal from '../components/ConfirmModal';
 import './Merch.css';
 
-const DEFAULT_MERCH = [
-  {
-    id: 'default_1',
-    title: 'OneUnit Official Hoodie - Night Edition',
-    category: 'Hoodie',
-    description: 'Vår officiella tunga huvtröja med förstärkta sömmar och broderat OneUnit-ryggemblem. Perfekt att bära under skinnpajen eller vid svala kvällsritt.',
-    image: '/images/gallery_1.png'
-  },
-  {
-    id: 'default_2',
-    title: 'OneUnit Biker Tee',
-    category: 'T-Shirt',
-    description: '100% premium ekologisk bomull med diskret OneUnit-sköld på brösten och klubbmotto bak. Slitstark och byggd för klubblivet.',
-    image: '/images/gallery_2.png'
-  },
-  {
-    id: 'default_3',
-    title: 'OneUnit Cruiser Keps & Beanie',
-    category: 'Accessoar',
-    description: 'Snygga klubbmössor och flat-brim kepsar med präglat metallmärke. Håller håret på plats när hjälmen åker av.',
-    image: '/images/gallery_4.png'
-  },
-  {
-    id: 'default_4',
-    title: 'Club Emblem Leather Patch',
-    category: 'Ryggmärke',
-    description: 'Vårt stoltaste klockade väst-ryggmärke. Endast för fullvärdiga medlemmar i brödraskapet som bevisat sin lojalitet på vägarna.',
-    image: '/images/gallery_5.png'
-  }
-];
-
 export default function Merch() {
   const { isAdmin, currentUser } = useAuth();
   const [merchItems, setMerchItems] = useState([]);
@@ -152,8 +121,7 @@ export default function Merch() {
     setEditing(false);
   };
 
-  // Visa databaskatalogen, eller standard OM databasen är tom
-  const displayItems = merchItems.length > 0 ? merchItems : DEFAULT_MERCH;
+  const displayItems = merchItems;
 
   return (
     <motion.div 
@@ -408,7 +376,7 @@ export default function Merch() {
       {/* Edit Modal */}
       {itemToEdit && (
         <div className="upload-studio-overlay" onClick={() => setItemToEdit(null)}>
-          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%' }}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%', padding: '2rem', borderRadius: '12px' }}>
             <div className="upload-studio-header">
               <h2 className="glitch-text" data-text="REDIGERA MERCH">REDIGERA MERCH</h2>
               <button className="close-btn" onClick={() => setItemToEdit(null)} aria-label="Stäng redigerare">×</button>
@@ -453,7 +421,7 @@ export default function Merch() {
                 />
               </div>
 
-              <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={editing}>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem', background: '#00f5ff', color: '#000', fontWeight: 'bold' }} disabled={editing}>
                 {editing ? 'Sparar...' : 'Spara Ändringar'}
               </button>
             </form>

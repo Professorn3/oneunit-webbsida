@@ -16,57 +16,7 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-const defaultNews = [
-  {
-    id: 'default_1',
-    date: '15 Jul 2026',
-    category: 'Event',
-    title: 'Sommarritt 2026 – En Episk Resa Genom Sverige',
-    excerpt: 'En episk ritt genom södra Sverige med 35 ryttare. Sol, asfalt och brödraskapet starkare än någonsin. Vi startade i Stockholm och avslutade i Malmö – 3 dagar, 1400 km, oräkneliga minnen.',
-    image: '/images/gallery_2.png',
-    featured: true,
-  },
-  {
-    id: 'default_2',
-    date: '3 Jun 2026',
-    category: 'Nyheter',
-    title: 'Ny Avdelning Öppnar i Göteborg',
-    excerpt: 'OneUnit expanderar. Vi är stolta att välkomna vår nya avdelning i Göteborg med 8 founding members. Välkommen till brödraskapet, Väst-avdelningen!',
-    image: '/images/gallery_4.png',
-  },
-  {
-    id: 'default_3',
-    date: '20 Maj 2026',
-    category: 'Community',
-    title: 'Träff Stockholm – Bilder och Recap',
-    excerpt: 'Årets första stora träff i Stockholm lockade hundratals motorcyklar från hela landet. Musik, gemenskap och asfalt. Se bilderna från kvällen.',
-    image: '/images/gallery_1.png',
-  },
-  {
-    id: 'default_4',
-    date: '2 Apr 2026',
-    category: 'Allmänt',
-    title: 'Vårens Första Ritt – Välkommen Säsong 2026!',
-    excerpt: 'Vintern är äntligen bakom oss. Vi kickar igång säsongen med en samlingsritt i Uppland. Dags att damm av jackan och starta motorn!',
-    image: '/images/gallery_5.png',
-  },
-  {
-    id: 'default_5',
-    date: '15 Mar 2026',
-    category: 'Nyheter',
-    title: 'Nytt i Regelverket 2026 – Vad Du Behöver Veta',
-    excerpt: 'Nya trafikregler som träder i kraft 2026 kan påverka dig som motorcyklist. Vi har sammanfattat det viktigaste du behöver känna till.',
-    image: '/images/gallery_3.png',
-  },
-  {
-    id: 'default_6',
-    date: '8 Feb 2026',
-    category: 'Event',
-    title: 'Winter Meet 2026 – Se Bilderna',
-    excerpt: 'Även på vintern samlas vi. Årets Winter Meet i Örebro var en succé med goda råd, god mat och bra sällskap trots minusgrader.',
-    image: '/images/hero_bg.png',
-  },
-];
+
 
 export default function News() {
   const { isAdmin, currentUser } = useAuth();
@@ -183,7 +133,7 @@ export default function News() {
   };
 
   // Kombinera egna databasinlägg överst med de klassiska stanardinläggen nedanför
-  const allArticles = [...dbNews, ...defaultNews];
+  const allArticles = [...dbNews];
   const [featured, ...rest] = allArticles;
 
   return (
@@ -517,7 +467,7 @@ export default function News() {
       {/* Edit Modal */}
       {articleToEdit && (
         <div className="upload-studio-overlay" onClick={() => setArticleToEdit(null)}>
-          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%' }}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%', padding: '2rem', borderRadius: '12px' }}>
             <div className="upload-studio-header">
               <h2 className="glitch-text" data-text="REDIGERA NYHET">REDIGERA NYHET</h2>
               <button className="close-btn" onClick={() => setArticleToEdit(null)} aria-label="Stäng redigerare">×</button>
@@ -571,7 +521,7 @@ export default function News() {
                 />
               </div>
 
-              <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={editing}>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem', background: '#00f5ff', color: '#000', fontWeight: 'bold' }} disabled={editing}>
                 {editing ? 'Sparar...' : 'Spara Ändringar'}
               </button>
             </form>

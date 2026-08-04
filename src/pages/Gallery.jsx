@@ -621,7 +621,7 @@ export default function Gallery() {
       {/* Edit Modal */}
       {itemToEdit && (
         <div className="upload-studio-overlay" onClick={() => setItemToEdit(null)}>
-          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333' }}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%', padding: '2rem', borderRadius: '12px' }}>
             <div className="upload-studio-header">
               <h2 className="glitch-text" data-text="REDIGERA BILD">REDIGERA BILD</h2>
               <button className="close-btn" onClick={() => setItemToEdit(null)} aria-label="Stäng redigerare">×</button>
@@ -655,7 +655,7 @@ export default function Gallery() {
                 </div>
               </div>
 
-              <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={editing}>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem', background: '#00f5ff', color: '#000', fontWeight: 'bold' }} disabled={editing}>
                 {editing ? 'Sparar...' : 'Spara Ändringar'}
               </button>
             </form>
