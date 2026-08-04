@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import GlitchText from '../components/GlitchText';
 import ScrollReveal from '../components/ScrollReveal';
@@ -100,6 +100,8 @@ export default function Gallery() {
         type: 'image',
         uploaderEmail: currentUser?.email || 'Okänd Medlem',
         uploaderName: currentUser?.email?.split('@')[0] || 'Medlem',
+        likes: [],
+        likeCount: 0,
         createdAt: serverTimestamp()
       });
       setTitle('');
@@ -119,6 +121,31 @@ export default function Gallery() {
       setItemToDelete(null);
     } catch (err) {
       console.error("Fel vid radering av bild:", err);
+    }
+  };
+
+  const handleToggleLike = async (item, e) => {
+    e.stopPropagation();
+    if (!currentUser || String(item.id).startsWith('def_')) return;
+    
+    const uid = currentUser.uid;
+    const itemRef = doc(db, 'gallery', item.id);
+    const isLiked = item.likes && item.likes.includes(uid);
+    
+    try {
+      if (isLiked) {
+        await updateDoc(itemRef, {
+          likes: arrayRemove(uid),
+          likeCount: increment(-1)
+        });
+      } else {
+        await updateDoc(itemRef, {
+          likes: arrayUnion(uid),
+          likeCount: increment(1)
+        });
+      }
+    } catch (err) {
+      console.error("Fel vid uppdatering av like:", err);
     }
   };
 
@@ -348,11 +375,37 @@ export default function Gallery() {
                   </div>
                 </div>
                 <div className="gallery-page__img-meta">
-                  <span className="tag">{item.category}</span>
-                  <span className="gallery-page__img-title">
-                    {item.title}
-                    {item.uploaderName && <span style={{ display: 'block', fontSize: '0.75rem', color: '#777', fontWeight: 'normal' }}>Foto av: {item.uploaderName}</span>}
-                  </span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                    <div>
+                      <span className="tag" style={{ marginBottom: '0.4rem', display: 'inline-block' }}>{item.category}</span>
+                      <span className="gallery-page__img-title">
+                        {item.title}
+                        {item.uploaderName && <span style={{ display: 'block', fontSize: '0.75rem', color: '#777', fontWeight: 'normal', marginTop: '0.2rem' }}>Foto av: {item.uploaderName}</span>}
+                      </span>
+                    </div>
+                    {!String(item.id).startsWith('def_') && (
+                      <button 
+                        onClick={(e) => handleToggleLike(item, e)}
+                        style={{ 
+                          background: 'rgba(0,0,0,0.6)', 
+                          padding: '0.4rem 0.8rem', 
+                          borderRadius: '50px', 
+                          border: '1px solid ' + ((item.likes && currentUser && item.likes.includes(currentUser.uid)) ? '#00f5ff' : '#333'), 
+                          color: (item.likes && currentUser && item.likes.includes(currentUser.uid)) ? '#00f5ff' : '#888', 
+                          cursor: currentUser ? 'pointer' : 'default', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.4rem', 
+                          fontSize: '1rem',
+                          marginLeft: '0.5rem',
+                          transition: 'all 0.2s ease'
+                        }}
+                        title={currentUser ? "Gilla bild" : "Logga in för att gilla"}
+                      >
+                        👍 <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{item.likeCount || 0}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </button>
               </motion.div>

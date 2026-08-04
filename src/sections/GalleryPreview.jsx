@@ -1,9 +1,11 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
+import { db } from '../firebase'
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore'
 import './GalleryPreview.css'
 
-const galleryItems = [
+const defaultGalleryItems = [
   { src: '/images/gallery_1.png', label: 'Nattritt' },
   { src: '/images/gallery_2.png', label: 'Formation' },
   { src: '/images/gallery_3.png', label: 'Maskinen' },
@@ -16,6 +18,36 @@ export default function GalleryPreview() {
   const sectionRef = useRef(null)
   const trackRef = useRef(null)
   const progressRef = useRef(null)
+  const [galleryItems, setGalleryItems] = useState(defaultGalleryItems)
+
+  useEffect(() => {
+    const fetchTopGallery = async () => {
+      try {
+        const q = query(collection(db, 'gallery'), orderBy('likeCount', 'desc'), limit(10))
+        const snapshot = await getDocs(q)
+        if (!snapshot.empty) {
+          const fetchedItems = snapshot.docs.map(doc => {
+            const data = doc.data()
+            return {
+              src: data.src,
+              label: data.title || data.category
+            }
+          })
+          
+          if (fetchedItems.length < 10) {
+            const needed = 10 - fetchedItems.length
+            const extras = defaultGalleryItems.slice(0, needed)
+            setGalleryItems([...fetchedItems, ...extras])
+          } else {
+            setGalleryItems(fetchedItems)
+          }
+        }
+      } catch (err) {
+        console.error("Fel vid laddning av top galleri", err)
+      }
+    }
+    fetchTopGallery()
+  }, [])
 
   // Horizontal scroll – pin the section, scroll the track
   useEffect(() => {
