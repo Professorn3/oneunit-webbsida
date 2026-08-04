@@ -296,7 +296,7 @@ export default function Meetups() {
             return (
               <div key={event.id} className="meetup-card">
                 <div>
-                  <span className="meetup-card-badge">Kommande Ritt</span>
+                  <span className="meetup-card-badge">KOMMANDE</span>
                 </div>
                 
                 <div className="meetup-card-body">
