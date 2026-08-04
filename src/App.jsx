@@ -20,7 +20,6 @@ import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import Rules from './pages/Rules'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
-import ScrollProgress from './components/ScrollProgress'
 import PageTransition from './components/PageTransition'
 import './App.css'
 import ScrollToTop from './components/ScrollToTop'
@@ -39,7 +38,6 @@ function AppContent() {
 
   return (
     <>
-      <ScrollProgress />
       <ScrollToTop />
       <Navbar />
       <main>
