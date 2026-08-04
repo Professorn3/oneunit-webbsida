@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../context/AuthContext';
 import GlitchText from '../components/GlitchText';
 import ScrollReveal from '../components/ScrollReveal';
@@ -47,7 +48,9 @@ export default function Gallery() {
   const [title, setTitle] = useState('');
   const [uploadCategory, setUploadCategory] = useState('Motorcyklar');
   const [imagePreview, setImagePreview] = useState(null);
+  const [videoFile, setVideoFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   // Parallax hooks
   const { scrollYProgress } = useScroll();
@@ -73,12 +76,33 @@ export default function Gallery() {
   const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    try {
-      const compressed = await compressImage(file, 1400, 1400, 0.85);
-      setImagePreview(compressed);
-    } catch (err) {
-      console.error("Fel vid bildbehandling:", err);
-      alert("Kunde inte behandla bilden.");
+
+    if (file.type.startsWith('video/')) {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        if (video.duration > 60) {
+          alert('Videon är för lång! Max 60 sekunder tillåts.');
+          e.target.value = '';
+          return;
+        }
+        setVideoFile(file);
+        setImagePreview(URL.createObjectURL(file));
+      };
+      video.src = URL.createObjectURL(file);
+      return;
+    }
+
+    if (file.type.startsWith('image/')) {
+      try {
+        const compressed = await compressImage(file, 1400, 1400, 0.85);
+        setVideoFile(null);
+        setImagePreview(compressed);
+      } catch (err) {
+        console.error("Fel vid bildbehandling:", err);
+        alert("Kunde inte behandla bilden.");
+      }
     }
   };
 
@@ -89,33 +113,63 @@ export default function Gallery() {
       return;
     }
     if (!imagePreview) {
-      alert("Vänligen välj en bild att ladda upp.");
+      alert("Vänligen välj en bild eller video att ladda upp.");
       return;
     }
     if (!title.trim()) {
-      alert("Vänligen ange en titel eller beskrivning för bilden.");
+      alert("Vänligen ange en titel eller beskrivning.");
       return;
     }
 
     setUploading(true);
+    setUploadProgress(0);
     try {
+      let finalSrc = imagePreview;
+      let finalType = 'image';
+
+      if (videoFile) {
+        finalType = 'video';
+        const storageRef = ref(storage, `gallery_videos/${Date.now()}_${videoFile.name}`);
+        const uploadTask = uploadBytesResumable(storageRef, videoFile);
+
+        await new Promise((resolve, reject) => {
+          uploadTask.on(
+            'state_changed',
+            (snapshot) => {
+              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              setUploadProgress(Math.round(progress));
+            },
+            (error) => {
+              reject(error);
+            },
+            async () => {
+              finalSrc = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve();
+            }
+          );
+        });
+      }
+
       await addDoc(collection(db, 'gallery'), {
         title,
         category: uploadCategory,
-        src: imagePreview,
-        type: 'image',
+        src: finalSrc,
+        type: finalType,
         uploaderEmail: currentUser?.email || 'Okänd Medlem',
         uploaderName: currentUser?.email?.split('@')[0] || 'Medlem',
         likes: [],
         likeCount: 0,
         createdAt: serverTimestamp()
       });
+      
       setTitle('');
       setImagePreview(null);
+      setVideoFile(null);
+      setUploadProgress(0);
       setShowUploadStudio(false);
     } catch (err) {
       console.error("Fel vid uppladdning:", err);
-      alert("Kunde inte ladda upp fil till galleriet: " + err.message);
+      alert("Kunde inte ladda upp filen till galleriet: " + err.message);
     }
     setUploading(false);
   };
@@ -304,15 +358,19 @@ export default function Gallery() {
                       <label style={{ display: 'block', color: '#c0c6d4', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>Välj Bild från Mobil eller Dator:</label>
                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
                         <label className="btn btn-outline" style={{ padding: '0.7rem 1.4rem', cursor: 'pointer', borderColor: 'rgba(255,255,255,0.3)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span>Välj Foto Att Ladda Upp</span>
-                          <input type="file" accept="image/*" onChange={handleImageSelect} style={{ display: 'none' }} />
+                          <span>Välj Bild eller Video (Max 60s)</span>
+                          <input type="file" accept="image/*,video/*" onChange={handleImageSelect} style={{ display: 'none' }} />
                         </label>
 
                         {imagePreview && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: '#07080a', padding: '0.4rem 1rem', borderRadius: '10px', border: '1px solid rgba(0, 255, 136, 0.4)' }}>
-                            <img src={imagePreview} alt="Preview" style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '6px' }} />
-                            <span style={{ color: '#00ff88', fontSize: '0.85rem', fontWeight: 700 }}>Foto optimerat och redo för publicering</span>
-                            <button type="button" onClick={() => setImagePreview(null)} style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: '1.2rem', cursor: 'pointer', marginLeft: '0.5rem' }}>✕</button>
+                            {videoFile ? (
+                              <video src={imagePreview} style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '6px' }} muted />
+                            ) : (
+                              <img src={imagePreview} alt="Preview" style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '6px' }} />
+                            )}
+                            <span style={{ color: '#00ff88', fontSize: '0.85rem', fontWeight: 700 }}>{videoFile ? 'Video redo' : 'Foto optimerat och redo'}</span>
+                            <button type="button" onClick={() => { setImagePreview(null); setVideoFile(null); }} style={{ background: 'none', border: 'none', color: '#ff3b30', fontSize: '1.2rem', cursor: 'pointer', marginLeft: '0.5rem' }}>✕</button>
                           </div>
                         )}
                       </div>
@@ -320,7 +378,7 @@ export default function Gallery() {
                   </div>
 
                   <button type="submit" disabled={uploading || !imagePreview} className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.05rem', fontWeight: 800, backgroundColor: '#00f5ff', color: '#000', cursor: 'pointer', border: 'none', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {uploading ? 'Publicerar bild till galleriet...' : 'Publicera Foto i Gallerit'}
+                    {uploading ? (videoFile ? `Laddar upp video... ${uploadProgress}%` : 'Publicerar bild till galleriet...') : 'Publicera i Galleriet'}
                   </button>
                 </form>
               </div>
@@ -402,17 +460,35 @@ export default function Gallery() {
                 style={{ width: '100%', height: '100%', border: 'none', background: 'none', cursor: 'pointer' }}
               >
                 <div className="gallery-page__img-wrap">
-                  <img
-                    src={item.src}
-                    alt={item.title}
-                    className="gallery-page__img"
-                    loading="lazy"
-                  />
+                  {item.type === 'video' ? (
+                    <video
+                      src={item.src}
+                      className="gallery-page__img"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{ objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <img
+                      src={item.src}
+                      alt={item.title}
+                      className="gallery-page__img"
+                      loading="lazy"
+                    />
+                  )}
                   <div className="gallery-page__img-overlay">
                     <span className="gallery-page__img-icon">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
-                      </svg>
+                      {item.type === 'video' ? (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                        </svg>
+                      )}
                     </span>
                     <span className="gallery-page__img-label">{item.title}</span>
                   </div>
@@ -465,25 +541,70 @@ export default function Gallery() {
           aria-modal="true"
           aria-label={lightbox.title}
           onClick={() => setLightbox(null)}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
         >
           <button
             id="lightbox-close"
             className="lightbox__close"
             aria-label="Stäng"
             onClick={() => setLightbox(null)}
+            style={{ zIndex: 1100 }}
           >
             ✕
           </button>
-          <img
-            src={lightbox.src}
-            alt={lightbox.title}
-            className="lightbox__img"
-            onClick={(e) => e.stopPropagation()}
-          />
-          <p className="lightbox__caption">
-            {lightbox.title}
-            {lightbox.uploaderName && ` (av ${lightbox.uploaderName})`}
-          </p>
+          
+          {lightbox.type === 'video' ? (
+            <video
+              src={lightbox.src}
+              controls
+              autoPlay
+              className="lightbox__img"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxHeight: '80vh', maxWidth: '90vw' }}
+            />
+          ) : (
+            <img
+              src={lightbox.src}
+              alt={lightbox.title}
+              className="lightbox__img"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxHeight: '80vh', maxWidth: '90vw' }}
+            />
+          )}
+
+          <div style={{ marginTop: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
+            <p className="lightbox__caption" style={{ margin: 0, position: 'relative', background: 'none' }}>
+              {lightbox.title}
+              {lightbox.uploaderName && ` (av ${lightbox.uploaderName})`}
+            </p>
+
+            {isAdmin && !String(lightbox.id).startsWith('def_') && (
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button
+                  onClick={() => { 
+                    setItemToEdit(lightbox); 
+                    setEditTitle(lightbox.title || '');
+                    setEditCategory(lightbox.category || 'Motorcyklar');
+                    setLightbox(null);
+                  }}
+                  className="btn"
+                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff' }}
+                >
+                  Redigera
+                </button>
+                <button
+                  onClick={() => { 
+                    setItemToDelete(lightbox); 
+                    setLightbox(null);
+                  }}
+                  className="btn"
+                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444' }}
+                >
+                  Radera
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
