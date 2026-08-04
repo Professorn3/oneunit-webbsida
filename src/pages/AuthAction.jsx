@@ -42,8 +42,12 @@ export default function AuthAction() {
       setError('Lösenorden matchar inte.');
       return;
     }
-    if (newPassword.length < 6) {
-      setError('Lösenordet måste vara minst 6 tecken.');
+    
+    const hasLetters = /[a-zA-Z]/.test(newPassword);
+    const hasNumbers = /\d/.test(newPassword);
+    
+    if (newPassword.length < 8 || !hasLetters || !hasNumbers) {
+      setError('Lösenordet måste vara minst 8 tecken långt och innehålla både bokstäver och siffror.');
       return;
     }
 

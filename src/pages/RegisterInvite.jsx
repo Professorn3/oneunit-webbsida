@@ -8,6 +8,7 @@ import './Login.css'; // Återanvänder samma CSS
 export default function RegisterInvite() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [validToken, setValidToken] = useState(false);
@@ -51,6 +52,19 @@ export default function RegisterInvite() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validToken) return;
+
+    if (password !== confirmPassword) {
+      setError('Lösenorden matchar inte.');
+      return;
+    }
+    
+    const hasLetters = /[a-zA-Z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    
+    if (password.length < 8 || !hasLetters || !hasNumbers) {
+      setError('Lösenordet måste vara minst 8 tecken långt och innehålla både bokstäver och siffror.');
+      return;
+    }
 
     setError('');
     setLoading(true);
@@ -114,7 +128,18 @@ export default function RegisterInvite() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required 
-                  minLength={6}
+                  minLength={8}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="confirmPassword">Bekräfta Lösenord</label>
+                <input 
+                  type="password" 
+                  id="confirmPassword" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required 
+                  minLength={8}
                 />
               </div>
               
