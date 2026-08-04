@@ -1,12 +1,18 @@
 import { motion, useScroll, useSpring } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 
 export default function ScrollProgress() {
+  const location = useLocation();
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
     damping: 30,
     restDelta: 0.001
   });
+
+  if (location.pathname !== '/gallery') {
+    return null;
+  }
 
   return (
     <motion.div
