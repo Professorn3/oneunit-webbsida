@@ -163,7 +163,6 @@ export default function News() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: showAdminStudio ? '1.5rem' : '0' }}>
               <button
                 onClick={() => setShowAdminStudio(!showAdminStudio)}
-                className="btn btn-outline"
                 title="Klicka för att fälla ut / in nyhetsstudion"
                 style={{
                   borderColor: '#00f5ff',
