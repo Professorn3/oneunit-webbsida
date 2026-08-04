@@ -27,6 +27,7 @@ const navLinks = [
   { path: '/gallery', label: 'Galleri' },
   { path: '/news', label: 'Nyheter' },
   { path: '/merch', label: 'Merch' },
+  { path: '/contact', label: 'Kontakt' },
   { path: '/apply', label: 'Ansök' },
 ]
 

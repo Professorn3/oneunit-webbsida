@@ -13,7 +13,8 @@ export default function Dashboard() {
   const { currentUser, userData, isAdmin, isMember, isBanned } = useAuth();
   const [applications, setApplications] = useState([]);
   const [members, setMembers] = useState([]);
-  const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'members' | 'campaigns' | 'settings'
+  const [contacts, setContacts] = useState([]);
+  const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'members' | 'contacts' | 'campaigns' | 'settings'
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmConfig, setConfirmConfig] = useState(null);
   
@@ -97,9 +98,20 @@ export default function Dashboard() {
         setMembers(mems);
       });
 
+      // Lyssna på kontaktmeddelanden
+      const qContacts = query(collection(db, 'contacts'), orderBy('createdAt', 'desc'));
+      const unsubContacts = onSnapshot(qContacts, (snapshot) => {
+        const msgs = [];
+        snapshot.forEach((doc) => {
+          msgs.push({ id: doc.id, ...doc.data() });
+        });
+        setContacts(msgs);
+      });
+
       return () => {
         unsubApps();
         unsubMembers();
+        unsubContacts();
       };
     }
   }, [isAdmin]);
@@ -222,6 +234,23 @@ export default function Dashboard() {
       onConfirm: async () => {
         setConfirmConfig(null);
         await deleteDoc(doc(db, 'applications', appId));
+      }
+    });
+  };
+
+  const handleMarkContactRead = async (contactId) => {
+    await updateDoc(doc(db, 'contacts', contactId), { status: 'read' });
+  };
+  
+  const handleDeleteContact = (contactId) => {
+    setConfirmConfig({
+      title: "Radera meddelande?",
+      message: "Vill du radera detta kontaktmeddelande?",
+      confirmText: "Ja, radera",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        await deleteDoc(doc(db, 'contacts', contactId));
       }
     });
   };
@@ -471,6 +500,12 @@ export default function Dashboard() {
                 Medlemshantering ({members.length})
               </button>
               <button 
+                className={`btn ${activeTab === 'contacts' ? 'btn-primary' : 'btn-outline'}`}
+                onClick={() => setActiveTab('contacts')}
+              >
+                Kontaktmeddelanden ({contacts.filter(c => c.status === 'unread').length})
+              </button>
+              <button 
                 className={`btn ${activeTab === 'campaigns' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => setActiveTab('campaigns')}
               >
@@ -547,6 +582,37 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'contacts' && (
+              <div className="applications-list">
+                {contacts.length === 0 ? (
+                  <p>Inga kontaktmeddelanden.</p>
+                ) : (
+                  contacts.map(c => (
+                    <div key={c.id} className="application-item" style={{ borderLeft: c.status === 'unread' ? '4px solid #00f5ff' : '4px solid #333' }}>
+                      <div className="app-info">
+                        <h4>{c.name}</h4>
+                        <p><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>
+                        <p><strong>Skickat:</strong> {c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</p>
+                        <div style={{ background: '#0a0a0a', padding: '1rem', borderRadius: '8px', marginTop: '1rem', border: '1px solid #222' }}>
+                          <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{c.message}</p>
+                        </div>
+                      </div>
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'flex-start'}}>
+                        {c.status === 'unread' && (
+                          <button onClick={() => handleMarkContactRead(c.id)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>
+                            Markera som läst
+                          </button>
+                        )}
+                        <button onClick={() => handleDeleteContact(c.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>
+                          Radera
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 

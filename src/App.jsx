@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard'
 import ComingSoon from './pages/ComingSoon'
 import RegisterInvite from './pages/RegisterInvite'
 import AuthAction from './pages/AuthAction'
+import Contact from './pages/Contact'
 import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import Rules from './pages/Rules'
@@ -54,6 +55,7 @@ function AppContent() {
             <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
             <Route path="/auth-action" element={<PageTransition><AuthAction /></PageTransition>} />
             <Route path="/register" element={<PageTransition><RegisterInvite /></PageTransition>} />
+            <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
             <Route 
               path="/dashboard" 
               element={
