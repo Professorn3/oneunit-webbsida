@@ -405,3 +405,83 @@ h1, h2, h3, h4, h5, h6 {
     --space-lg: 3rem;
   }
 }
+
+/* ====================================================
+   Upload & Edit Modals (Global)
+   ==================================================== */
+.upload-studio-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 10000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.upload-studio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 1rem;
+}
+
+.upload-studio-header .close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 2.2rem;
+  cursor: pointer;
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.upload-studio-header .close-btn:hover {
+  color: #00f5ff;
+}
+
+.upload-studio-form .form-group {
+  margin-bottom: 1.2rem;
+}
+
+.upload-studio-form label {
+  display: block;
+  color: #c0c6d4;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.upload-studio-form input,
+.upload-studio-form textarea,
+.upload-studio-form select {
+  width: 100%;
+  padding: 1rem;
+  background: #0a0b0f;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.upload-studio-form input:focus,
+.upload-studio-form textarea:focus,
+.upload-studio-form select:focus {
+  outline: none;
+  border-color: #00f5ff;
+}
+
+.upload-studio-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
