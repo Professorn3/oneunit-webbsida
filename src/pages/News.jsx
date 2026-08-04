@@ -409,31 +409,47 @@ export default function News() {
 
       {/* Detail Modal */}
       {selectedArticle && (
-        <div className="upload-studio-overlay" onClick={() => setSelectedArticle(null)} style={{ zIndex: 9999 }}>
-          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div className="upload-studio-header">
-              <h2 className="glitch-text" data-text={selectedArticle.title}>{selectedArticle.title}</h2>
-              <button className="close-btn" onClick={() => setSelectedArticle(null)} aria-label="Stäng detaljvy">×</button>
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={selectedArticle.title}
+          onClick={() => setSelectedArticle(null)}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <button
+            className="lightbox__close"
+            aria-label="Stäng"
+            onClick={() => setSelectedArticle(null)}
+            style={{ zIndex: 1100 }}
+          >
+            ✕
+          </button>
+          
+          <img
+            src={selectedArticle.image || '/images/gallery_1.png'}
+            alt={selectedArticle.title}
+            className="lightbox__img"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxHeight: '60vh', maxWidth: '90vw', objectFit: 'contain' }}
+          />
+
+          <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px', padding: '0 1rem', background: 'rgba(0,0,0,0.6)', paddingBottom: '2rem', borderRadius: '12px' }} onClick={(e) => e.stopPropagation()}>
+            <p className="lightbox__caption" style={{ margin: 0, position: 'relative', background: 'none', paddingBottom: '0.5rem' }}>
+              {selectedArticle.title}
+            </p>
+            
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1rem', color: '#888', fontSize: '0.9rem' }}>
+              <span className="tag" style={{ background: '#222' }}>{selectedArticle.category}</span>
+              <span>{selectedArticle.date}</span>
             </div>
             
-            <div style={{ marginTop: '1.5rem' }}>
-              <img 
-                src={selectedArticle.image || '/images/gallery_1.png'} 
-                alt={selectedArticle.title} 
-                style={{ width: '100%', maxHeight: '450px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1.5rem' }} 
-              />
-              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', color: '#888', fontSize: '0.9rem' }}>
-                <span className="tag" style={{ background: '#222' }}>{selectedArticle.category}</span>
-                <span>{selectedArticle.date}</span>
-                {String(selectedArticle.id).startsWith('default_') && <span style={{ color: '#00f5ff' }}>Standardinlägg</span>}
-              </div>
-              <div style={{ lineHeight: '1.8', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1.05rem' }}>
-                {selectedArticle.excerpt}
-              </div>
+            <div style={{ lineHeight: '1.6', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1rem', textAlign: 'left', maxWidth: '600px' }}>
+              {selectedArticle.excerpt}
             </div>
 
             {isAdmin && !String(selectedArticle.id).startsWith('default_') && (
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #333' }}>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button
                   onClick={() => { 
                     setArticleToEdit(selectedArticle); 
@@ -444,9 +460,9 @@ export default function News() {
                     setSelectedArticle(null);
                   }}
                   className="btn"
-                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff', flex: 1 }}
+                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff' }}
                 >
-                  Redigera Nyhet
+                  Redigera
                 </button>
                 <button
                   onClick={() => { 
@@ -454,9 +470,9 @@ export default function News() {
                     setSelectedArticle(null);
                   }}
                   className="btn"
-                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444', flex: 1 }}
+                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444' }}
                 >
-                  Radera Nyhet
+                  Radera
                 </button>
               </div>
             )}

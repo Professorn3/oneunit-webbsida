@@ -318,32 +318,46 @@ export default function Merch() {
 
       {/* Detail Modal */}
       {selectedItem && (
-        <div className="upload-studio-overlay" onClick={() => setSelectedItem(null)} style={{ zIndex: 9999 }}>
-          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-            <div className="upload-studio-header">
-              <h2 className="glitch-text" data-text={selectedItem.title}>{selectedItem.title}</h2>
-              <button className="close-btn" onClick={() => setSelectedItem(null)} aria-label="Stäng detaljvy">×</button>
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label={selectedItem.title}
+          onClick={() => setSelectedItem(null)}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <button
+            className="lightbox__close"
+            aria-label="Stäng"
+            onClick={() => setSelectedItem(null)}
+            style={{ zIndex: 1100 }}
+          >
+            ✕
+          </button>
+          
+          <img
+            src={selectedItem.image || '/images/gallery_1.png'}
+            alt={selectedItem.title}
+            className="lightbox__img"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxHeight: '60vh', maxWidth: '90vw', objectFit: 'contain' }}
+          />
+
+          <div style={{ marginTop: '1.5rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', maxWidth: '800px', padding: '0 1rem', background: 'rgba(0,0,0,0.6)', paddingBottom: '2rem', borderRadius: '12px' }} onClick={(e) => e.stopPropagation()}>
+            <p className="lightbox__caption" style={{ margin: 0, position: 'relative', background: 'none', paddingBottom: '0.5rem' }}>
+              {selectedItem.title}
+            </p>
+            
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1rem' }}>
+              <span className="tag" style={{ background: '#222' }}>{selectedItem.category}</span>
             </div>
             
-            <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <img 
-                src={selectedItem.image || '/images/gallery_1.png'} 
-                alt={selectedItem.title} 
-                style={{ width: '100%', maxWidth: '500px', maxHeight: '500px', objectFit: 'contain', borderRadius: '8px', marginBottom: '1.5rem', background: '#0a0b0e' }} 
-              />
-              <div style={{ width: '100%' }}>
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', color: '#888', fontSize: '0.9rem' }}>
-                  <span className="tag" style={{ background: '#222' }}>{selectedItem.category}</span>
-                  {String(selectedItem.id).startsWith('default_') && <span style={{ color: '#00f5ff' }}>Standardplagg</span>}
-                </div>
-                <div style={{ lineHeight: '1.8', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1.05rem' }}>
-                  {selectedItem.description}
-                </div>
-              </div>
+            <div style={{ lineHeight: '1.6', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1rem', textAlign: 'center', maxWidth: '600px' }}>
+              {selectedItem.description}
             </div>
 
             {isAdmin && !String(selectedItem.id).startsWith('default_') && (
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #333' }}>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
                 <button
                   onClick={() => { 
                     setItemToEdit(selectedItem); 
@@ -353,9 +367,9 @@ export default function Merch() {
                     setSelectedItem(null);
                   }}
                   className="btn"
-                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff', flex: 1 }}
+                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff' }}
                 >
-                  Redigera Merch
+                  Redigera
                 </button>
                 <button
                   onClick={() => { 
@@ -363,9 +377,9 @@ export default function Merch() {
                     setSelectedItem(null);
                   }}
                   className="btn"
-                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444', flex: 1 }}
+                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444' }}
                 >
-                  Radera Merch
+                  Radera
                 </button>
               </div>
             )}
