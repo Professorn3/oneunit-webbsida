@@ -36,6 +36,7 @@ export default function Chat() {
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [pollQuestion, setPollQuestion] = useState('');
   const [pollOptions, setPollOptions] = useState(['Ja', 'Nej', 'Kanske']);
+  const [showAttachmentMenu, setShowAttachmentMenu] = useState(false);
   
   const messagesEndRef = useRef(null);
 
@@ -496,47 +497,77 @@ export default function Chat() {
 
         {/* Input area */}
         <form onSubmit={handleSend} className="chat-input-area">
-          <button 
-            type="button" 
-            className={`btn-gif-toggle ${showPollCreator ? 'active' : ''}`}
-            onClick={() => { setShowPollCreator(!showPollCreator); setShowGifPicker(false); }}
-            title="Skapa Omröstning"
-            style={{ fontWeight: 700, fontSize: '0.8rem' }}
-          >
-            📊
-          </button>
-          
-          <button 
-            type="button" 
-            className={`btn-gif-toggle ${showGifPicker ? 'active' : ''}`}
-            onClick={() => { setShowGifPicker(!showGifPicker); setShowPollCreator(false); }}
-            title="Öppna GIF-studio"
-            style={{ fontWeight: 700 }}
-          >
-            GIF
-          </button>
+          <div style={{ position: 'relative' }}>
+            <button 
+              type="button" 
+              className={`btn-gif-toggle ${showAttachmentMenu ? 'active' : ''}`}
+              onClick={() => setShowAttachmentMenu(!showAttachmentMenu)}
+              title="Bifoga media eller omröstning"
+              style={{ fontWeight: 700, fontSize: '1.4rem', padding: '0 0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              +
+            </button>
 
-          <label 
-            className="btn-gif-toggle" 
-            title="Ladda upp foto från dator / telefon" 
-            style={{ cursor: 'pointer', margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.5rem 0.6rem', fontSize: '0.85rem', fontWeight: 700 }}
-          >
-            {uploadingImg ? '...' : 'FOTO'}
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={handleImageUpload} 
-              disabled={uploadingImg} 
-              style={{ display: 'none' }} 
-            />
-          </label>
+            {showAttachmentMenu && (
+              <div style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 10px)',
+                left: '0',
+                background: '#1a1d24',
+                border: '1px solid rgba(0, 245, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.2rem',
+                zIndex: 100,
+                boxShadow: '0 5px 20px rgba(0,0,0,0.8)',
+                minWidth: '150px'
+              }}>
+                {isAdmin && (
+                  <button 
+                    type="button" 
+                    onClick={() => { setShowPollCreator(!showPollCreator); setShowGifPicker(false); setShowAttachmentMenu(false); }}
+                    style={{ background: 'none', border: 'none', color: '#fff', textAlign: 'left', cursor: 'pointer', padding: '0.6rem', fontSize: '0.9rem', borderRadius: '4px' }}
+                    onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+                    onMouseOut={(e) => e.target.style.background = 'none'}
+                  >
+                    📊 Omröstning
+                  </button>
+                )}
+                <button 
+                  type="button" 
+                  onClick={() => { setShowGifPicker(!showGifPicker); setShowPollCreator(false); setShowAttachmentMenu(false); }}
+                  style={{ background: 'none', border: 'none', color: '#fff', textAlign: 'left', cursor: 'pointer', padding: '0.6rem', fontSize: '0.9rem', borderRadius: '4px' }}
+                  onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseOut={(e) => e.target.style.background = 'none'}
+                >
+                  🎭 GIF
+                </button>
+                <label 
+                  style={{ color: '#fff', cursor: 'pointer', padding: '0.6rem', fontSize: '0.9rem', margin: 0, display: 'block', borderRadius: '4px' }}
+                  onMouseOver={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+                  onMouseOut={(e) => e.target.style.background = 'none'}
+                >
+                  {uploadingImg ? '⏳ Laddar...' : '📸 Foto'}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={(e) => { handleImageUpload(e); setShowAttachmentMenu(false); }} 
+                    disabled={uploadingImg} 
+                    style={{ display: 'none' }} 
+                  />
+                </label>
+              </div>
+            )}
+          </div>
           <input 
             type="text" 
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder={activeRoom === 'club_chat' ? "Skriv till hela klubben..." : "Skriv i interna adminkanalen..."}
             maxLength={500}
-            onFocus={() => { setShowGifPicker(false); setShowPollCreator(false); }}
+            onFocus={() => { setShowGifPicker(false); setShowPollCreator(false); setShowAttachmentMenu(false); }}
           />
           <button type="submit" className="btn-send">Skicka</button>
         </form>
