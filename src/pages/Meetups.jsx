@@ -25,6 +25,7 @@ export default function Meetups() {
   const [route, setRoute] = useState('');
   const [description, setDescription] = useState('');
   const [creating, setCreating] = useState(false);
+  const [notifyChat, setNotifyChat] = useState(true);
 
   useEffect(() => {
     const q = query(collection(db, 'meetups'), orderBy('createdAt', 'desc'));
@@ -64,6 +65,17 @@ export default function Meetups() {
         createdAt: serverTimestamp(),
         createdBy: currentUser.email
       });
+
+      if (notifyChat) {
+        await addDoc(collection(db, 'club_chat'), {
+          text: `🏍️ NY KLUBBTRÄFF UPPLAGD: ${title} den ${date}. Samling: ${location}. Gå in under MEETUPS för att anmäla er!`,
+          senderName: 'ONEUNIT SYSTEM',
+          senderEmail: currentUser.email,
+          createdAt: serverTimestamp(),
+          isPinned: false
+        });
+      }
+
       setTitle('');
       setDate('');
       setLocation('');
@@ -237,6 +249,8 @@ export default function Meetups() {
                 />
               </div>
 
+
+
               <div className="meetup-form-group full-width">
                 <label>Beskrivning & Information:</label>
                 <textarea 
@@ -246,6 +260,18 @@ export default function Meetups() {
                   onChange={(e) => setDescription(e.target.value)} 
                   required
                 />
+              </div>
+              <div className="meetup-form-group full-width" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.5rem 0 1rem 0' }}>
+                <input 
+                  type="checkbox" 
+                  id="notifyChat" 
+                  checked={notifyChat}
+                  onChange={(e) => setNotifyChat(e.target.checked)}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#00f5ff' }}
+                />
+                <label htmlFor="notifyChat" style={{ color: '#00f5ff', cursor: 'pointer', fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.5px' }}>
+                  Skicka en blänkare i klubbchatten om denna träff
+                </label>
               </div>
 
               <div className="meetup-form-group full-width">
