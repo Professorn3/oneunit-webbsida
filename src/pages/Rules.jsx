@@ -8,10 +8,11 @@ export default function Rules() {
       title: 'I. DIGITAL NÄRVARO (HEMSIDAN)',
       icon: '▪',
       rules: [
-        'Respektfull ton gäller alltid. Inga personpåhopp eller drama i klubbchatten.',
+        'Respektfull ton gäller alltid. Inga personpåhopp eller drama i chatten.',
         'Det som skrivs internt på sidan stannar på sidan. Läckage av medlemsinformation leder till omedelbar uteslutning.',
         'Spam eller onödig reklam är strängt förbjudet.',
-        'Klubbens officiella beslut kommuniceras enbart av admins via Nyheter eller direkt i chatten.'
+        'Klubbens officiella beslut kommuniceras enbart av admins via Nyheter eller direkt i chatten.',
+        'Har du frågor, funderingar eller åsikter kring regler? Säg till i chatten! Vi vill ständigt göra hemsidan bättre. Tycker du en regel bör ändras så kollar vi vad majoriteten tycker. Vi bestämmer allt tillsammans.'
       ]
     },
     {
@@ -19,20 +20,21 @@ export default function Rules() {
       icon: '▪',
       rules: [
         'Tider respekteras. Om samling är satt till ett visst klockslag, är du tankad och klar då.',
-        'Respekt mot bröder och systrar. Vid fysiska möten lämnas konflikter hemma.',
-        'Klubbens märken och kläder (Merch) bärs med stolthet. Vid officiella meetups gäller väst eller klubbtröja om inget annat angetts.',
-        'Under möten lyssnar vi på den som för ordet. Inga avbrott när viktig information delas.'
+        'Respekt mot varandra är ett måste. Vid fysiska möten lämnas konflikter hemma.',
+        'Vi bär inga västar, utan vanliga kläder, men ifall vi bär vår merch så gör vi det med stolthet. Möjlighet finns för merch med personlig text/namn, men tänk på att utomstående då kan identifiera dig. Du väljer helt själv.',
+        'Under alla möten och meetups utser vi en person som leder gruppen för att slippa krångel. Denna person ska respekteras.',
+        'Att utföra stunts eller burnouts sker helt på egen risk. Vi bestämmer inte vad du gör, men vi rekommenderar starkt att du gör det lagligt.'
       ]
     },
     {
-      title: 'III. UTE PÅ VÄGARNA (RIDEOUTS)',
+      title: 'III. UTE PÅ VÄGARNA (RIDES)',
       icon: '▪',
       rules: [
-        'Road Captain leder ritten, Tail Gunner stänger kön. Deras instruktioner följs utan undantag.',
-        'Säkerhet går först. Inga onödiga risktaganden eller stunts på allmän väg när vi rider i formation.',
-        'Håll din position i gruppen (staggered formation) och lämna alltid tillräckligt med bromsavstånd.',
-        'Om en medlem får motorstopp eller problem, stannar hela gruppen tills problemet är löst eller Road Captain ger andra order.',
-        'Visa respekt för andra trafikanter – vi representerar OneUnit i allt vi gör.'
+        'Ride-ledaren leder ritten. Eventuella instruktioner tar vi på plats eller i chatten innan start.',
+        'Säkerhet går först. Vi håller ett bra och säkert avstånd till varandra så vi inte riskerar att köra ihop.',
+        'Du bestämmer själv på hur många hjul du kör och i vilken hastighet. Vi kan dock bara rekommendera att man håller sig på två hjul, respekterar gällande hastighetsbegränsningar och tänker på säkerheten.',
+        'Om en medlem får motorstopp eller problem stannar vi alla tillsammans tills vidare beslut tas gemensamt.',
+        'Vi respekterar alltid andra trafikanter, men förväntar oss också att de respekterar oss. Vi är inte ute efter problem – vi vill bara ha frihet.'
       ]
     }
   ]
