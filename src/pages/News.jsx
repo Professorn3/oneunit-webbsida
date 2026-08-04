@@ -75,6 +75,14 @@ export default function News() {
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [showAdminStudio, setShowAdminStudio] = useState(false);
 
+  // Edit State
+  const [articleToEdit, setArticleToEdit] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('Event');
+  const [editExcerpt, setEditExcerpt] = useState('');
+  const [editDateStr, setEditDateStr] = useState('');
+  const [editing, setEditing] = useState(false);
+
   // Admin form state
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Event');
@@ -152,6 +160,25 @@ export default function News() {
     } catch (err) {
       console.error("Fel vid radering:", err);
     }
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!articleToEdit) return;
+    setEditing(true);
+    try {
+      await updateDoc(doc(db, 'news', articleToEdit.id), {
+        title: editTitle,
+        category: editCategory,
+        excerpt: editExcerpt,
+        date: editDateStr
+      });
+      setArticleToEdit(null);
+    } catch (err) {
+      console.error("Fel vid uppdatering av nyhet:", err);
+      alert("Kunde inte uppdatera nyheten.");
+    }
+    setEditing(false);
   };
 
   // Kombinera egna databasinlägg överst med de klassiska stanardinläggen nedanför
@@ -309,14 +336,29 @@ export default function News() {
           <ScrollReveal className="news-page__featured-wrap">
             <article className="news-page__featured card" id={`news-article-${featured.id}`} style={{ position: 'relative' }}>
               {isAdmin && !String(featured.id).startsWith('default_') && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setArticleToDelete(featured); }}
-                  className="btn-delete-news"
-                  title="Radera Nyhet"
-                  style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px' }}
-                >
-                  Radera
-                </button>
+                <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setArticleToEdit(featured); 
+                      setEditTitle(featured.title || '');
+                      setEditCategory(featured.category || 'Event');
+                      setEditExcerpt(featured.excerpt || '');
+                      setEditDateStr(featured.date || '');
+                    }}
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(0, 245, 255, 0.9)', color: '#000', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                    title="Redigera Nyhet"
+                  >
+                    Redigera
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setArticleToDelete(featured); }}
+                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                    title="Radera Nyhet"
+                  >
+                    Radera
+                  </button>
+                </div>
               )}
               <div className="news-page__featured-img-wrap">
                 <img src={featured.image || '/images/gallery_2.png'} alt={featured.title} className="news-page__featured-img" loading="eager" />
@@ -342,14 +384,29 @@ export default function News() {
             <ScrollReveal key={item.id} delay={Math.min(i * 50, 300)}>
               <article className="news-page__card card" id={`news-article-${item.id}`} style={{ position: 'relative' }}>
                 {isAdmin && !String(item.id).startsWith('default_') && (
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setArticleToDelete(item); }}
-                    className="btn-delete-news"
-                    title="Radera Nyhet"
-                    style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px' }}
-                  >
-                    Radera
-                  </button>
+                  <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={(e) => { 
+                        e.stopPropagation(); 
+                        setArticleToEdit(item); 
+                        setEditTitle(item.title || '');
+                        setEditCategory(item.category || 'Event');
+                        setEditExcerpt(item.excerpt || '');
+                        setEditDateStr(item.date || '');
+                      }}
+                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(0, 245, 255, 0.9)', color: '#000', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                      title="Redigera Nyhet"
+                    >
+                      Redigera
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setArticleToDelete(item); }}
+                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+                      title="Radera Nyhet"
+                    >
+                      Radera
+                    </button>
+                  </div>
                 )}
                 <div className="news-page__card-img-wrap">
                   <img src={item.image || '/images/gallery_1.png'} alt={item.title} className="news-page__card-img" loading="lazy" />
@@ -381,13 +438,78 @@ export default function News() {
 
       <ConfirmModal
         isOpen={!!articleToDelete}
-        title="Radera Nyhetsartikel?"
+        title="Radera Nyhet"
         message={`Vill du verkligen radera "${articleToDelete?.title}"? Detta går inte att ångra.`}
-        confirmText="Ja, radera permanent"
+        confirmText="Ja, radera"
         type="danger"
         onConfirm={confirmDelete}
         onCancel={() => setArticleToDelete(null)}
       />
+
+      {/* Edit Modal */}
+      {articleToEdit && (
+        <div className="upload-studio-overlay" onClick={() => setArticleToEdit(null)}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '600px', width: '90%' }}>
+            <div className="upload-studio-header">
+              <h2 className="glitch-text" data-text="REDIGERA NYHET">REDIGERA NYHET</h2>
+              <button className="close-btn" onClick={() => setArticleToEdit(null)} aria-label="Stäng redigerare">×</button>
+            </div>
+            
+            <form onSubmit={handleSaveEdit} className="upload-studio-form">
+              <div className="form-group">
+                <label>Rubrik</label>
+                <input 
+                  type="text" 
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  placeholder="Skriv nyhetsrubrik..."
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label>Kategori</label>
+                  <select 
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    style={{ background: '#222', color: '#fff', border: '1px solid #444', padding: '0.8rem', borderRadius: '4px', width: '100%' }}
+                  >
+                    <option value="Nyheter">Nyheter</option>
+                    <option value="Event">Event</option>
+                    <option value="Community">Community</option>
+                    <option value="Allmänt">Allmänt</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Datum (visas på kortet)</label>
+                  <input 
+                    type="text" 
+                    value={editDateStr}
+                    onChange={(e) => setEditDateStr(e.target.value)}
+                    placeholder="T.ex. 12 Okt 2026"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Brödtext / Sammanfattning</label>
+                <textarea 
+                  value={editExcerpt}
+                  onChange={e => setEditExcerpt(e.target.value)}
+                  placeholder="Skriv din nyhetstext här..."
+                  rows="5"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={editing}>
+                {editing ? 'Sparar...' : 'Spara Ändringar'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }

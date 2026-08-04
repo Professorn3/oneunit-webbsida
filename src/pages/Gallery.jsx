@@ -36,6 +36,12 @@ export default function Gallery() {
   const [loading, setLoading] = useState(true);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // Edit State
+  const [itemToEdit, setItemToEdit] = useState(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editCategory, setEditCategory] = useState('Motorcyklar');
+  const [editing, setEditing] = useState(false);
+
   // Upload Studio State
   const [showUploadStudio, setShowUploadStudio] = useState(false);
   const [title, setTitle] = useState('');
@@ -122,6 +128,23 @@ export default function Gallery() {
     } catch (err) {
       console.error("Fel vid radering av bild:", err);
     }
+  };
+
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!itemToEdit || !editTitle.trim()) return;
+    setEditing(true);
+    try {
+      await updateDoc(doc(db, 'gallery', itemToEdit.id), {
+        title: editTitle,
+        category: editCategory
+      });
+      setItemToEdit(null);
+    } catch (err) {
+      console.error("Fel vid uppdatering:", err);
+      alert("Kunde inte uppdatera bilden.");
+    }
+    setEditing(false);
   };
 
   const handleToggleLike = async (item, e) => {
@@ -329,27 +352,47 @@ export default function Gallery() {
             <ScrollReveal key={item.id} delay={i * 40} className="gallery-page__item" role="listitem" style={{ position: 'relative' }}>
               <motion.div style={{ y: parallaxY, height: '100%' }}>
               {(isAdmin || (currentUser && currentUser.email === item.uploaderEmail)) && !String(item.id).startsWith('def_') && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setItemToDelete(item); }}
-                  style={{
-                    position: 'absolute',
-                    top: '12px',
-                    right: '12px',
-                    zIndex: 10,
-                    background: 'rgba(239, 68, 68, 0.9)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '0.4rem 0.7rem',
-                    cursor: 'pointer',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                  }}
-                  title="Radera foto"
-                >
-                  Radera
-                </button>
+                <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      setItemToEdit(item); 
+                      setEditTitle(item.title || '');
+                      setEditCategory(item.category || 'Motorcyklar');
+                    }}
+                    style={{
+                      background: 'rgba(0, 245, 255, 0.9)',
+                      color: '#000',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.4rem 0.7rem',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                    }}
+                    title="Redigera bild"
+                  >
+                    Redigera
+                  </button>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setItemToDelete(item); }}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.9)',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '0.4rem 0.7rem',
+                      cursor: 'pointer',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
+                    }}
+                    title="Radera foto"
+                  >
+                    Radera
+                  </button>
+                </div>
               )}
               <button
                 id={`gallery-item-${item.id}`}
@@ -448,13 +491,56 @@ export default function Gallery() {
         isOpen={!!itemToDelete}
         title="Radera Galleribild"
         message={`Är du säker på att du vill radera "${itemToDelete?.title}" permanent från klubbens galleri?`}
-        confirmText="Radera Permanent"
-        cancelText="Avbryt"
+        confirmText="Ja, radera bild"
         type="danger"
         onConfirm={confirmDelete}
         onCancel={() => setItemToDelete(null)}
       />
+
+      {/* Edit Modal */}
+      {itemToEdit && (
+        <div className="upload-studio-overlay" onClick={() => setItemToEdit(null)}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333' }}>
+            <div className="upload-studio-header">
+              <h2 className="glitch-text" data-text="REDIGERA BILD">REDIGERA BILD</h2>
+              <button className="close-btn" onClick={() => setItemToEdit(null)} aria-label="Stäng redigerare">×</button>
+            </div>
+            
+            <form onSubmit={handleSaveEdit} className="upload-studio-form">
+              <div className="form-group">
+                <label>Titel / Beskrivning</label>
+                <input 
+                  type="text" 
+                  value={editTitle}
+                  onChange={e => setEditTitle(e.target.value)}
+                  placeholder="T.ex. Nattritt i city"
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Kategori</label>
+                <div className="category-select-grid">
+                  {categories.filter(c => c !== 'Alla').map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`category-select-btn ${editCategory === cat ? 'active' : ''}`}
+                      onClick={() => setEditCategory(cat)}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={editing}>
+                {editing ? 'Sparar...' : 'Spara Ändringar'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
-
