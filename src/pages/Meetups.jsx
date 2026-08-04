@@ -196,10 +196,9 @@ export default function Meetups() {
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: showAdminStudio ? '1.5rem' : '0' }}>
               <button
                 onClick={() => setShowAdminStudio(!showAdminStudio)}
-                className="btn btn-outline"
                 title="Klicka för att fälla ut / in skaparmodulen"
                 style={{
-                  borderColor: '#00f5ff',
+                  border: '2px solid #00f5ff',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
