@@ -57,7 +57,7 @@ export default function About() {
           >
             <h2>GÅ MED I GEMENSKAPEN</h2>
             <p>
-              Vi är ständigt på jakt efter hängivna personer som delar våra ideal och vår passion. Att bli en del av OneUnit ger dig tillgång till våra exklusiva plattformar, privata klubbchattar, meetups och unika gemensamma events. Känner du att du delar vår vision och har vad som krävs? Ta steget och ansök om medlemskap redan idag.
+              Vi är ständigt på jakt efter hängivna personer som delar våra ideal och vår passion. Att bli en del av OneUnit ger dig tillgång till våra exklusiva plattformar, privata chattar, meetups och unika gemensamma events. Känner du att du delar vår vision och har vad som krävs? Ta steget och ansök om medlemskap redan idag.
             </p>
           </motion.div>
         </div>
