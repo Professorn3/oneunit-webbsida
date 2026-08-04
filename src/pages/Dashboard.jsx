@@ -264,8 +264,6 @@ export default function Dashboard() {
       const ticketUrl = `https://oneunit.se/ticket/${contact.id}`;
       await addDoc(collection(db, 'mail'), {
         to: [contact.email],
-        from: 'OneUnit <info@oneunit.se>',
-        replyTo: 'info@oneunit.se',
         message: {
           subject: "Svar från OneUnit",
           html: `
