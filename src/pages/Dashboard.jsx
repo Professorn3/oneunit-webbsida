@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, getDocs } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
 import './Dashboard.css';
@@ -26,6 +27,9 @@ export default function Dashboard() {
   const [profileBike, setProfileBike] = useState('');
   const [profileInsta, setProfileInsta] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
+  
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetMsg, setResetMsg] = useState('');
 
   // Sync profile state when userData loads
   useEffect(() => {
@@ -139,6 +143,21 @@ export default function Dashboard() {
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/');
+  };
+
+  const handleChangePassword = async () => {
+    setResetLoading(true);
+    setResetMsg('');
+    try {
+      const functions = getFunctions(auth.app, 'europe-west1');
+      const sendCustomReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
+      await sendCustomReset({ email: currentUser.email, origin: window.location.origin });
+      setResetMsg('Ett mail har skickats till din e-postadress. Klicka på länken i mailet för att byta ditt lösenord.');
+      setTimeout(() => setResetMsg(''), 10000); // Hide after 10s
+    } catch (err) {
+      alert('Kunde inte skicka återställningslänk: ' + err.message);
+    }
+    setResetLoading(false);
   };
 
   const handleApproveAndInvite = (app) => {
@@ -343,10 +362,22 @@ export default function Dashboard() {
             <div className="dashboard-card member-card" style={{ maxWidth: '450px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3>Ditt Garage & Medlemskort</h3>
-                <button onClick={() => setEditingProfile(!editingProfile)} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                  {editingProfile ? 'Avbryt' : 'Redigera'}
-                </button>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={handleChangePassword} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }} disabled={resetLoading}>
+                    {resetLoading ? 'Skickar...' : 'Byt Lösenord'}
+                  </button>
+                  <button onClick={() => setEditingProfile(!editingProfile)} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
+                    {editingProfile ? 'Avbryt' : 'Redigera'}
+                  </button>
+                </div>
               </div>
+              
+              {resetMsg && (
+                <div style={{ padding: '1rem', background: 'rgba(0,255,136,0.1)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', margin: '1rem 1.5rem 0 1.5rem', fontSize: '0.9rem' }}>
+                  {resetMsg}
+                </div>
+              )}
+              
               <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
                 <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
                   <img src="/images/logo.png" alt="Logo" width="60" style={{ height: 'fit-content' }} />
