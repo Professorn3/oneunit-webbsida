@@ -37,7 +37,7 @@ export default function Contact() {
         {status === 'success' ? (
           <div className="contact-success">
             <h2>Meddelande Skickat!</h2>
-            <p>Tack för att du kontaktar OneUnit MC. Vi återkommer till dig på din e-postadress.</p>
+            <p>Tack för att du kontaktar OneUnit. Vi återkommer till dig på din e-postadress.</p>
             <button className="btn btn-primary" onClick={() => setStatus('idle')}>Skicka ett till meddelande</button>
           </div>
         ) : (

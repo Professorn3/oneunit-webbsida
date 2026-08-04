@@ -38,7 +38,7 @@ export default function Footer() {
         <div className="footer__top">
           <div className="footer__brand">
             <Link to="/" className="footer__logo">
-              <img src="/images/logo.png?v=2" alt="OneUnit MC" onError={(e) => {
+              <img src="/images/logo.png?v=2" alt="OneUnit" onError={(e) => {
                 e.target.style.display = 'none'
                 e.target.nextSibling.style.display = 'block'
               }} />
@@ -90,7 +90,7 @@ export default function Footer() {
         <div className="footer__bottom" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', paddingBottom: '1rem' }}>
           <div>
             <p className="footer__copy" style={{ margin: '0 0 0.2rem 0', fontWeight: 600 }}>
-              © {new Date().getFullYear()} OneUnit MC. Alla rättigheter förbehållna.
+              © {new Date().getFullYear()} OneUnit. Alla rättigheter förbehållna.
             </p>
             <p className="footer__copy footer__copy--muted" style={{ margin: 0 }}>
               One Unit. One Brotherhood.

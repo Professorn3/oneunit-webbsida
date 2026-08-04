@@ -46,7 +46,7 @@ export default function About() {
 
             <ScrollReveal delay={200}>
               <p className="about__body">
-                OneUnit MC är inte bara ett motorcykelgäng – det är en livsstil. 
+                OneUnit är inte bara en förening – det är en livsstil. 
                 Vi bygger gemenskap baserat på respekt, lojalitet och kärleken till 
                 friheten på hjul. Sedan 2026 har vi vuxit till en stark gemenskap 
                 med ryttare från hela landet.
@@ -74,7 +74,7 @@ export default function About() {
             <div className="about__image-frame">
               <img
                 src="/images/gallery_4.png"
-                alt="OneUnit MC gemenskap"
+                alt="OneUnit gemenskap"
                 className="about__image"
                 loading="lazy"
               />

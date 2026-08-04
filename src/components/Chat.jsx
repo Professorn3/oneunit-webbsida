@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import './Chat.css';
 
-// Utvalda MC & Broderskapets favorit-GIFs (Snabbreturer)
+// Utvalda Klubb-favorit-GIFs (Snabbreturer)
 const CURATED_MC_GIFS = [
   { id: '1', url: 'https://media.giphy.com/media/26uf7yJncHQ9zK61G/giphy.gif', label: 'Biker Cruiser' },
   { id: '2', url: 'https://media.giphy.com/media/l41YkxvU8c7J7B3e/giphy.gif', label: 'Ride Fast' },
@@ -394,7 +394,7 @@ export default function Chat() {
                 className={`btn-gif-tab ${gifTab === 'curated' ? 'active' : ''}`}
                 onClick={() => setGifTab('curated')}
               >
-                MC & Klubb-Favoriter
+                Klubb-Favoriter
               </button>
               <button 
                 className={`btn-gif-tab ${gifTab === 'search' ? 'active' : ''}`}

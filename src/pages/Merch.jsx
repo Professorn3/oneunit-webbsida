@@ -19,7 +19,7 @@ const DEFAULT_MERCH = [
     id: 'default_2',
     title: 'OneUnit Biker Tee',
     category: 'T-Shirt',
-    description: '100% premium ekologisk bomull med diskret OneUnit-sköld på brösten och klubbmotto bak. Slitstark och byggd för mc-livet.',
+    description: '100% premium ekologisk bomull med diskret OneUnit-sköld på brösten och klubbmotto bak. Slitstark och byggd för klubblivet.',
     image: '/images/gallery_2.png'
   },
   {
@@ -138,7 +138,7 @@ export default function Merch() {
     >
       <div className="container">
         <header className="merch-hero">
-          <p className="merch-eyebrow">ONEUNIT MC · CLUB GEAR</p>
+          <p className="merch-eyebrow">ONEUNIT · CLUB GEAR</p>
           <h1 className="merch-title">OFFICIELL MERCHANDISE</h1>
           <p className="merch-subtitle">
             Här visas klubbens officiella sortiment av huvtröjor, t-shirts, kepsar och tillbehör. 
@@ -284,7 +284,7 @@ export default function Merch() {
 
                   <div className="merch-footer-badge">
                     <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00f5ff', boxShadow: '0 0 8px #00f5ff' }} />
-                    <span>OneUnit MC Official Club Gear</span>
+                    <span>OneUnit Official Club Gear</span>
                   </div>
                 </div>
               </article>

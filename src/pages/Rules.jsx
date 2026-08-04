@@ -32,7 +32,7 @@ export default function Rules() {
         'Säkerhet går först. Inga onödiga risktaganden eller stunts på allmän väg när vi rider i formation.',
         'Håll din position i gruppen (staggered formation) och lämna alltid tillräckligt med bromsavstånd.',
         'Om en medlem får motorstopp eller problem, stannar hela gruppen tills problemet är löst eller Road Captain ger andra order.',
-        'Visa respekt för andra trafikanter – vi representerar OneUnit MC i allt vi gör.'
+        'Visa respekt för andra trafikanter – vi representerar OneUnit i allt vi gör.'
       ]
     }
   ]
@@ -54,7 +54,7 @@ export default function Rules() {
 
         <div className="rules-content">
           <p className="rules-intro">
-            För att OneUnit MC ska fungera som ett brödraskap krävs struktur och ömsesidig respekt. 
+            För att OneUnit ska fungera som en gemenskap krävs struktur och ömsesidig respekt. 
             Dessa regler är fundamentet för vår gemenskap. Läs, förstå och lev efter dem.
           </p>
 

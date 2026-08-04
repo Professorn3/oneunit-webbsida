@@ -15,7 +15,7 @@ const pageVariants = {
 }
 
 const requirements = [
-  { icon: '▪', text: 'Har ett giltigt MC-körkort (minst A2)' },
+  { icon: '▪', text: 'Har ett giltigt körkort (minst A2)' },
   { icon: '▪', text: 'Äger en motorcykel med motor ≥ 500cc' },
   { icon: '▪', text: 'Respekterar gemenskap och lojalitet' },
   { icon: '▪', text: 'Är bosatt i Sverige' },
@@ -215,7 +215,7 @@ export default function Apply() {
 
               {/* Experience */}
               <div className="form-group">
-                <label className="form-label" htmlFor="apply-experience">Erfarenhet av MC (år) *</label>
+                <label className="form-label" htmlFor="apply-experience">Erfarenhet (år) *</label>
                 <select
                   id="apply-experience"
                   name="experience"
@@ -241,7 +241,7 @@ export default function Apply() {
                   id="apply-reason"
                   name="reason"
                   className="form-textarea"
-                  placeholder="Berätta om dig själv och varför du vill bli en del av OneUnit MC..."
+                  placeholder="Berätta om dig själv och varför du vill bli en del av OneUnit..."
                   value={form.reason}
                   onChange={handleChange}
                   required

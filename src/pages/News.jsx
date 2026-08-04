@@ -38,14 +38,14 @@ const defaultNews = [
     id: 'default_3',
     date: '20 Maj 2026',
     category: 'Community',
-    title: 'MC-Träff Stockholm – Bilder och Recap',
+    title: 'Träff Stockholm – Bilder och Recap',
     excerpt: 'Årets första stora träff i Stockholm lockade hundratals motorcyklar från hela landet. Musik, gemenskap och asfalt. Se bilderna från kvällen.',
     image: '/images/gallery_1.png',
   },
   {
     id: 'default_4',
     date: '2 Apr 2026',
-    category: 'MC',
+    category: 'Allmänt',
     title: 'Vårens Första Ritt – Välkommen Säsong 2026!',
     excerpt: 'Vintern är äntligen bakom oss. Vi kickar igång säsongen med en samlingsritt i Uppland. Dags att damm av jackan och starta motorn!',
     image: '/images/gallery_5.png',
@@ -239,7 +239,7 @@ export default function News() {
                     <option value="Event">Event</option>
                     <option value="Nyheter">Nyheter</option>
                     <option value="Community">Community</option>
-                    <option value="MC">MC & Ritt</option>
+                    <option value="Allmänt">Allmänt & Träff</option>
                     <option value="Klubba">Klubbmöte</option>
                   </select>
                 </div>

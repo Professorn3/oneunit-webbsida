@@ -50,12 +50,12 @@ export default function Dashboard() {
   const [campaignStatus, setCampaignStatus] = useState('');
 
   // Systeminställningar & Klubbconfig för Admins
-  const [siteName, setSiteName] = useState('OneUnit MC - Official Website');
+  const [siteName, setSiteName] = useState('OneUnit - Official Website');
   const [siteSlogan, setSiteSlogan] = useState('Gemenskap, Respekt & Lojalitet På Vägarna');
   const [announcementBanner, setAnnouncementBanner] = useState('');
   const [enableChatMedia, setEnableChatMedia] = useState(true);
   const [openForApplications, setOpenForApplications] = useState(true);
-  const [clubRules, setClubRules] = useState('1. Respektera alltid medlemmarna och emblemet.\n2. Inga diskussioner om klubbärenden utanför officiella möten.\n3. Håll alltid mc:n redo för samlingsritten.\n4. Alla betalar sin kontingent i tid.');
+  const [clubRules, setClubRules] = useState('1. Respektera alltid medlemmarna och emblemet.\n2. Inga diskussioner om klubbärenden utanför officiella möten.\n3. Håll dig alltid redo för samlingen.\n4. Alla betalar sin kontingent i tid.');
   const [savingSettings, setSavingSettings] = useState(false);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState('');
   
@@ -209,8 +209,8 @@ export default function Dashboard() {
           const inviteLink = `https://oneunit.com/register?token=${inviteRef.id}`;
 
           // 2. Öppna ditt vanliga mail-program automatiskt med en färdig mall
-          const subject = encodeURIComponent("Välkommen till OneUnit MC!");
-          const body = encodeURIComponent(`Hej ${app.firstName}!\n\nDin ansökan har blivit godkänd.\n\nKlicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:\n${inviteLink}\n\nVälkommen till brödraskapet!\n\n/OneUnit MC Admin`);
+          const subject = encodeURIComponent("Välkommen till OneUnit!");
+          const body = encodeURIComponent(`Hej ${app.firstName}!\n\nDin ansökan har blivit godkänd.\n\nKlicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:\n${inviteLink}\n\nVälkommen till gemenskapen!\n\n/OneUnit Admin`);
           window.location.href = `mailto:${app.email}?subject=${subject}&body=${body}`;
 
           // 3. Ta bort eller markera ansökan som godkänd så den försvinner från listan
@@ -391,7 +391,7 @@ export default function Dashboard() {
         {isBanned && (
           <div className="dashboard-guest-msg" style={{ borderColor: '#ff0055', backgroundColor: 'rgba(255,0,85,0.05)' }}>
             <h2 style={{ color: '#ff0055' }}>KONTO SPÄRRAT</h2>
-            <p>Ditt konto har blivit permanent spärrat av en administratör. Du har inte längre tillgång till OneUnit MC:s system, chatt eller paneler.</p>
+            <p>Ditt konto har blivit permanent spärrat av en administratör. Du har inte längre tillgång till OneUnit:s system, chatt eller paneler.</p>
           </div>
         )}
 

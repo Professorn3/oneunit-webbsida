@@ -160,7 +160,7 @@ export default function Meetups() {
             <div style={{ textTransform: 'uppercase', color: '#00f5ff', letterSpacing: '2px', fontSize: '0.85rem', fontWeight: 700, marginBottom: '1rem' }}>BEHÖRIGHET KRÄVS</div>
             <h2 style={{ color: '#ffffff', fontSize: '2.2rem', fontWeight: '800', marginBottom: '1rem', letterSpacing: '-0.5px' }}>EXKLUSIV MEDLEMSZON</h2>
             <p style={{ color: '#a0a6b5', fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '2.5rem' }}>
-              Våra MC-träffar, körvägar och samlingsplatser är endast synliga för godkända medlemmar i brödraskapet. 
+              Våra träffar, rutter och samlingsplatser är endast synliga för godkända medlemmar i gemenskapen. 
               Gäster och besökare saknar behörighet att se schema och mötesinformation.
             </p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>

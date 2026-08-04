@@ -25,9 +25,9 @@ export default function About() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <h2>VILKA ÄR ONEUNIT MC?</h2>
+            <h2>VILKA ÄR ONEUNIT?</h2>
             <p>
-              OneUnit MC är inte bara en motorcykelklubb. Vi är en gemenskap bundet av en passion för frihet, lojalitet och kärleken till den öppna vägen. Vi grundades med en enkel vision: att skapa en gemenskap där varje medlem är en del av något större, en enda enhet, en <strong>OneUnit</strong>.
+              OneUnit är inte bara en klubb. Vi är en gemenskap bunden av en passion för frihet, lojalitet och kärleken till den öppna vägen. Vi grundades med en enkel vision: att skapa en gemenskap där varje medlem är en del av något större, en enda enhet, en <strong>OneUnit</strong>.
             </p>
           </motion.div>
 
@@ -51,7 +51,7 @@ export default function About() {
           >
             <h2>GÅ MED I GEMENSKAPEN</h2>
             <p>
-              Vi letar ständigt efter hängivna mc-förare som delar våra ideal. Att bli en del av OneUnit MC innebär att du får tillgång till våra exklusiva privata sidor, klubbchattar, meetups och gemensamma rideouts. Känner du att du har vad som krävs? Gå in och ansök om medlemskap redan idag.
+              Vi letar ständigt efter hängivna personer som delar våra ideal. Att bli en del av OneUnit innebär att du får tillgång till våra exklusiva privata sidor, klubbchattar, meetups och gemensamma events. Känner du att du har vad som krävs? Gå in och ansök om medlemskap redan idag.
             </p>
           </motion.div>
         </div>

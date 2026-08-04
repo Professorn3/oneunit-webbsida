@@ -24,7 +24,7 @@ const news = [
     id: 3,
     date: '20 Maj 2026',
     category: 'Community',
-    title: 'MC-Träff Sthlm – Bilder',
+    title: 'Träff Sthlm – Bilder',
     excerpt: 'Årets första stora träff i Stockholm. Hundratals motorcyklar, musik och gemenskap. Se bilderna här.',
     image: '/images/gallery_5.png',
   },
