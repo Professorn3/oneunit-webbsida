@@ -48,6 +48,11 @@ export default function Dashboard() {
   const [campaignBody, setCampaignBody] = useState('');
   const [sendingCampaign, setSendingCampaign] = useState(false);
   const [campaignStatus, setCampaignStatus] = useState('');
+  
+  // E-postsvar
+  const [replyContactId, setReplyContactId] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
 
   // Systeminställningar & Klubbconfig för Admins
   const [siteName, setSiteName] = useState('OneUnit - Official Website');
@@ -243,17 +248,46 @@ export default function Dashboard() {
     await updateDoc(doc(db, 'contacts', contactId), { status: 'read' });
   };
   
-  const handleDeleteContact = (contactId) => {
-    setConfirmConfig({
-      title: "Radera meddelande?",
-      message: "Vill du radera detta kontaktmeddelande?",
-      confirmText: "Ja, radera",
-      type: "danger",
-      onConfirm: async () => {
-        setConfirmConfig(null);
-        await deleteDoc(doc(db, 'contacts', contactId));
-      }
-    });
+  const handleDeleteContact = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'contacts', id));
+    } catch (err) {
+      console.error(err);
+      alert('Kunde inte radera meddelandet');
+    }
+  };
+
+  const handleSendReply = async (contact) => {
+    if (!replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      await addDoc(collection(db, 'mail'), {
+        to: [contact.email],
+        from: 'OneUnit <info@oneunit.se>',
+        replyTo: 'info@oneunit.se',
+        message: {
+          subject: "Svar från OneUnit",
+          html: `
+            <div style="font-family: Arial, sans-serif; background-color: #0d0d0d; color: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Svar på ditt meddelande</h2>
+              <p style="color: #cccccc; font-size: 16px; line-height: 1.5; white-space: pre-wrap;">${replyText}</p>
+              <hr style="border: 0; height: 1px; background: #222; margin: 25px 0;" />
+              <p style="color: #777777; font-size: 14px; margin: 0;">Du skrev:<br/><br/><i>${contact.message}</i></p>
+            </div>
+          `
+        }
+      });
+      
+      // Markera som besvarad
+      await updateDoc(doc(db, 'contacts', contact.id), { status: 'replied' });
+      
+      setReplyContactId(null);
+      setReplyText('');
+    } catch (err) {
+      console.error(err);
+      alert('Fel vid skickande av e-post: ' + err.message);
+    }
+    setSendingReply(false);
   };
 
   // --- MEMBER MANAGEMENT FUNCTIONS ---
@@ -592,7 +626,8 @@ export default function Dashboard() {
                   <p>Inga kontaktmeddelanden.</p>
                 ) : (
                   contacts.map(c => (
-                    <div key={c.id} className="application-item" style={{ borderLeft: c.status === 'unread' ? '4px solid #00f5ff' : '4px solid #333' }}>
+                    <div key={c.id} style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' }}>
+                      <div className="application-item" style={{ borderLeft: c.status === 'unread' ? '4px solid #00f5ff' : '4px solid #333', margin: 0 }}>
                       <div className="app-info">
                         <h4>{c.name}</h4>
                         <p><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>
@@ -607,13 +642,38 @@ export default function Dashboard() {
                             Markera som läst
                           </button>
                         )}
+                        <button onClick={() => setReplyContactId(replyContactId === c.id ? null : c.id)} className="btn btn-outline" style={{borderColor: '#00f5ff', color: '#00f5ff'}}>
+                          {replyContactId === c.id ? 'Avbryt Svar' : 'Svara via E-post'}
+                        </button>
                         <button onClick={() => handleDeleteContact(c.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>
                           Radera
                         </button>
                       </div>
                     </div>
-                  ))
-                )}
+                    {replyContactId === c.id && (
+                      <div style={{ marginTop: '0.5rem', background: '#111', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
+                        <textarea 
+                          rows={4} 
+                          value={replyText} 
+                          onChange={(e) => setReplyText(e.target.value)} 
+                          placeholder={`Skriv ditt svar till ${c.name}...`}
+                          style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #444', borderRadius: '6px', marginBottom: '1rem', resize: 'vertical' }}
+                        />
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                          <button 
+                            onClick={() => handleSendReply(c)} 
+                            disabled={sendingReply} 
+                            className="btn" 
+                            style={{ background: '#00f5ff', color: '#000' }}
+                          >
+                            {sendingReply ? 'Skickar...' : 'Skicka Svar (E-post)'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  )))
+                }
               </div>
             )}
 

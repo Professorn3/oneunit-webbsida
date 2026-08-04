@@ -10,7 +10,6 @@ const navLinks = [
   { path: '/news', label: 'Nyheter' },
   { path: '/meetups', label: 'Meetups' },
   { path: '/merch', label: 'Merch' },
-  { path: '/contact', label: 'Kontakt' },
   { path: '/apply', label: 'Ansök' },
   { path: '/rules', label: 'Regler' },
 ]
