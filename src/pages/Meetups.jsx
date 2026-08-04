@@ -8,35 +8,7 @@ import ScrambleText from '../components/ScrambleText';
 import './Meetups.css';
 
 // Standard-evenemang om inget lagts in i Firestore ännu
-const DEFAULT_MEETUPS = [
-  {
-    id: 'default_1',
-    title: 'Vårpremiär: Kustvägen mot Varberg & BBQ',
-    date: 'Lördag 15 Maj - 11:00',
-    location: 'Samling vid Klubben / Centralporten',
-    route: 'Göteborg -> Kungsbacka -> Kustvägen till Varbergs Fästning',
-    description: 'Vår första officiella gemensamma långkörning för säsongen! Vi cruisar söderut längs den natursköna kustvägen, stannar vid havet för gruppfoton, och avslutar med en maxad BBQ vid hamnen. Hojar tankade och redo!',
-    attendees: ['Alex (Captain)', 'Rider_Marcus', 'Viktor_MC', 'Adam']
-  },
-  {
-    id: 'default_2',
-    title: 'Midnattsritt: Urban Light Cruise',
-    date: 'Fredag 4 Juni - 21:30',
-    location: 'Götaverken / Frihamnen',
-    route: 'Cityhamnen -> Hisingsbron -> Älvsborgsbron -> Nattfik',
-    description: 'En mäktig nattlig rullning genom Göteborgs upplysta gatunät och broar. Perfekt för nattfotografering med glimmande ljus och djupt motorlyft i tunnelsträckorna.',
-    attendees: ['Oliver', 'Adam', 'Kajsa_Rider', 'Erik_OneUnit']
-  },
-  {
-    id: 'default_3',
-    title: 'OneUnit Annual Summer End Run & Biker Fest',
-    date: 'Lördag 28 Augusti - 12:00',
-    location: 'Huvuddammarna',
-    route: '12 mil inåt landet -> Sjökrog -> Kvällsfest på Klubbhaket',
-    description: 'Årets största höjdpunkt! En fantastisk dagskörning på svepande landsvägar följt av prisutdelning (Årets Hoj, Bästa Ljud) och exklusiv medlemskväll. Missa inte!',
-    attendees: ['Hela Styrelsen', 'Adam', 'Micke', 'David_R', 'Leo', 'Stefan_V2']
-  }
-];
+const DEFAULT_MEETUPS = [];
 
 export default function Meetups() {
   const { currentUser, isAdmin, isMember } = useAuth();
@@ -288,8 +260,14 @@ export default function Meetups() {
         )}
 
         {/* Evenemangens Grid */}
-        <div className="meetups-grid">
-          {displayMeetups.map((event) => {
+        {displayMeetups.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#888' }}>
+            <h3 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#ddd' }}>Inga inplanerade träffar just nu.</h3>
+            <p>Håll utkik, vi uppdaterar schemat löpande!</p>
+          </div>
+        ) : (
+          <div className="meetups-grid">
+            {displayMeetups.map((event) => {
             const attendeesList = event.attendees || [];
             const amIAttending = myDisplayName && attendeesList.some(a => a.toLowerCase().includes(myDisplayName.toLowerCase()));
 
@@ -386,6 +364,7 @@ export default function Meetups() {
             );
           })}
         </div>
+        )}
       </div>
 
       <ConfirmModal
