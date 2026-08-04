@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { db, auth } from '../firebase';
-import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, getDocs, arrayUnion } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useNavigate } from 'react-router-dom';
@@ -261,6 +261,7 @@ export default function Dashboard() {
     if (!replyText.trim()) return;
     setSendingReply(true);
     try {
+      const ticketUrl = `https://oneunit.se/ticket/${contact.id}`;
       await addDoc(collection(db, 'mail'), {
         to: [contact.email],
         from: 'OneUnit <info@oneunit.se>',
@@ -271,6 +272,9 @@ export default function Dashboard() {
             <div style="font-family: Arial, sans-serif; background-color: #0d0d0d; color: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Svar på ditt meddelande</h2>
               <p style="color: #cccccc; font-size: 16px; line-height: 1.5; white-space: pre-wrap;">${replyText}</p>
+              <div style="margin: 30px 0; text-align: left;">
+                <a href="${ticketUrl}" style="display: inline-block; padding: 12px 24px; background-color: #00f5ff; color: #000; text-decoration: none; border-radius: 4px; font-weight: bold;">Visa Ärende & Svara</a>
+              </div>
               <hr style="border: 0; height: 1px; background: #222; margin: 25px 0;" />
               <p style="color: #777777; font-size: 14px; margin: 0;">Du skrev:<br/><br/><i>${contact.message}</i></p>
             </div>
@@ -278,8 +282,15 @@ export default function Dashboard() {
         }
       });
       
-      // Markera som besvarad
-      await updateDoc(doc(db, 'contacts', contact.id), { status: 'replied' });
+      // Markera som besvarad och lägg till i historiken
+      await updateDoc(doc(db, 'contacts', contact.id), { 
+        status: 'replied',
+        replies: arrayUnion({
+          text: replyText,
+          sender: 'admin',
+          createdAt: new Date().toISOString()
+        })
+      });
       
       setReplyContactId(null);
       setReplyText('');
@@ -627,14 +638,37 @@ export default function Dashboard() {
                 ) : (
                   contacts.map(c => (
                     <div key={c.id} style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' }}>
-                      <div className="application-item" style={{ borderLeft: c.status === 'unread' ? '4px solid #00f5ff' : '4px solid #333', margin: 0 }}>
-                      <div className="app-info">
-                        <h4>{c.name}</h4>
-                        <p><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>
+                      <div className="application-item" style={{ borderLeft: c.status === 'replied' ? '4px solid #00f5ff' : (c.status === 'unread' ? '4px solid #ffcc00' : '4px solid #333'), margin: 0 }}>
+                      <div className="app-info" style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <h4 style={{ margin: 0 }}>{c.name}</h4>
+                          {c.status === 'replied' && <span style={{ background: 'rgba(0,245,255,0.1)', color: '#00f5ff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>🟢 BESVARAD</span>}
+                        </div>
+                        <p style={{ marginTop: '0.5rem' }}><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>
                         <p><strong>Skickat:</strong> {c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</p>
+                        
                         <div style={{ background: '#0a0a0a', padding: '1rem', borderRadius: '8px', marginTop: '1rem', border: '1px solid #222' }}>
                           <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{c.message}</p>
                         </div>
+
+                        {c.replies && c.replies.length > 0 && (
+                          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+                            <h5 style={{ color: '#00f5ff', margin: 0, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Ärendehistorik (Ticket)</h5>
+                            {c.replies.map((reply, idx) => (
+                              <div key={idx} style={{ 
+                                background: reply.sender === 'admin' ? '#0d1a24' : '#1a1a1a', 
+                                borderLeft: reply.sender === 'admin' ? '3px solid #00f5ff' : '3px solid #777',
+                                padding: '1rem', 
+                                borderRadius: '4px' 
+                              }}>
+                                <p style={{ fontSize: '0.75rem', color: '#888', margin: '0 0 0.5rem 0' }}>
+                                  {reply.sender === 'admin' ? 'Svar från Support' : 'Svar från Kunden'} · {new Date(reply.createdAt).toLocaleString()}
+                                </p>
+                                <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.9rem' }}>{reply.text}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'flex-start'}}>
                         {c.status === 'unread' && (

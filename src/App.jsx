@@ -19,6 +19,7 @@ import Contact from './pages/Contact'
 import Chat from './components/Chat'
 import Merch from './pages/Merch'
 import Rules from './pages/Rules'
+import Ticket from './pages/Ticket'
 import ViewModeSwitcher from './components/ViewModeSwitcher'
 import PageTransition from './components/PageTransition'
 import './App.css'
@@ -54,6 +55,7 @@ function AppContent() {
             <Route path="/auth-action" element={<PageTransition><AuthAction /></PageTransition>} />
             <Route path="/register" element={<PageTransition><RegisterInvite /></PageTransition>} />
             <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
+            <Route path="/ticket/:id" element={<PageTransition><Ticket /></PageTransition>} />
             <Route 
               path="/dashboard" 
               element={
