@@ -77,6 +77,7 @@ export default function News() {
 
   // Edit State
   const [articleToEdit, setArticleToEdit] = useState(null);
+  const [selectedArticle, setSelectedArticle] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('Event');
   const [editExcerpt, setEditExcerpt] = useState('');
@@ -334,7 +335,12 @@ export default function News() {
         {/* Featured */}
         {featured && (
           <ScrollReveal className="news-page__featured-wrap">
-            <article className="news-page__featured card" id={`news-article-${featured.id}`} style={{ position: 'relative' }}>
+            <article 
+              className="news-page__featured card" 
+              id={`news-article-${featured.id}`} 
+              style={{ position: 'relative', cursor: 'pointer' }}
+              onClick={() => setSelectedArticle(featured)}
+            >
               {isAdmin && !String(featured.id).startsWith('default_') && (
                 <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
                   <button
@@ -382,7 +388,12 @@ export default function News() {
         <div className="news-page__grid">
           {rest.map((item, i) => (
             <ScrollReveal key={item.id} delay={Math.min(i * 50, 300)}>
-              <article className="news-page__card card" id={`news-article-${item.id}`} style={{ position: 'relative' }}>
+              <article 
+                className="news-page__card card" 
+                id={`news-article-${item.id}`} 
+                style={{ position: 'relative', cursor: 'pointer' }}
+                onClick={() => setSelectedArticle(item)}
+              >
                 {isAdmin && !String(item.id).startsWith('default_') && (
                   <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
                     <button
@@ -445,6 +456,63 @@ export default function News() {
         onConfirm={confirmDelete}
         onCancel={() => setArticleToDelete(null)}
       />
+
+      {/* Detail Modal */}
+      {selectedArticle && (
+        <div className="upload-studio-overlay" onClick={() => setSelectedArticle(null)} style={{ zIndex: 9999 }}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="upload-studio-header">
+              <h2 className="glitch-text" data-text={selectedArticle.title}>{selectedArticle.title}</h2>
+              <button className="close-btn" onClick={() => setSelectedArticle(null)} aria-label="Stäng detaljvy">×</button>
+            </div>
+            
+            <div style={{ marginTop: '1.5rem' }}>
+              <img 
+                src={selectedArticle.image || '/images/gallery_1.png'} 
+                alt={selectedArticle.title} 
+                style={{ width: '100%', maxHeight: '450px', objectFit: 'cover', borderRadius: '8px', marginBottom: '1.5rem' }} 
+              />
+              <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', color: '#888', fontSize: '0.9rem' }}>
+                <span className="tag" style={{ background: '#222' }}>{selectedArticle.category}</span>
+                <span>{selectedArticle.date}</span>
+                {String(selectedArticle.id).startsWith('default_') && <span style={{ color: '#00f5ff' }}>Standardinlägg</span>}
+              </div>
+              <div style={{ lineHeight: '1.8', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1.05rem' }}>
+                {selectedArticle.excerpt}
+              </div>
+            </div>
+
+            {isAdmin && !String(selectedArticle.id).startsWith('default_') && (
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #333' }}>
+                <button
+                  onClick={() => { 
+                    setArticleToEdit(selectedArticle); 
+                    setEditTitle(selectedArticle.title || '');
+                    setEditCategory(selectedArticle.category || 'Event');
+                    setEditExcerpt(selectedArticle.excerpt || '');
+                    setEditDateStr(selectedArticle.date || '');
+                    setSelectedArticle(null);
+                  }}
+                  className="btn"
+                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff', flex: 1 }}
+                >
+                  Redigera Nyhet
+                </button>
+                <button
+                  onClick={() => { 
+                    setArticleToDelete(selectedArticle); 
+                    setSelectedArticle(null);
+                  }}
+                  className="btn"
+                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444', flex: 1 }}
+                >
+                  Radera Nyhet
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {articleToEdit && (

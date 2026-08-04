@@ -47,6 +47,7 @@ export default function Merch() {
 
   // Edit State
   const [itemToEdit, setItemToEdit] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('Hoodie');
   const [editDescription, setEditDescription] = useState('');
@@ -284,7 +285,12 @@ export default function Merch() {
         ) : (
           <div className="merch-grid">
             {displayItems.map((item) => (
-              <article key={item.id} className="merch-card">
+              <article 
+                key={item.id} 
+                className="merch-card" 
+                style={{ cursor: 'pointer', position: 'relative' }}
+                onClick={() => setSelectedItem(item)}
+              >
                 <div className="merch-img-wrapper">
                   <span className="merch-tag">{item.category}</span>
                   {isAdmin && !item.id.startsWith('default_') && (
@@ -341,6 +347,63 @@ export default function Merch() {
         onConfirm={confirmDelete}
         onCancel={() => setItemToDelete(null)}
       />
+
+      {/* Detail Modal */}
+      {selectedItem && (
+        <div className="upload-studio-overlay" onClick={() => setSelectedItem(null)} style={{ zIndex: 9999 }}>
+          <div className="upload-studio-card card" onClick={e => e.stopPropagation()} style={{ background: '#111', border: '1px solid #333', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="upload-studio-header">
+              <h2 className="glitch-text" data-text={selectedItem.title}>{selectedItem.title}</h2>
+              <button className="close-btn" onClick={() => setSelectedItem(null)} aria-label="Stäng detaljvy">×</button>
+            </div>
+            
+            <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <img 
+                src={selectedItem.image || '/images/gallery_1.png'} 
+                alt={selectedItem.title} 
+                style={{ width: '100%', maxWidth: '500px', maxHeight: '500px', objectFit: 'contain', borderRadius: '8px', marginBottom: '1.5rem', background: '#0a0b0e' }} 
+              />
+              <div style={{ width: '100%' }}>
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', color: '#888', fontSize: '0.9rem' }}>
+                  <span className="tag" style={{ background: '#222' }}>{selectedItem.category}</span>
+                  {String(selectedItem.id).startsWith('default_') && <span style={{ color: '#00f5ff' }}>Standardplagg</span>}
+                </div>
+                <div style={{ lineHeight: '1.8', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1.05rem' }}>
+                  {selectedItem.description}
+                </div>
+              </div>
+            </div>
+
+            {isAdmin && !String(selectedItem.id).startsWith('default_') && (
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid #333' }}>
+                <button
+                  onClick={() => { 
+                    setItemToEdit(selectedItem); 
+                    setEditTitle(selectedItem.title || '');
+                    setEditCategory(selectedItem.category || 'Hoodie');
+                    setEditDescription(selectedItem.description || '');
+                    setSelectedItem(null);
+                  }}
+                  className="btn"
+                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff', flex: 1 }}
+                >
+                  Redigera Merch
+                </button>
+                <button
+                  onClick={() => { 
+                    setItemToDelete(selectedItem); 
+                    setSelectedItem(null);
+                  }}
+                  className="btn"
+                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444', flex: 1 }}
+                >
+                  Radera Merch
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {itemToEdit && (
