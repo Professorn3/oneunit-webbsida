@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import './ConfirmModal.css';
 
 export default function ConfirmModal({
@@ -42,7 +43,7 @@ export default function ConfirmModal({
     }
   };
 
-  return (
+  return createPortal(
     <div 
       className="confirm-modal-overlay" 
       onClick={(e) => {
@@ -83,6 +84,7 @@ export default function ConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, getDocs } from 'firebase/firestore';
@@ -726,7 +727,7 @@ export default function Dashboard() {
       </div>
 
       {/* Member Management Modal Overlay */}
-      {selectedMember && (
+      {selectedMember && createPortal(
         <div className="manage-modal-overlay" onClick={() => { setSelectedMember(null); setMemberChatLogs(null); }}>
           <div className="manage-modal-content" onClick={e => e.stopPropagation()}>
             <header className="manage-modal-header">
@@ -842,7 +843,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <ConfirmModal
