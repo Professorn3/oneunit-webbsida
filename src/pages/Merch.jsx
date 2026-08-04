@@ -277,8 +277,7 @@ export default function Merch() {
                         Redigera
                       </button>
                       <button 
-                        className="btn-delete-merch" 
-                        onClick={() => setItemToDelete(item)}
+                        onClick={(e) => { e.stopPropagation(); setItemToDelete(item); }}
                         title="Radera plagg"
                         style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(239, 68, 68, 0.9)', color: '#fff', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                       >
