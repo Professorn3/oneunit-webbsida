@@ -23,7 +23,7 @@ export default function About() {
   const stats = [
     { value: '2026', label: 'Grundat' },
     { value: memberCount > 0 ? memberCount : '...', label: 'Medlemmar' },
-    { value: '2', label: 'Städer' },
+    { value: '5', label: 'Städer' },
   ]
 
   return (
