@@ -17,7 +17,8 @@ const pageVariants = {
 };
 
 const defaultItems = [
-  { id: 'def_1', title: 'Kawasaki Z & Ninja', category: 'Motorcyklar', src: '/images/gallery_mc_1.jpg', type: 'image' }
+  { id: 'def_1', title: 'Kawasaki Z & Ninja', category: 'Motorcyklar', src: '/images/gallery_mc_1.jpg', type: 'image' },
+  { id: 'def_2', title: 'Samling vid macken', category: 'Community', src: '/images/gallery_community_1.jpg', type: 'image' }
 ];
 
 const categories = ['Alla', 'Motorcyklar', 'Community'];
