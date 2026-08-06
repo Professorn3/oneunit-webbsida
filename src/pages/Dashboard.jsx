@@ -25,8 +25,9 @@ export default function Dashboard() {
 
   // Garage State
   const [editingProfile, setEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState('');
   const [profileBike, setProfileBike] = useState('');
-  const [profileInsta, setProfileInsta] = useState('');
+  const [profileInstagram, setProfileInstagram] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   
   const [resetLoading, setResetLoading] = useState(false);
@@ -35,8 +36,9 @@ export default function Dashboard() {
   // Sync profile state when userData loads
   useEffect(() => {
     if (userData) {
+      setProfileName(userData.name || '');
       setProfileBike(userData.bike || '');
-      setProfileInsta(userData.instagram || '');
+      setProfileInstagram(userData.instagram || '');
     }
   }, [userData]);
 
@@ -230,6 +232,9 @@ export default function Dashboard() {
         try {
           const inviteRef = await pb.collection('invites').create({
             email: app.email,
+            name: app.name || '',
+            instagram: app.instagram || '',
+            bike: app.bike || '',
             used: false
           });
 
@@ -330,8 +335,9 @@ export default function Dashboard() {
     setSavingProfile(true);
     try {
       await pb.collection('users').update(currentUser.id, {
+        name: profileName,
         bike: profileBike,
-        instagram: profileInsta
+        instagram: profileInstagram
       });
       setEditingProfile(false);
       window.location.reload();
@@ -516,12 +522,16 @@ export default function Dashboard() {
                 {editingProfile ? (
                   <form onSubmit={handleSaveProfile} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Namn:</label>
+                      <input type="text" value={profileName} onChange={e => setProfileName(e.target.value)} placeholder="Ditt namn" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                    </div>
+                    <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Min Motorcykel (Modell & År):</label>
                       <input type="text" value={profileBike} onChange={e => setProfileBike(e.target.value)} placeholder="T.ex. Harley-Davidson Fat Boy '21" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
                     </div>
                     <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Instagram-namn:</label>
-                      <input type="text" value={profileInsta} onChange={e => setProfileInsta(e.target.value)} placeholder="@oneunit_rider" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                      <input type="text" value={profileInstagram} onChange={e => setProfileInstagram(e.target.value)} placeholder="@oneunit_rider" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
                     </div>
                     <button type="submit" disabled={savingProfile} className="btn btn-primary" style={{ padding: '0.8rem' }}>
                       {savingProfile ? 'Sparar...' : 'Spara Profil'}

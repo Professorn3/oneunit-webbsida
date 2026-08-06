@@ -5,6 +5,9 @@ import './Login.css'; // Återanvänder samma CSS
 
 export default function RegisterInvite() {
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [bike, setBike] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,7 +35,10 @@ export default function RegisterInvite() {
         const inviteSnap = await pb.collection('invites').getOne(token);
         
         if (inviteSnap) {
-          setEmail(inviteSnap.email); // Förifyll mejlen från inbjudan
+          setEmail(inviteSnap.email);
+          setName(inviteSnap.name || '');
+          setInstagram(inviteSnap.instagram || '');
+          setBike(inviteSnap.bike || '');
           setValidToken(token);
         }
       } catch (err) {
@@ -68,6 +74,9 @@ export default function RegisterInvite() {
       // 1. Skapa kontot och lägg till roll 'member'
       await pb.collection('users').create({
         email: email,
+        name: name,
+        instagram: instagram,
+        bike: bike,
         password: password,
         passwordConfirm: confirmPassword,
         role: 'member'
