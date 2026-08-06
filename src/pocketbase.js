@@ -1,7 +1,6 @@
 import PocketBase from 'pocketbase';
 
-// The URL is dynamically fetched based on the current window origin.
-// In dev, vite proxies /api. In prod, Nginx proxies /api.
-const pb = new PocketBase(window.location.origin);
+// Eftersom Nginx proxar allt till PocketBase via /api och /_
+const pb = new PocketBase('/');
 
 export default pb;
