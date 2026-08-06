@@ -16,10 +16,7 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-const defaultItems = [
-  { id: 'def_1', title: 'Kawasaki Z & Ninja', category: 'Motorcyklar', src: '/images/gallery_mc_1.jpg', type: 'image' },
-  { id: 'def_2', title: 'Samling vid macken', category: 'Community', src: '/images/gallery_community_1.jpg', type: 'image' }
-];
+
 
 const categories = ['Alla', 'Motorcyklar', 'Community'];
 
@@ -197,7 +194,7 @@ export default function Gallery() {
 
   const handleToggleLike = async (item, e) => {
     e.stopPropagation();
-    if (!currentUser || String(item.id).startsWith('def_')) return;
+    if (!currentUser) return;
     
     const uid = currentUser.uid;
     const itemRef = doc(db, 'gallery', item.id);
@@ -228,7 +225,7 @@ export default function Gallery() {
     return { ...item, category: cat };
   });
 
-  const combinedItems = [...mappedDbItems, ...defaultItems];
+  const combinedItems = [...mappedDbItems];
   let filtered = [];
 
   if (activeCategory === 'Alla') {
@@ -402,7 +399,7 @@ export default function Gallery() {
             return (
             <ScrollReveal key={item.id} delay={i * 40} className="gallery-page__item" role="listitem" style={{ position: 'relative' }}>
               <motion.div style={{ y: parallaxY, height: '100%' }}>
-              {(isAdmin || (currentUser && currentUser.email === item.uploaderEmail)) && !String(item.id).startsWith('def_') && (
+              {(isAdmin || (currentUser && currentUser.email === item.uploaderEmail)) && (
                 <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
                   <button
                     onClick={(e) => { 
@@ -495,9 +492,8 @@ export default function Gallery() {
                         {item.uploaderName && <span style={{ display: 'block', fontSize: '0.75rem', color: '#777', fontWeight: 'normal', marginTop: '0.2rem' }}>Foto av: {item.uploaderName}</span>}
                       </span>
                     </div>
-                    {!String(item.id).startsWith('def_') && (
-                      <button 
-                        onClick={(e) => handleToggleLike(item, e)}
+                    <button 
+                      onClick={(e) => handleToggleLike(item, e)}
                         style={{ 
                           background: 'rgba(0,0,0,0.6)', 
                           padding: '0.4rem 0.8rem', 
@@ -516,7 +512,6 @@ export default function Gallery() {
                       >
                         👍 <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{item.likeCount || 0}</span>
                       </button>
-                    )}
                   </div>
                 </div>
               </button>
@@ -571,7 +566,7 @@ export default function Gallery() {
               {lightbox.uploaderName && ` (av ${lightbox.uploaderName})`}
             </p>
 
-            {isAdmin && !String(lightbox.id).startsWith('def_') && (
+            {isAdmin && (
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                 <button
                   onClick={() => { 
