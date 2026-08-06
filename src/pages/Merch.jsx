@@ -20,12 +20,14 @@ export default function Merch() {
   const [editTitle, setEditTitle] = useState('');
   const [editCategory, setEditCategory] = useState('Hoodie');
   const [editDescription, setEditDescription] = useState('');
+  const [editPrice, setEditPrice] = useState('');
   const [editing, setEditing] = useState(false);
 
   // Admin studio state
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Hoodie');
   const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -76,6 +78,7 @@ export default function Merch() {
         title,
         category,
         description,
+        price,
         image: imgUrl,
         createdAt: serverTimestamp(),
         createdBy: currentUser?.email || 'admin'
@@ -84,6 +87,7 @@ export default function Merch() {
       // Reset
       setTitle('');
       setDescription('');
+      setPrice('');
       setImageFile(null);
       setImagePreview(null);
     } catch (err) {
@@ -111,7 +115,8 @@ export default function Merch() {
       await updateDoc(doc(db, 'merch', itemToEdit.id), {
         title: editTitle,
         category: editCategory,
-        description: editDescription
+        description: editDescription,
+        price: editPrice
       });
       setItemToEdit(null);
     } catch (err) {
@@ -199,6 +204,16 @@ export default function Merch() {
                   </select>
                 </div>
 
+                <div className="form-group">
+                  <label>Pris (kr)</label>
+                  <input 
+                    type="text" 
+                    placeholder="T.ex. 499"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                  />
+                </div>
+
                 <div className="form-group" style={{ gridColumn: '1 / -1' }}>
                   <label>Beskrivning</label>
                   <textarea 
@@ -270,6 +285,7 @@ export default function Merch() {
                           setEditTitle(item.title || '');
                           setEditCategory(item.category || 'Hoodie');
                           setEditDescription(item.description || '');
+                          setEditPrice(item.price || '');
                         }}
                         style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(0, 245, 255, 0.9)', color: '#000', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
                         title="Redigera Merch"
@@ -291,13 +307,11 @@ export default function Merch() {
                 <div className="merch-content">
                   <div>
                     <h2 className="merch-item-title">{item.title}</h2>
+                    {item.price && <p style={{ fontSize: '1.2rem', color: '#00f5ff', fontWeight: 800, margin: '0 0 0.5rem 0' }}>{item.price} kr</p>}
                     <p className="merch-item-desc">{item.description}</p>
                   </div>
 
-                  <div className="merch-footer-badge">
-                    <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00f5ff', boxShadow: '0 0 8px #00f5ff' }} />
-                    <span>OneUnit Official Club Gear</span>
-                  </div>
+
                 </div>
               </article>
             ))}
@@ -349,6 +363,7 @@ export default function Merch() {
             
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1rem' }}>
               <span className="tag" style={{ background: '#222' }}>{selectedItem.category}</span>
+              {selectedItem.price && <span className="tag" style={{ background: '#00f5ff22', color: '#00f5ff', border: '1px solid #00f5ff' }}>{selectedItem.price} kr</span>}
             </div>
             
             <div style={{ lineHeight: '1.6', color: '#ddd', whiteSpace: 'pre-wrap', fontSize: '1rem', textAlign: 'center', maxWidth: '600px' }}>
@@ -363,6 +378,7 @@ export default function Merch() {
                     setEditTitle(selectedItem.title || '');
                     setEditCategory(selectedItem.category || 'Hoodie');
                     setEditDescription(selectedItem.description || '');
+                    setEditPrice(selectedItem.price || '');
                     setSelectedItem(null);
                   }}
                   className="btn"
@@ -421,6 +437,16 @@ export default function Merch() {
                   <option value="Accessoar">Accessoar / Tillbehör</option>
                   <option value="Ryggmärke">Ryggmärke</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>Pris (kr)</label>
+                <input 
+                  type="text" 
+                  value={editPrice}
+                  onChange={e => setEditPrice(e.target.value)}
+                  placeholder="T.ex. 499"
+                />
               </div>
 
               <div className="form-group">
