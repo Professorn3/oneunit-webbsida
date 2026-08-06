@@ -25,8 +25,18 @@ if [ -d "$PROJECT_DIR" ]; then
     git reset --hard origin/main
     git clean -fd
     
-    echo "[$(date)] 📦 Bygger ny Docker Image och startar via Docker Compose..."
-    docker-compose up -d --build
+    echo "[$(date)] 📦 Bygger ny Docker Image till Watchtower..."
+    docker build -t oneunit-webbsida:latest .
+    
+    echo "[$(date)] 🔄 Startar om containern..."
+    docker stop oneunit-webbsida 2>/dev/null
+    docker rm -f oneunit-webbsida 2>/dev/null
+    docker run -d \
+      --name oneunit-webbsida \
+      --restart unless-stopped \
+      -p 3001:80 \
+      --label com.centurylinklabs.watchtower.enable=true \
+      oneunit-webbsida:latest
     
     echo "[$(date)] ✅ Succé! Nyaste Hemsidan laddad och aktiverad under Watchtower!"
   else
