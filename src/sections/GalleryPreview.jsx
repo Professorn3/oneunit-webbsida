@@ -20,7 +20,8 @@ export default function GalleryPreview() {
           const fetchedItems = result.items.map(data => {
             return {
               src: data.media ? pb.files.getURL(data, data.media) : (data.src || ''),
-              label: data.title || data.category
+              label: data.title || data.category,
+              type: data.type || 'image'
             }
           })
           
@@ -88,12 +89,23 @@ export default function GalleryPreview() {
             {galleryItems.map((item, i) => (
               <div key={i} className="gallery-preview__item" data-index={i}>
                 <div className="gallery-preview__img-wrap">
-                  <img
-                    src={item.src}
-                    alt={item.label}
-                    className="gallery-preview__img"
-                    loading="lazy"
-                  />
+                  {item.type === 'video' ? (
+                    <video
+                      src={item.src}
+                      className="gallery-preview__img"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    />
+                  ) : (
+                    <img
+                      src={item.src}
+                      alt={item.label}
+                      className="gallery-preview__img"
+                      loading="lazy"
+                    />
+                  )}
                   <div className="gallery-preview__item-overlay">
                     <span className="gallery-preview__item-label">{item.label}</span>
                   </div>
