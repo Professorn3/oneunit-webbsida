@@ -92,7 +92,7 @@ export default function Gallery() {
 
     if (file.type.startsWith('image/')) {
       try {
-        const compressed = await compressImage(file, 1200, 0.8);
+        const compressed = await compressImage(file, 800, 0.7);
         setVideoFile(null);
         setImagePreview(compressed);
       } catch (err) {
@@ -124,48 +124,9 @@ export default function Gallery() {
       let finalType = 'image';
 
       if (videoFile) {
-        finalType = 'video';
-        const storageRef = ref(storage, `gallery_videos/${Date.now()}_${videoFile.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, videoFile);
-
-        await new Promise((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(Math.round(progress));
-            },
-            (error) => {
-              reject(error);
-            },
-            async () => {
-              finalSrc = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
-      } else {
-        // Ladda upp komprimerad bild till Storage istället för att spara base64 direkt i Firestore (som kraschar pga storlek)
-        finalType = 'image';
-        const response = await fetch(imagePreview);
-        const blob = await response.blob();
-        const storageRef = ref(storage, `gallery_images/${Date.now()}_image.jpg`);
-        const uploadTask = uploadBytesResumable(storageRef, blob);
-
-        await new Promise((resolve, reject) => {
-          uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-              const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              setUploadProgress(Math.round(progress));
-            },
-            (error) => reject(error),
-            async () => {
-              finalSrc = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve();
-            }
-          );
-        });
+        alert("Eftersom Firebase Storage (molnlagring) inte är aktiverat kan systemet inte ta emot videofiler (de är för stora för standarddatabasen). Vänligen ladda upp en bild istället!");
+        setUploading(false);
+        return;
       }
 
       await addDoc(collection(db, 'gallery'), {

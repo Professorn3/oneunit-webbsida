@@ -82,25 +82,14 @@ export default function News() {
 
     setCreating(true);
     try {
-      let finalImg = '/images/gallery_2.png';
-
-      if (imagePreview && imageFile) {
-        // Ladda upp till Firebase Storage
-        const { ref: storageRef, uploadBytes, getDownloadURL } = await import('firebase/storage');
-        const { storage } = await import('../firebase');
-        const response = await fetch(imagePreview);
-        const blob = await response.blob();
-        const fileRef = storageRef(storage, `news_images/${Date.now()}_${imageFile.name}`);
-        await uploadBytes(fileRef, blob);
-        finalImg = await getDownloadURL(fileRef);
-      }
+      const imgUrl = imagePreview || '/images/gallery_2.png';
 
       await addDoc(collection(db, 'news'), {
         title,
         category,
         excerpt,
         date: dateStr || new Date().toLocaleDateString('sv-SE'),
-        image: finalImg,
+        image: imgUrl,
         createdAt: serverTimestamp(),
         author: currentUser?.email || 'Admin',
       });
