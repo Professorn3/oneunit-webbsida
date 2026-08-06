@@ -29,13 +29,7 @@ function AppContent() {
   const location = useLocation()
   const { isAdmin, actualIsAdmin } = useAuth()
   
-  const path = location.pathname.replace(/\/$/, '');
-  const isLockedRoute = !['/login', '/register', '/auth-action'].includes(path);
-  
-  // Låt faktiska admins navigera hela sajten utan att fastna i ComingSoon när de testar gäst-vy
-  if (!isAdmin && !actualIsAdmin && isLockedRoute) {
-    return <ComingSoon />
-  }
+  // Hela sidan är öppen för allmänheten
 
   return (
     <>
