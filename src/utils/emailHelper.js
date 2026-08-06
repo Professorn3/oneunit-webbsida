@@ -1,4 +1,4 @@
-const BREVO_API_KEY = "xsmtpsib-f8162366489370" + "a8dabb353b3900612eb39f" + "0b4f6eaf94b1488254aa5c7dd4c1-EbfZdEvXjfzsjbm5";
+const BREVO_API_KEY = "xkeysib-f8162366489370" + "a8dabb353b3900612eb39f" + "0b4f6eaf94b1488254aa5c7dd4c1-JxoG8You5ykU5oiz";
 
 export async function sendBrevoEmail(toEmail, subject, htmlContent) {
   try {
