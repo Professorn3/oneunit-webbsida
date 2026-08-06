@@ -270,19 +270,7 @@ export default function Gallery() {
       animate="animate"
       exit="exit"
     >
-      {/* Header */}
-      <div className="gallery-page__hero">
-        <div className="container">
-          <p className="section-label">Galleri</p>
-          <h1 className="gallery-page__title">
-            <GlitchText text="BILDER &" tag="span" className="gallery-page__title-line" />
-            <br />
-            <GlitchText text="VIDEOS" tag="span" className="gallery-page__title-line gallery-page__title-line--outline" continuous />
-          </h1>
-        </div>
-      </div>
-
-      <div className="container">
+      <div className="container" style={{ paddingTop: '8rem' }}>
         {/* Medlem: Ladda upp ny bild (Dolt bakom + knapp) */}
         {isMember && (
           <div style={{ marginBottom: '2.5rem' }}>
