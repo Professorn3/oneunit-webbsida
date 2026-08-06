@@ -5,6 +5,7 @@ import pb from '../pocketbase';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
 import { compressImage } from '../utils/imageHelper';
+import { sendBrevoEmail } from '../utils/emailHelper';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -117,21 +118,56 @@ export default function Dashboard() {
       onConfirm: async () => {
         setConfirmConfig(null);
         setSendingCampaign(true);
-        setCampaignStatus('');
+        setCampaignStatus('Hämtar mottagare...');
         try {
+          const records = await pb.collection(campaignTarget).getFullList();
+          let successCount = 0;
+          
+          setCampaignStatus(`Skickar mejl till ${records.length} mottagare... Det kan ta en stund.`);
+          
+          for (let i = 0; i < records.length; i++) {
+            const email = records[i].email;
+            if (email) {
+              const html = `
+                <div style="font-family: 'Arial', sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 35px; border-radius: 16px; border: 1px solid #1f1f1f; max-width: 600px; margin: 0 auto;">
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <h1 style="color: #00f5ff; margin: 0; font-size: 26px; letter-spacing: 2px;">ONE UNIT</h1>
+                        <p style="color: #666; font-size: 12px; margin-top: 5px; text-transform: uppercase;">Exklusivt MC Broderskap</p>
+                    </div>
+                    <h2 style="color: #ffffff; font-size: 22px; margin-top: 15px; border-bottom: 1px solid #222; padding-bottom: 15px;">${campaignSubject}</h2>
+                    <div style="color: #dddddd; font-size: 16px; line-height: 1.7; white-space: pre-wrap; margin: 25px 0;">
+                        ${campaignBody}
+                    </div>
+                    <hr style="border: 0; height: 1px; background: #222222; margin: 30px 0;" />
+                    <p style="color: #777777; font-size: 13px; text-align: center; margin: 0;">
+                        Ride safe and stay loyal,<br />
+                        <strong style="color: #00f5ff;">OneUnit Crew</strong>
+                    </p>
+                </div>
+              `;
+              
+              const sent = await sendBrevoEmail(email, campaignSubject, html);
+              if (sent) successCount++;
+              
+              await new Promise(r => setTimeout(r, 150));
+            }
+          }
+
           await pb.collection('mail_campaigns').create({
             targetCollection: campaignTarget,
             subject: campaignSubject,
             bodyText: campaignBody,
-            status: 'pending',
+            status: 'completed',
             sentBy: currentUser?.email || 'admin'
           });
-          setCampaignStatus('Utskicken till "' + campaignTarget + '" har nu startats! Vår molnfunktion anropar just nu Brevo och levererar mejlen.');
+
+          setCampaignStatus(`Utskicket är klart! ${successCount} mejl skickades framgångsrikt.`);
           setCampaignSubject('');
           setCampaignBody('');
         } catch (err) {
           console.error("Fel vid utskick:", err);
           alert("Kunde inte starta utskicken: " + err.message);
+          setCampaignStatus('Utskicket kraschade.');
         }
         setSendingCampaign(false);
       }
@@ -174,7 +210,7 @@ export default function Dashboard() {
     if (!isAdmin) return;
     setConfirmConfig({
       title: "Godkänn ansökan?",
-      message: `Vill du verkligen godkänna ${app.firstName} och skicka en inbjudningslänk till ${app.email}?`,
+      message: `Vill du verkligen godkänna ${app.firstName} och skicka en inbjudningslänk via e-post till ${app.email}?`,
       confirmText: "Ja, godkänn & bjud in",
       type: "success",
       onConfirm: async () => {
@@ -185,10 +221,22 @@ export default function Dashboard() {
             used: false
           });
 
-          const inviteLink = `https://oneunit.com/register?token=${inviteRef.id}`;
-          const subject = encodeURIComponent("Välkommen till OneUnit!");
-          const body = encodeURIComponent(`Hej ${app.firstName}!\n\nDin ansökan har blivit godkänd.\n\nKlicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:\n${inviteLink}\n\nVälkommen till gemenskapen!\n\n/OneUnit Admin`);
-          window.location.href = `mailto:${app.email}?subject=${subject}&body=${body}`;
+          const inviteLink = `https://oneunit.se/register?token=${inviteRef.id}`;
+          const subject = "Välkommen till OneUnit!";
+          const html = `
+            <div style="font-family: 'Arial', sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 35px; border-radius: 16px; border: 1px solid #1f1f1f; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Hej ${app.firstName}! 👋</h2>
+                <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">Din ansökan har blivit godkänd.</p>
+                <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">Klicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:</p>
+                <div style="margin: 25px 0; text-align: center;">
+                    <a href="${inviteLink}" style="background-color: #00f5ff; color: #000; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 8px; display: inline-block;">Registrera Konto</a>
+                </div>
+                <hr style="border: 0; height: 1px; background: #222222; margin: 25px 0;" />
+                <p style="color: #777777; font-size: 13px; margin: 0;">Välkommen till gemenskapen!<br /><strong style="color: #00f5ff;">OneUnit Admin</strong></p>
+            </div>
+          `;
+          
+          await sendBrevoEmail(app.email, subject, html);
 
           await pb.collection('applications').update(app.id, {
             status: 'approved'
@@ -244,18 +292,17 @@ export default function Dashboard() {
       
       setContacts(prev => prev.map(c => c.id === contact.id ? updatedContact : c));
       
-      await pb.collection('mail').create({
-        to: contact.email,
-        subject: "Svar från OneUnit",
-        html: `
+      const subject = "Svar från OneUnit";
+      const html = `
           <div style="font-family: Arial, sans-serif; background-color: #0d0d0d; color: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Svar på ditt meddelande</h2>
             <p style="color: #cccccc; font-size: 16px; line-height: 1.5; white-space: pre-wrap;">${replyText}</p>
             <hr style="border: 0; height: 1px; background: #222; margin: 25px 0;" />
             <p style="color: #777777; font-size: 14px; margin: 0;">Du skrev:<br/><br/><i>${contact.message}</i></p>
           </div>
-        `
-      });
+      `;
+      
+      await sendBrevoEmail(contact.email, subject, html);
       
       setReplyContactId(null);
       setReplyText('');
