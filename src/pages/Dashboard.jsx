@@ -82,7 +82,9 @@ export default function Dashboard() {
             if (settingsRes.clubRules !== undefined) setClubRules(settingsRes.clubRules);
           } catch(e) { console.log('No settings found'); }
 
-          const apps = await pb.collection('applications').getFullList({ sort: '-created', filter: "status = 'pending'" });
+          const apps = await pb.collection('applications').getFullList({ filter: "status = 'pending'" });
+          // Sortera på frontend istället för att undvika PocketBase 400-error
+          apps.sort((a, b) => new Date(b.created) - new Date(a.created));
           if (active) setApplications(apps);
 
           const msgs = await pb.collection('contacts').getFullList({ sort: '-created' });
