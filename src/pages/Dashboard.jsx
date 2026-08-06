@@ -570,7 +570,7 @@ export default function Dashboard() {
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
                       {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.name ? member.name[0].toUpperCase() : 'M')}
                     </div>
-                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || member.email.split('@')[0]}</h4>
+                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || (member.email ? member.email.split('@')[0] : 'Okänd')}</h4>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#aaa', minHeight: '2.5rem' }}>
                       {member.bike || 'Hoj ej angiven'}
