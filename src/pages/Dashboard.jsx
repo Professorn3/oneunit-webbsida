@@ -123,10 +123,12 @@ export default function Dashboard() {
           const records = await pb.collection(campaignTarget).getFullList();
           let successCount = 0;
           
+          console.log("Hittade följande antal mottagare i databasen:", records.length);
           setCampaignStatus(`Skickar mejl till ${records.length} mottagare... Det kan ta en stund.`);
           
           for (let i = 0; i < records.length; i++) {
             const email = records[i].email;
+            console.log(`Bearbetar mottagare ${i+1}:`, email);
             if (email) {
               const html = `
                 <div style="font-family: 'Arial', sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 35px; border-radius: 16px; border: 1px solid #1f1f1f; max-width: 600px; margin: 0 auto;">
@@ -146,12 +148,22 @@ export default function Dashboard() {
                 </div>
               `;
               
+              console.log(`Skickar anrop till Brevo för: ${email}...`);
               const sent = await sendBrevoEmail(email, campaignSubject, html);
-              if (sent) successCount++;
+              if (sent) {
+                console.log(`✅ Mejl skickat framgångsrikt till: ${email}`);
+                successCount++;
+              } else {
+                console.error(`❌ Misslyckades att skicka till: ${email}`);
+              }
               
               await new Promise(r => setTimeout(r, 150));
+            } else {
+              console.warn(`Användare på index ${i} saknar e-postadress!`);
             }
           }
+
+          console.log(`Utskick slutfört. Totalt lyckade: ${successCount}/${records.length}`);
 
           await pb.collection('mail_campaigns').create({
             targetCollection: campaignTarget,
