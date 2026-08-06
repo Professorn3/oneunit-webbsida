@@ -368,7 +368,7 @@ export default function Gallery() {
                   </div>
 
                   <button type="submit" disabled={uploading || !imagePreview} className="btn btn-primary" style={{ width: '100%', padding: '1rem', fontSize: '1.05rem', fontWeight: 800, backgroundColor: '#00f5ff', color: '#000', cursor: 'pointer', border: 'none', borderRadius: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                    {uploading ? (videoFile ? `Laddar upp video... ${uploadProgress}%` : 'Publicerar bild till galleriet...') : 'Publicera i Galleriet'}
+                    {uploading ? (videoFile ? `Laddar upp video... (detta kan ta en stund)` : 'Publicerar bild till galleriet...') : 'Publicera i Galleriet'}
                   </button>
                 </form>
               </div>
