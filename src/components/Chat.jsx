@@ -121,7 +121,7 @@ export default function Chat() {
         text: textToSend,
         uid: currentUser.id,
         email: currentUser.email,
-        senderName: userData?.firstName || currentUser.email.split('@')[0],
+        senderName: userData?.name || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
       });
     } catch (err) {
@@ -141,7 +141,7 @@ export default function Chat() {
         gifUrl: gifUrl,
         uid: currentUser.id,
         email: currentUser.email,
-        senderName: userData?.firstName || currentUser.email.split('@')[0],
+        senderName: userData?.name || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
       });
     } catch (err) {
@@ -163,7 +163,7 @@ export default function Chat() {
         imageUrl: dataUrl,
         uid: currentUser.id,
         email: currentUser.email,
-        senderName: userData?.firstName || currentUser.email.split('@')[0],
+        senderName: userData?.name || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
       });
     } catch (err) {
@@ -220,7 +220,7 @@ export default function Chat() {
         votedUsers: [], // Array of user IDs who voted
         uid: currentUser.id,
         email: currentUser.email,
-        senderName: userData?.firstName || currentUser.email.split('@')[0],
+        senderName: userData?.name || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
       });
       setShowPollCreator(false);

@@ -222,7 +222,7 @@ export default function Dashboard() {
     if (!isAdmin) return;
     setConfirmConfig({
       title: "Godkänn ansökan?",
-      message: `Vill du verkligen godkänna ${app.firstName} och skicka en inbjudningslänk via e-post till ${app.email}?`,
+      message: `Vill du verkligen godkänna ${app.name} och skicka en inbjudningslänk via e-post till ${app.email}?`,
       confirmText: "Ja, godkänn & bjud in",
       type: "success",
       onConfirm: async () => {
@@ -237,7 +237,7 @@ export default function Dashboard() {
           const subject = "Välkommen till OneUnit!";
           const html = `
             <div style="font-family: 'Arial', sans-serif; background-color: #0a0a0a; color: #ffffff; padding: 35px; border-radius: 16px; border: 1px solid #1f1f1f; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Hej ${app.firstName}! 👋</h2>
+                <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Hej ${app.name}! 👋</h2>
                 <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">Din ansökan har blivit godkänd.</p>
                 <p style="color: #cccccc; font-size: 16px; line-height: 1.6;">Klicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:</p>
                 <div style="margin: 25px 0; text-align: center;">
@@ -440,7 +440,7 @@ export default function Dashboard() {
   // Filtrera medlemmar baserat på sökning (namn, email, roll)
   const filteredMembers = members.filter(m => {
     const s = searchQuery.toLowerCase();
-    const fullName = ((m.firstName || '') + ' ' + (m.lastName || '')).toLowerCase();
+    const fullName = (m.name || '').toLowerCase();
     return m.email.toLowerCase().includes(s) || fullName.includes(s) || (m.role || '').toLowerCase().includes(s);
   });
 
@@ -507,7 +507,7 @@ export default function Dashboard() {
                   </div>
                   
                   <div>
-                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1.2rem' }}>{userData.firstName || currentUser.email.split('@')[0]}</h4>
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1.2rem' }}>{userData.name || currentUser.email.split('@')[0]}</h4>
                     <p style={{ margin: '0 0 0.2rem 0', fontSize: '0.9rem' }}>Status: <strong style={{ color: '#00f5ff' }}>Aktiv Medlem</strong></p>
                     <p style={{ margin: 0, fontSize: '0.9rem' }}>Roll: {userData.role}</p>
                   </div>
@@ -556,9 +556,9 @@ export default function Dashboard() {
                 {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (
                   <div key={member.id} style={{ background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
-                      {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.firstName ? member.firstName[0].toUpperCase() : 'M')}
+                      {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.name ? member.name[0].toUpperCase() : 'M')}
                     </div>
-                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.firstName || member.email.split('@')[0]}</h4>
+                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || member.email.split('@')[0]}</h4>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#aaa', minHeight: '2.5rem' }}>
                       {member.bike || 'Hoj ej angiven'}
@@ -623,7 +623,7 @@ export default function Dashboard() {
                   applications.map(app => (
                     <div key={app.id} className="application-item">
                       <div className="app-info">
-                        <h4>{app.firstName || app.name} {app.lastName || ''}</h4>
+                        <h4>{app.name}</h4>
                         <p><strong>Email:</strong> {app.email} | <strong>Ålder:</strong> {app.age} | <strong>Ort:</strong> {app.city}</p>
                         <p><strong>Cykel:</strong> {app.bike}</p>
                         <p><strong>Erfarenhet:</strong> {app.experience}</p>
@@ -663,7 +663,7 @@ export default function Dashboard() {
                       </div>
                       <div className="member-details">
                         <p className="member-name" style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>
-                          {member.firstName} {member.lastName}
+                          {member.name}
                         </p>
                         <p className="member-email">{member.email}</p>
                         <p className="member-role">Roll: <strong style={{color: member.isBanned ? '#ff0055' : '#fff'}}>{member.isBanned ? 'SPÄRRAD' : member.role}</strong></p>
@@ -875,7 +875,7 @@ export default function Dashboard() {
         <div className="manage-modal-overlay" onClick={() => { setSelectedMember(null); setMemberChatLogs(null); }}>
           <div className="manage-modal-content" onClick={e => e.stopPropagation()}>
             <header className="manage-modal-header">
-              <h2>Hantera Medlem: {selectedMember.firstName} {selectedMember.lastName}</h2>
+              <h2>Hantera Medlem: {selectedMember.name}</h2>
               <button className="manage-modal-close" onClick={() => { setSelectedMember(null); setMemberChatLogs(null); }}>✕</button>
             </header>
 

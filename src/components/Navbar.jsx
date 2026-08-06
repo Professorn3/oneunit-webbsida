@@ -44,7 +44,7 @@ export default function Navbar() {
     return () => { document.body.style.overflow = '' }
   }, [menuOpen])
 
-  const displayName = userData?.firstName || (currentUser?.email ? currentUser.email.split('@')[0] : 'Medlem');
+  const displayName = userData?.name || (currentUser?.email ? currentUser.email.split('@')[0] : 'Medlem');
 
   const NavContent = () => (
     <>
