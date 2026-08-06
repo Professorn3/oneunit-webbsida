@@ -78,8 +78,6 @@ export default function About() {
                 className="about__image"
                 loading="lazy"
               />
-              <div className="about__image-overlay" />
-              <div className="about__image-border" />
             </div>
           </ScrollReveal>
         </div>
