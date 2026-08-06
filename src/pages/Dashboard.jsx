@@ -103,7 +103,7 @@ export default function Dashboard() {
     return () => {
       active = false;
     };
-  }, [isAdmin, isMember]);
+  }, [isAdmin, isMember, currentUser]);
 
   const handleSendCampaign = (e) => {
     e.preventDefault();
@@ -447,7 +447,9 @@ export default function Dashboard() {
   const filteredMembers = members.filter(m => {
     const s = searchQuery.toLowerCase();
     const fullName = (m.name || '').toLowerCase();
-    return m.email.toLowerCase().includes(s) || fullName.includes(s) || (m.role || '').toLowerCase().includes(s);
+    const email = (m.email || '').toLowerCase();
+    const role = (m.role || '').toLowerCase();
+    return email.includes(s) || fullName.includes(s) || role.includes(s);
   });
 
   if (!userData) return <div className="container" style={{paddingTop: '120px'}}>Laddar...</div>;
