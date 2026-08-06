@@ -126,10 +126,6 @@ export default function Gallery() {
       alert("Vänligen välj en bild eller video att ladda upp.");
       return;
     }
-    if (!title.trim()) {
-      alert("Vänligen ange en titel eller beskrivning.");
-      return;
-    }
 
     setUploading(true);
     setUploadProgress(0);
@@ -327,7 +323,6 @@ export default function Gallery() {
                         placeholder="T.ex. Nattstopp vid hamnen..." 
                         value={title} 
                         onChange={(e) => setTitle(e.target.value)} 
-                        required 
                         style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', color: '#fff' }}
                       />
                     </div>
@@ -480,27 +475,20 @@ export default function Gallery() {
                         </svg>
                       )}
                     </span>
-                    <span className="gallery-page__img-label">{item.title}</span>
                   </div>
                 </div>
                 <div className="gallery-page__img-meta">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
-                    <div>
-                      <span className="tag" style={{ marginBottom: '0.4rem', display: 'inline-block' }}>{item.category}</span>
-                      <span className="gallery-page__img-title">
-                        {item.title}
-                        {item.uploaderName && <span style={{ display: 'block', fontSize: '0.75rem', color: '#777', fontWeight: 'normal', marginTop: '0.2rem' }}>Foto av: {item.uploaderName}</span>}
-                      </span>
-                    </div>
-                    <button 
-                      onClick={(e) => handleToggleLike(item, e)}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', width: '100%' }}>
+                    {currentUser && (
+                      <button 
+                        onClick={(e) => handleToggleLike(item, e)}
                         style={{ 
                           background: 'rgba(0,0,0,0.6)', 
                           padding: '0.4rem 0.8rem', 
                           borderRadius: '50px', 
-                          border: '1px solid ' + ((item.likes && currentUser && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#333'), 
-                          color: (item.likes && currentUser && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#888', 
-                          cursor: currentUser ? 'pointer' : 'default', 
+                          border: '1px solid ' + ((item.likes && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#333'), 
+                          color: (item.likes && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#888', 
+                          cursor: 'pointer', 
                           display: 'flex', 
                           alignItems: 'center', 
                           gap: '0.4rem', 
@@ -508,10 +496,11 @@ export default function Gallery() {
                           marginLeft: '0.5rem',
                           transition: 'all 0.2s ease'
                         }}
-                        title={currentUser ? "Gilla bild" : "Logga in för att gilla"}
+                        title="Gilla bild"
                       >
                         👍 <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{item.likeCount || 0}</span>
                       </button>
+                    )}
                   </div>
                 </div>
               </button>
