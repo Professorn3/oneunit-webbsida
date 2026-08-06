@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { db, storage } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import pb from '../pocketbase';
 import { useAuth } from '../context/AuthContext';
 import GlitchText from '../components/GlitchText';
 import ScrollReveal from '../components/ScrollReveal';
@@ -49,19 +47,35 @@ export default function Gallery() {
   const yMedium = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
   useEffect(() => {
-    const q = query(collection(db, 'gallery'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setDbItems(list);
-      setLoading(false);
-    }, (err) => {
-      console.error("Fel vid hämtning av galleri:", err);
-      setLoading(false);
+    let active = true;
+    const fetchGallery = async () => {
+      try {
+        const records = await pb.collection('gallery').getFullList({ sort: '-created' });
+        if (active) {
+          setDbItems(records);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Fel vid hämtning av galleri:", err);
+        if (active) setLoading(false);
+      }
+    };
+    fetchGallery();
+    
+    pb.collection('gallery').subscribe('*', function (e) {
+      if (e.action === 'create') {
+        setDbItems(prev => [e.record, ...prev].sort((a,b) => new Date(b.created) - new Date(a.created)));
+      } else if (e.action === 'update') {
+        setDbItems(prev => prev.map(item => item.id === e.record.id ? e.record : item));
+      } else if (e.action === 'delete') {
+        setDbItems(prev => prev.filter(item => item.id !== e.record.id));
+      }
     });
-    return () => unsub();
+
+    return () => {
+      active = false;
+      pb.collection('gallery').unsubscribe('*');
+    };
   }, []);
 
   const handleImageSelect = async (e) => {
@@ -108,7 +122,7 @@ export default function Gallery() {
       alert("Endast godkända medlemmar kan ladda upp till galleriet.");
       return;
     }
-    if (!imagePreview) {
+    if (!imagePreview && !videoFile) {
       alert("Vänligen välj en bild eller video att ladda upp.");
       return;
     }
@@ -120,26 +134,23 @@ export default function Gallery() {
     setUploading(true);
     setUploadProgress(0);
     try {
-      let finalSrc = imagePreview;
-      let finalType = 'image';
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('category', uploadCategory);
+      formData.append('type', videoFile ? 'video' : 'image');
+      formData.append('uploaderEmail', currentUser?.email || 'Okänd Medlem');
+      formData.append('uploaderName', currentUser?.email?.split('@')[0] || 'Medlem');
+      formData.append('likeCount', 0);
 
       if (videoFile) {
-        alert("Eftersom Firebase Storage (molnlagring) inte är aktiverat kan systemet inte ta emot videofiler (de är för stora för standarddatabasen). Vänligen ladda upp en bild istället!");
-        setUploading(false);
-        return;
+        formData.append('media', videoFile);
+      } else if (imagePreview) {
+        const res = await fetch(imagePreview);
+        const blob = await res.blob();
+        formData.append('media', blob, 'image.jpg');
       }
 
-      await addDoc(collection(db, 'gallery'), {
-        title,
-        category: uploadCategory,
-        src: finalSrc,
-        type: finalType,
-        uploaderEmail: currentUser?.email || 'Okänd Medlem',
-        uploaderName: currentUser?.email?.split('@')[0] || 'Medlem',
-        likes: [],
-        likeCount: 0,
-        createdAt: serverTimestamp()
-      });
+      await pb.collection('gallery').create(formData);
       
       setTitle('');
       setImagePreview(null);
@@ -156,7 +167,7 @@ export default function Gallery() {
   const confirmDelete = async () => {
     if (!itemToDelete) return;
     try {
-      await deleteDoc(doc(db, 'gallery', itemToDelete.id));
+      await pb.collection('gallery').delete(itemToDelete.id);
       setItemToDelete(null);
     } catch (err) {
       console.error("Fel vid radering av bild:", err);
@@ -168,7 +179,7 @@ export default function Gallery() {
     if (!itemToEdit || !editTitle.trim()) return;
     setEditing(true);
     try {
-      await updateDoc(doc(db, 'gallery', itemToEdit.id), {
+      await pb.collection('gallery').update(itemToEdit.id, {
         title: editTitle,
         category: editCategory
       });
@@ -184,20 +195,21 @@ export default function Gallery() {
     e.stopPropagation();
     if (!currentUser) return;
     
-    const uid = currentUser.uid;
-    const itemRef = doc(db, 'gallery', item.id);
+    const uid = currentUser.id;
     const isLiked = item.likes && item.likes.includes(uid);
     
     try {
       if (isLiked) {
-        await updateDoc(itemRef, {
-          likes: arrayRemove(uid),
-          likeCount: increment(-1)
+        const newLikes = item.likes.filter(id => id !== uid);
+        await pb.collection('gallery').update(item.id, {
+          likes: newLikes,
+          likeCount: newLikes.length
         });
       } else {
-        await updateDoc(itemRef, {
-          likes: arrayUnion(uid),
-          likeCount: increment(1)
+        const newLikes = [...(item.likes || []), uid];
+        await pb.collection('gallery').update(item.id, {
+          likes: newLikes,
+          likeCount: newLikes.length
         });
       }
     } catch (err) {
@@ -440,7 +452,7 @@ export default function Gallery() {
                 <div className="gallery-page__img-wrap">
                   {item.type === 'video' ? (
                     <video
-                      src={item.src}
+                      src={pb.files.getURL(item, item.media)}
                       className="gallery-page__img"
                       autoPlay
                       loop
@@ -450,7 +462,7 @@ export default function Gallery() {
                     />
                   ) : (
                     <img
-                      src={item.src}
+                      src={pb.files.getURL(item, item.media)}
                       alt={item.title}
                       className="gallery-page__img"
                       loading="lazy"
@@ -486,8 +498,8 @@ export default function Gallery() {
                           background: 'rgba(0,0,0,0.6)', 
                           padding: '0.4rem 0.8rem', 
                           borderRadius: '50px', 
-                          border: '1px solid ' + ((item.likes && currentUser && item.likes.includes(currentUser.uid)) ? '#00f5ff' : '#333'), 
-                          color: (item.likes && currentUser && item.likes.includes(currentUser.uid)) ? '#00f5ff' : '#888', 
+                          border: '1px solid ' + ((item.likes && currentUser && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#333'), 
+                          color: (item.likes && currentUser && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#888', 
                           cursor: currentUser ? 'pointer' : 'default', 
                           display: 'flex', 
                           alignItems: 'center', 
@@ -531,7 +543,7 @@ export default function Gallery() {
           
           {lightbox.type === 'video' ? (
             <video
-              src={lightbox.src}
+              src={pb.files.getURL(lightbox, lightbox.media)}
               controls
               autoPlay
               className="lightbox__img"
@@ -540,7 +552,7 @@ export default function Gallery() {
             />
           ) : (
             <img
-              src={lightbox.src}
+              src={pb.files.getURL(lightbox, lightbox.media)}
               alt={lightbox.title}
               className="lightbox__img"
               onClick={(e) => e.stopPropagation()}

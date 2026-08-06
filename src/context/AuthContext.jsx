@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '../firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import pb from '../pocketbase';
 
 const AuthContext = createContext();
 
@@ -10,43 +8,36 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userData, setUserData] = useState(null); // holds role etc.
+  const [currentUser, setCurrentUser] = useState(pb.authStore.record);
+  const [userData, setUserData] = useState(pb.authStore.record);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'member' | 'guest'
 
   useEffect(() => {
-    let unsubscribeSnap;
-    
-    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        
-        unsubscribeSnap = onSnapshot(userRef, (userSnap) => {
-          if (userSnap.exists()) {
-            setUserData(userSnap.data());
-            setLoading(false);
-          } else {
-            const newUserData = {
-              email: user.email,
-              role: 'guest',
-              createdAt: new Date().toISOString()
-            };
-            setDoc(userRef, newUserData);
-          }
-        });
-      } else {
+    // Initial fetch to make sure the token is valid
+    if (pb.authStore.isValid) {
+      pb.collection('users').authRefresh().then((authData) => {
+        setCurrentUser(authData.record);
+        setUserData(authData.record);
+        setLoading(false);
+      }).catch(() => {
+        pb.authStore.clear();
+        setCurrentUser(null);
         setUserData(null);
         setLoading(false);
-        if (unsubscribeSnap) unsubscribeSnap();
-      }
+      });
+    } else {
+      setLoading(false);
+    }
+
+    // Listen for auth changes
+    const unsubscribe = pb.authStore.onChange((token, model) => {
+      setCurrentUser(model);
+      setUserData(model);
     });
 
     return () => {
-      unsubscribeAuth();
-      if (unsubscribeSnap) unsubscribeSnap();
+      unsubscribe();
     };
   }, []);
 
@@ -56,7 +47,7 @@ export function AuthProvider({ children }) {
   const effectiveRole = userData?.isBanned ? 'banned'
                       : actualIsAdmin && viewMode === 'member' ? 'member'
                       : actualIsAdmin && viewMode === 'guest' ? 'guest'
-                      : userData?.role;
+                      : userData?.role || 'guest';
 
   const effectiveUser = actualIsAdmin && viewMode === 'guest' ? null : currentUser;
 

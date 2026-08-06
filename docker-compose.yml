@@ -10,3 +10,14 @@ services:
       - "3001:80"
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: oneunit-pb
+    restart: unless-stopped
+    volumes:
+      - ./pb_data:/pb_data
+    ports:
+      - "8090:8090"
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"

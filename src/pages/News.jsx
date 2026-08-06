@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import pb from '../pocketbase';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import GlitchText from '../components/GlitchText';
@@ -44,20 +43,35 @@ export default function News() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setDbNews(list);
-      setLoading(false);
-    }, (err) => {
-      console.error("Fel vid hämtning av nyheter:", err);
-      setLoading(false);
+    let active = true;
+    const fetchNews = async () => {
+      try {
+        const records = await pb.collection('news').getFullList({ sort: '-created' });
+        if (active) {
+          setDbNews(records);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Fel vid hämtning av nyheter:", err);
+        if (active) setLoading(false);
+      }
+    };
+    fetchNews();
+
+    pb.collection('news').subscribe('*', function (e) {
+      if (e.action === 'create') {
+        setDbNews(prev => [e.record, ...prev].sort((a,b) => new Date(b.created) - new Date(a.created)));
+      } else if (e.action === 'update') {
+        setDbNews(prev => prev.map(item => item.id === e.record.id ? e.record : item));
+      } else if (e.action === 'delete') {
+        setDbNews(prev => prev.filter(item => item.id !== e.record.id));
+      }
     });
 
-    return () => unsub();
+    return () => {
+      active = false;
+      pb.collection('news').unsubscribe('*');
+    };
   }, []);
 
   const handleImageSelect = async (e) => {
@@ -82,19 +96,21 @@ export default function News() {
 
     setCreating(true);
     try {
-      const imgUrl = imagePreview || '/images/gallery_2.png';
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('category', category);
+      formData.append('excerpt', excerpt);
+      formData.append('date', dateStr || new Date().toLocaleDateString('sv-SE'));
+      formData.append('author', currentUser?.email || 'Admin');
 
-      await addDoc(collection(db, 'news'), {
-        title,
-        category,
-        excerpt,
-        date: dateStr || new Date().toLocaleDateString('sv-SE'),
-        image: imgUrl,
-        createdAt: serverTimestamp(),
-        author: currentUser?.email || 'Admin',
-      });
+      if (imagePreview) {
+        const res = await fetch(imagePreview);
+        const blob = await res.blob();
+        formData.append('image', blob, 'image.jpg');
+      }
 
-      // Reset
+      await pb.collection('news').create(formData);
+
       setTitle('');
       setExcerpt('');
       setImagePreview(null);
@@ -109,7 +125,7 @@ export default function News() {
   const confirmDelete = async () => {
     if (!isAdmin || !articleToDelete) return;
     try {
-      await deleteDoc(doc(db, 'news', articleToDelete.id));
+      await pb.collection('news').delete(articleToDelete.id);
       setArticleToDelete(null);
     } catch (err) {
       console.error("Fel vid radering:", err);
@@ -121,7 +137,7 @@ export default function News() {
     if (!articleToEdit) return;
     setEditing(true);
     try {
-      await updateDoc(doc(db, 'news', articleToEdit.id), {
+      await pb.collection('news').update(articleToEdit.id, {
         title: editTitle,
         category: editCategory,
         excerpt: editExcerpt,
@@ -319,7 +335,7 @@ export default function News() {
                 </div>
               )}
               <div className="news-page__featured-img-wrap">
-                <img src={featured.image || '/images/gallery_2.png'} alt={featured.title} className="news-page__featured-img" loading="eager" />
+                <img src={featured.image && !featured.image.startsWith('/images') ? pb.files.getURL(featured, featured.image) : '/images/gallery_2.png'} alt={featured.title} className="news-page__featured-img" loading="eager" />
                 <div className="news-page__featured-img-overlay" />
               </div>
               <div className="news-page__featured-body">
@@ -372,7 +388,7 @@ export default function News() {
                   </div>
                 )}
                 <div className="news-page__card-img-wrap">
-                  <img src={item.image || '/images/gallery_1.png'} alt={item.title} className="news-page__card-img" loading="lazy" />
+                  <img src={item.image && !item.image.startsWith('/images') ? pb.files.getURL(item, item.image) : '/images/gallery_1.png'} alt={item.title} className="news-page__card-img" loading="lazy" />
                 </div>
                 <div className="news-page__card-body">
                   <div className="news-page__card-meta">
@@ -429,7 +445,7 @@ export default function News() {
           </button>
           
           <img
-            src={selectedArticle.image || '/images/gallery_1.png'}
+            src={selectedArticle.image && !selectedArticle.image.startsWith('/images') ? pb.files.getURL(selectedArticle, selectedArticle.image) : '/images/gallery_1.png'}
             alt={selectedArticle.title}
             className="lightbox__img"
             onClick={(e) => e.stopPropagation()}

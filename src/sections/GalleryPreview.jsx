@@ -1,8 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
-import { db } from '../firebase'
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore'
+import pb from '../pocketbase';
 import './GalleryPreview.css'
 
 const defaultGalleryItems = [];
@@ -16,13 +15,11 @@ export default function GalleryPreview() {
   useEffect(() => {
     const fetchTopGallery = async () => {
       try {
-        const q = query(collection(db, 'gallery'), orderBy('likeCount', 'desc'), limit(10))
-        const snapshot = await getDocs(q)
-        if (!snapshot.empty) {
-          const fetchedItems = snapshot.docs.map(doc => {
-            const data = doc.data()
+        const result = await pb.collection('gallery').getList(1, 10, { sort: '-likeCount' });
+        if (result.items.length > 0) {
+          const fetchedItems = result.items.map(data => {
             return {
-              src: data.src,
+              src: data.media ? pb.files.getURL(data, data.media) : (data.src || ''),
               label: data.title || data.category
             }
           })

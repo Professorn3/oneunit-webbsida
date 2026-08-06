@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
-import { db } from '../firebase'
-import { collection, getDocs } from 'firebase/firestore'
+import pb from '../pocketbase';
 import ScrollReveal from '../components/ScrollReveal'
 import TextReveal from '../components/TextReveal'
 import './About.css'
@@ -11,8 +10,8 @@ export default function About() {
   useEffect(() => {
     const fetchCount = async () => {
       try {
-        const snap = await getDocs(collection(db, 'users'))
-        setMemberCount(snap.size)
+        const result = await pb.collection('users').getList(1, 1, { requestKey: null });
+        setMemberCount(result.totalItems);
       } catch (err) {
         console.error("Kunde inte hämta antal medlemmar:", err)
       }

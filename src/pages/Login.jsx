@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { auth } from '../firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import pb from '../pocketbase';
 import './Login.css';
 
 export default function Login() {
@@ -20,7 +18,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await pb.collection('users').authWithPassword(email, password);
       navigate('/dashboard');
     } catch (err) {
       setError('Fel e-post eller lösenord. Försök igen.');
@@ -37,10 +35,7 @@ export default function Login() {
     }
     setLoading(true);
     try {
-      const functions = getFunctions(auth.app, 'europe-west1');
-      const sendCustomReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
-      await sendCustomReset({ email, origin: window.location.origin });
-      
+      await pb.collection('users').requestPasswordReset(email);
       setMsg('Ett officiellt återställningsmail har skickats till din e-post.');
       setError('');
     } catch (err) {

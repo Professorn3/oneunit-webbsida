@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { db } from '../firebase';
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import pb from '../pocketbase';
 import ScrollReveal from '../components/ScrollReveal';
 
 export default function Ticket() {
@@ -14,10 +13,9 @@ export default function Ticket() {
   useEffect(() => {
     const fetchTicket = async () => {
       try {
-        const docRef = doc(db, 'contacts', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setTicket({ id: docSnap.id, ...docSnap.data() });
+        const record = await pb.collection('contacts').getOne(id);
+        if (record) {
+          setTicket(record);
         } else {
           setTicket(null);
         }
@@ -36,13 +34,13 @@ export default function Ticket() {
     setSending(true);
     
     try {
-      await updateDoc(doc(db, 'contacts', id), {
+      await pb.collection('contacts').update(id, {
         status: 'unread',
-        replies: arrayUnion({
+        replies: [...(ticket.replies || []), {
           text: replyText,
           sender: 'user',
           createdAt: new Date().toISOString()
-        })
+        }]
       });
       
       // Uppdatera state lokalt
@@ -75,7 +73,7 @@ export default function Ticket() {
         
         <div style={{ background: '#0a0a0a', border: '1px solid #222', borderRadius: '8px', padding: '1.5rem', marginBottom: '2rem' }}>
           <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 1rem 0' }}>
-            Ditt ursprungliga meddelande ({ticket.createdAt?.toDate ? ticket.createdAt.toDate().toLocaleString() : ticket.createdAt})
+            Ditt ursprungliga meddelande ({ticket.created ? new Date(ticket.created).toLocaleString() : ''})
           </p>
           <p style={{ whiteSpace: 'pre-wrap', margin: 0, color: '#fff', fontSize: '1rem', lineHeight: '1.6' }}>{ticket.message}</p>
         </div>

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, arrayUnion, arrayRemove } from 'firebase/firestore';
+import pb from '../pocketbase';
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from '../components/ConfirmModal';
 import ScrambleText from '../components/ScrambleText';
@@ -28,20 +27,35 @@ export default function Meetups() {
   const [notifyChat, setNotifyChat] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, 'meetups'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setMeetups(list);
-      setLoading(false);
-    }, (err) => {
-      console.error("Fel vid hämtning av meetups:", err);
-      setLoading(false);
+    let active = true;
+    const fetchMeetups = async () => {
+      try {
+        const records = await pb.collection('meetups').getFullList({ sort: '-created' });
+        if (active) {
+          setMeetups(records);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Fel vid hämtning av meetups:", err);
+        if (active) setLoading(false);
+      }
+    };
+    fetchMeetups();
+
+    pb.collection('meetups').subscribe('*', function (e) {
+      if (e.action === 'create') {
+        setMeetups(prev => [e.record, ...prev].sort((a,b) => new Date(b.created) - new Date(a.created)));
+      } else if (e.action === 'update') {
+        setMeetups(prev => prev.map(item => item.id === e.record.id ? e.record : item));
+      } else if (e.action === 'delete') {
+        setMeetups(prev => prev.filter(item => item.id !== e.record.id));
+      }
     });
 
-    return () => unsub();
+    return () => {
+      active = false;
+      pb.collection('meetups').unsubscribe('*');
+    };
   }, []);
 
   // Hantera skapande av nytt Meetup (Endast för Admins)
@@ -55,23 +69,21 @@ export default function Meetups() {
 
     setCreating(true);
     try {
-      await addDoc(collection(db, 'meetups'), {
+      await pb.collection('meetups').create({
         title,
         date,
         location,
         route: route || 'Information vid start',
         description,
         attendees: [currentUser.email.split('@')[0] + ' (Arrangör)'],
-        createdAt: serverTimestamp(),
         createdBy: currentUser.email
       });
 
       if (notifyChat) {
-        await addDoc(collection(db, 'club_chat'), {
+        await pb.collection('club_chat').create({
           text: `🏍️ NY KLUBBTRÄFF UPPLAGD: ${title} den ${date}. Samling: ${location}. Gå in under MEETUPS för att anmäla er!`,
           senderName: 'ONEUNIT SYSTEM',
           senderEmail: currentUser.email,
-          createdAt: serverTimestamp(),
           isPinned: false
         });
       }
@@ -101,19 +113,20 @@ export default function Meetups() {
     }
 
     const userName = currentUser.email.split('@')[0];
-    const isAttending = (meetup.attendees || []).some(a => a.toLowerCase().includes(userName.toLowerCase()));
-    const docRef = doc(db, 'meetups', meetup.id);
+    const attendees = meetup.attendees || [];
+    const isAttending = attendees.some(a => a.toLowerCase().includes(userName.toLowerCase()));
 
     try {
       if (isAttending) {
-        // Hitta exakta namngrupperingen att ta bort
-        const exactMatch = (meetup.attendees || []).find(a => a.toLowerCase().includes(userName.toLowerCase()));
-        await updateDoc(docRef, {
-          attendees: arrayRemove(exactMatch)
+        const exactMatch = attendees.find(a => a.toLowerCase().includes(userName.toLowerCase()));
+        const newAttendees = attendees.filter(a => a !== exactMatch);
+        await pb.collection('meetups').update(meetup.id, {
+          attendees: newAttendees
         });
       } else {
-        await updateDoc(docRef, {
-          attendees: arrayUnion(userName)
+        const newAttendees = [...attendees, userName];
+        await pb.collection('meetups').update(meetup.id, {
+          attendees: newAttendees
         });
       }
     } catch (err) {
@@ -125,7 +138,7 @@ export default function Meetups() {
   const confirmDeleteMeetup = async () => {
     if (!isAdmin || !meetupToDelete) return;
     try {
-      await deleteDoc(doc(db, 'meetups', meetupToDelete.id));
+      await pb.collection('meetups').delete(meetupToDelete.id);
       setMeetupToDelete(null);
     } catch (err) {
       console.error("Fel vid radering:", err);

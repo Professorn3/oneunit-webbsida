@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { db } from '../firebase';
-import { collection, query, orderBy, limit, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, arrayUnion, deleteDoc, getDocs } from 'firebase/firestore';
+import pb from '../pocketbase';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import './Chat.css';
@@ -45,22 +44,35 @@ export default function Chat() {
   useEffect(() => {
     if (!canAccessChat || !isOpen) return;
     const roomToFetch = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+    let active = true;
 
-    const q = query(
-      collection(db, roomToFetch),
-      orderBy('createdAt', 'asc'),
-      limit(60)
-    );
+    const fetchMessages = async () => {
+      try {
+        const result = await pb.collection(roomToFetch).getList(1, 60, { sort: 'created' });
+        if (active) setMessages(result.items);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchMessages();
 
-    const unsub = onSnapshot(q, (snapshot) => {
-      const msgs = [];
-      snapshot.forEach((docSnap) => {
-        msgs.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setMessages(msgs);
+    pb.collection(roomToFetch).subscribe('*', function (e) {
+      if (e.action === 'create') {
+        setMessages(prev => {
+           const updated = [...prev, e.record].sort((a,b) => new Date(a.created) - new Date(b.created));
+           return updated.length > 60 ? updated.slice(updated.length - 60) : updated;
+        });
+      } else if (e.action === 'update') {
+        setMessages(prev => prev.map(msg => msg.id === e.record.id ? e.record : msg));
+      } else if (e.action === 'delete') {
+        setMessages(prev => prev.filter(msg => msg.id !== e.record.id));
+      }
     });
 
-    return () => unsub();
+    return () => {
+      active = false;
+      pb.collection(roomToFetch).unsubscribe('*');
+    };
   }, [activeRoom, isOpen, canAccessChat, isAdmin]);
 
   useEffect(() => {
@@ -105,10 +117,9 @@ export default function Chat() {
     setNewMessage('');
 
     try {
-      await addDoc(collection(db, roomTarget), {
+      await pb.collection(roomTarget).create({
         text: textToSend,
-        createdAt: serverTimestamp(),
-        uid: currentUser.uid,
+        uid: currentUser.id,
         email: currentUser.email,
         senderName: userData?.firstName || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
@@ -125,11 +136,10 @@ export default function Chat() {
     setShowGifPicker(false);
 
     try {
-      await addDoc(collection(db, roomTarget), {
+      await pb.collection(roomTarget).create({
         text: '',
         gifUrl: gifUrl,
-        createdAt: serverTimestamp(),
-        uid: currentUser.uid,
+        uid: currentUser.id,
         email: currentUser.email,
         senderName: userData?.firstName || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
@@ -148,11 +158,10 @@ export default function Chat() {
       const dataUrl = await compressImage(file, 800, 0.7);
       const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
       
-      await addDoc(collection(db, roomTarget), {
+      await pb.collection(roomTarget).create({
         text: '',
         imageUrl: dataUrl,
-        createdAt: serverTimestamp(),
-        uid: currentUser.uid,
+        uid: currentUser.id,
         email: currentUser.email,
         senderName: userData?.firstName || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
@@ -169,7 +178,7 @@ export default function Chat() {
     if (!isAdmin) return;
     try {
       const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
-      await updateDoc(doc(db, roomTarget, msgId), { isPinned: !currentPin });
+      await pb.collection(roomTarget).update(msgId, { isPinned: !currentPin });
     } catch(err) { console.error(err); }
   };
 
@@ -178,7 +187,7 @@ export default function Chat() {
     if (!window.confirm("Radera detta meddelande?")) return;
     try {
       const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
-      await deleteDoc(doc(db, roomTarget, msgId));
+      await pb.collection(roomTarget).delete(msgId);
     } catch(err) { console.error(err); }
   };
 
@@ -187,9 +196,8 @@ export default function Chat() {
     if (!window.confirm("Är du säker på att du vill rensa HELA chatten i detta rum?")) return;
     try {
       const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
-      const q = query(collection(db, roomTarget));
-      const snapshot = await getDocs(q);
-      const deletePromises = snapshot.docs.map(d => deleteDoc(doc(db, roomTarget, d.id)));
+      const records = await pb.collection(roomTarget).getFullList();
+      const deletePromises = records.map(d => pb.collection(roomTarget).delete(d.id));
       await Promise.all(deletePromises);
     } catch(err) { console.error("Kunde inte rensa chatt", err); }
   };
@@ -205,13 +213,12 @@ export default function Chat() {
 
     const roomTarget = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
     try {
-      await addDoc(collection(db, roomTarget), {
+      await pb.collection(roomTarget).create({
         isPoll: true,
         question: pollQuestion,
         options: validOptions.map(opt => ({ text: opt, votes: 0 })),
-        votedUsers: [], // Array of uids who voted
-        createdAt: serverTimestamp(),
-        uid: currentUser.uid,
+        votedUsers: [], // Array of user IDs who voted
+        uid: currentUser.id,
         email: currentUser.email,
         senderName: userData?.firstName || currentUser.email.split('@')[0],
         role: isAdmin ? 'admin' : 'member'
@@ -225,7 +232,7 @@ export default function Chat() {
   };
 
   const handleVote = async (msgId, optionIndex, msgData) => {
-    if (msgData.votedUsers?.includes(currentUser.uid)) {
+    if (msgData.votedUsers?.includes(currentUser.id)) {
       alert("Du har redan röstat på denna.");
       return;
     }
@@ -234,9 +241,9 @@ export default function Chat() {
     updatedOptions[optionIndex].votes += 1;
     
     try {
-      await updateDoc(doc(db, roomTarget, msgId), {
+      await pb.collection(roomTarget).update(msgId, {
         options: updatedOptions,
-        votedUsers: arrayUnion(currentUser.uid)
+        votedUsers: [...(msgData.votedUsers || []), currentUser.id]
       });
     } catch(err) { console.error(err); }
   };
@@ -328,7 +335,7 @@ export default function Chat() {
             </p>
           ) : (
             regularMessages.map(msg => {
-              const isMe = msg.uid === currentUser.uid;
+              const isMe = msg.uid === currentUser.id;
               const senderDisplay = msg.senderName || msg.email?.split('@')[0] || 'Medlem';
               return (
                 <div key={msg.id} className={`chat-message ${isMe ? 'sent' : 'received'}`}>
@@ -351,7 +358,7 @@ export default function Chat() {
                         {msg.options.map((opt, i) => {
                           const totalVotes = msg.options.reduce((acc, curr) => acc + curr.votes, 0);
                           const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
-                          const hasVoted = msg.votedUsers?.includes(currentUser.uid);
+                          const hasVoted = msg.votedUsers?.includes(currentUser.id);
                           return (
                             <button 
                               key={i}

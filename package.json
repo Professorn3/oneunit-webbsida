@@ -11,9 +11,9 @@
     "deploy": "npm run build && rsync -av --delete dist/ /Volumes/appdata/oneunit-webbsida/dist/"
   },
   "dependencies": {
-    "firebase": "^12.16.0",
     "framer-motion": "^12.42.2",
     "gsap": "^3.15.0",
+    "pocketbase": "^0.27.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-firebase-hooks": "^5.1.1",

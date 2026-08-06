@@ -2,23 +2,24 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import ScrollReveal from '../components/ScrollReveal'
 import TextReveal from '../components/TextReveal'
-import { db } from '../firebase'
-import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore'
+import pb from '../pocketbase';
 import './NewsPreview.css'
 
 export default function NewsPreview() {
   const [news, setNews] = useState([])
 
   useEffect(() => {
-    const q = query(collection(db, 'news'), orderBy('createdAt', 'desc'), limit(3))
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = []
-      snapshot.forEach(doc => {
-        list.push({ id: doc.id, ...doc.data() })
-      })
-      setNews(list)
-    })
-    return () => unsub()
+    let active = true;
+    const fetchNews = async () => {
+      try {
+        const result = await pb.collection('news').getList(1, 3, { sort: '-created' });
+        if (active) setNews(result.items);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchNews();
+    return () => { active = false; };
   }, [])
 
   if (news.length === 0) return null;
@@ -50,7 +51,7 @@ export default function NewsPreview() {
               <Link to="/news" id={`news-card-${item.id}`} className="news-preview__card card">
                 <div className="news-preview__card-img-wrap">
                   <img
-                    src={item.image}
+                    src={item.image && !item.image.startsWith('/images') ? pb.files.getURL(item, item.image) : '/images/gallery_1.png'}
                     alt={item.title}
                     className="news-preview__card-img"
                     loading="lazy"

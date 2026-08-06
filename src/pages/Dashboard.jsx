@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../context/AuthContext';
-import { db, auth } from '../firebase';
-import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp, where, getDocs, arrayUnion } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import pb from '../pocketbase';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
 import { compressImage } from '../utils/imageHelper';
@@ -67,56 +64,41 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let unsubApps, unsubContacts, unsubMembers;
+    let active = true;
 
-    if (isAdmin) {
-      getDoc(doc(db, 'settings', 'general')).then((snap) => {
-        if (snap.exists()) {
-          const s = snap.data();
-          if (s.siteName !== undefined) setSiteName(s.siteName);
-          if (s.siteSlogan !== undefined) setSiteSlogan(s.siteSlogan);
-          if (s.announcementBanner !== undefined) setAnnouncementBanner(s.announcementBanner);
-          if (s.enableChatMedia !== undefined) setEnableChatMedia(s.enableChatMedia);
-          if (s.openForApplications !== undefined) setOpenForApplications(s.openForApplications);
-          if (s.clubRules !== undefined) setClubRules(s.clubRules);
+    const fetchData = async () => {
+      try {
+        if (isAdmin && active) {
+          try {
+            const settingsRes = await pb.collection('settings').getFirstListItem('id != ""');
+            if (settingsRes.siteName !== undefined) setSiteName(settingsRes.siteName);
+            if (settingsRes.siteSlogan !== undefined) setSiteSlogan(settingsRes.siteSlogan);
+            if (settingsRes.announcementBanner !== undefined) setAnnouncementBanner(settingsRes.announcementBanner);
+            if (settingsRes.enableChatMedia !== undefined) setEnableChatMedia(settingsRes.enableChatMedia);
+            if (settingsRes.openForApplications !== undefined) setOpenForApplications(settingsRes.openForApplications);
+            if (settingsRes.clubRules !== undefined) setClubRules(settingsRes.clubRules);
+          } catch(e) { console.log('No settings found'); }
+
+          const apps = await pb.collection('applications').getFullList({ sort: '-created', filter: "status != 'approved'" });
+          if (active) setApplications(apps);
+
+          const msgs = await pb.collection('contacts').getFullList({ sort: '-created' });
+          if (active) setContacts(msgs);
         }
-      }).catch(err => console.error("Fel vid laddning av inställningar:", err));
 
-      const qApps = query(collection(db, 'applications'), orderBy('createdAt', 'desc'));
-      unsubApps = onSnapshot(qApps, (snapshot) => {
-        const apps = [];
-        snapshot.forEach((doc) => {
-          const data = { id: doc.id, ...doc.data() };
-          if (data.status !== 'approved') apps.push(data);
-        });
-        setApplications(apps);
-      });
-
-      const qContacts = query(collection(db, 'contacts'), orderBy('createdAt', 'desc'));
-      unsubContacts = onSnapshot(qContacts, (snapshot) => {
-        const msgs = [];
-        snapshot.forEach((doc) => {
-          msgs.push({ id: doc.id, ...doc.data() });
-        });
-        setContacts(msgs);
-      });
-    }
-
-    if (isMember) {
-      const qMembers = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
-      unsubMembers = onSnapshot(qMembers, (snapshot) => {
-        const mems = [];
-        snapshot.forEach((doc) => {
-          mems.push({ id: doc.id, ...doc.data() });
-        });
-        setMembers(mems);
-      });
-    }
+        if (isMember && active) {
+          const mems = await pb.collection('users').getFullList({ sort: '-created' });
+          if (active) setMembers(mems);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard data', err);
+      }
+    };
+    
+    fetchData();
 
     return () => {
-      if (unsubApps) unsubApps();
-      if (unsubContacts) unsubContacts();
-      if (unsubMembers) unsubMembers();
+      active = false;
     };
   }, [isAdmin, isMember]);
 
@@ -137,12 +119,11 @@ export default function Dashboard() {
         setSendingCampaign(true);
         setCampaignStatus('');
         try {
-          await addDoc(collection(db, 'mail_campaigns'), {
+          await pb.collection('mail_campaigns').create({
             targetCollection: campaignTarget,
             subject: campaignSubject,
             bodyText: campaignBody,
             status: 'pending',
-            createdAt: serverTimestamp(),
             sentBy: currentUser?.email || 'admin'
           });
           setCampaignStatus('Utskicken till "' + campaignTarget + '" har nu startats! Vår molnfunktion anropar just nu Brevo och levererar mejlen.');
@@ -158,19 +139,17 @@ export default function Dashboard() {
   };
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
+    pb.authStore.clear();
+    window.location.href = '/';
   };
 
   const handleChangePassword = async () => {
     setResetLoading(true);
     setResetMsg('');
     try {
-      const functions = getFunctions(auth.app, 'europe-west1');
-      const sendCustomReset = httpsCallable(functions, 'sendCustomPasswordResetEmail');
-      await sendCustomReset({ email: currentUser.email, origin: window.location.origin });
+      await pb.collection('users').requestPasswordReset(currentUser.email);
       setResetMsg('Ett mail har skickats till din e-postadress. Klicka på länken i mailet för att byta ditt lösenord.');
-      setTimeout(() => setResetMsg(''), 10000); // Hide after 10s
+      setTimeout(() => setResetMsg(''), 10000);
     } catch (err) {
       alert('Kunde inte skicka återställningslänk: ' + err.message);
     }
@@ -182,10 +161,10 @@ export default function Dashboard() {
     if (!file) return;
 
     try {
-      const dataUrl = await compressImage(file, 300, 0.7); // Compress avatar
-      await updateDoc(doc(db, 'users', currentUser.uid), {
-        photoURL: dataUrl
-      });
+      const formData = new FormData();
+      formData.append('avatar', file);
+      await pb.collection('users').update(currentUser.id, formData);
+      window.location.reload();
     } catch (err) {
       alert("Kunde inte ladda upp profilbild: " + err.message);
     }
@@ -201,26 +180,20 @@ export default function Dashboard() {
       onConfirm: async () => {
         setConfirmConfig(null);
         try {
-          // 1. Skapa en inbjudnings-token i databasen
-          const inviteRef = await addDoc(collection(db, 'invites'), {
+          const inviteRef = await pb.collection('invites').create({
             email: app.email,
-            createdAt: serverTimestamp(),
             used: false
           });
 
-          // Länken som användaren ska klicka på
           const inviteLink = `https://oneunit.com/register?token=${inviteRef.id}`;
-
-          // 2. Öppna ditt vanliga mail-program automatiskt med en färdig mall
           const subject = encodeURIComponent("Välkommen till OneUnit!");
           const body = encodeURIComponent(`Hej ${app.firstName}!\n\nDin ansökan har blivit godkänd.\n\nKlicka på länken nedan för att registrera ditt medlemskonto och få tillgång till våra privata sidor och chatt:\n${inviteLink}\n\nVälkommen till gemenskapen!\n\n/OneUnit Admin`);
           window.location.href = `mailto:${app.email}?subject=${subject}&body=${body}`;
 
-          // 3. Ta bort eller markera ansökan som godkänd så den försvinner från listan
-          await updateDoc(doc(db, 'applications', app.id), {
+          await pb.collection('applications').update(app.id, {
             status: 'approved'
           });
-          
+          setApplications(prev => prev.filter(a => a.id !== app.id));
         } catch (err) {
           console.error(err);
           alert('Något gick fel när inbjudan skulle skapas.');
@@ -237,18 +210,21 @@ export default function Dashboard() {
       type: "danger",
       onConfirm: async () => {
         setConfirmConfig(null);
-        await deleteDoc(doc(db, 'applications', appId));
+        await pb.collection('applications').delete(appId);
+        setApplications(prev => prev.filter(a => a.id !== appId));
       }
     });
   };
 
   const handleMarkContactRead = async (contactId) => {
-    await updateDoc(doc(db, 'contacts', contactId), { status: 'read' });
+    await pb.collection('contacts').update(contactId, { status: 'read' });
+    setContacts(prev => prev.map(c => c.id === contactId ? { ...c, status: 'read' } : c));
   };
   
   const handleDeleteContact = async (id) => {
     try {
-      await deleteDoc(doc(db, 'contacts', id));
+      await pb.collection('contacts').delete(id);
+      setContacts(prev => prev.filter(c => c.id !== id));
     } catch (err) {
       console.error(err);
       alert('Kunde inte radera meddelandet');
@@ -259,33 +235,26 @@ export default function Dashboard() {
     if (!replyText.trim()) return;
     setSendingReply(true);
     try {
-      const ticketUrl = `https://oneunit.se/ticket/${contact.id}`;
-      await addDoc(collection(db, 'mail'), {
-        to: [contact.email],
-        message: {
-          subject: "Svar från OneUnit",
-          html: `
-            <div style="font-family: Arial, sans-serif; background-color: #0d0d0d; color: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Svar på ditt meddelande</h2>
-              <p style="color: #cccccc; font-size: 16px; line-height: 1.5; white-space: pre-wrap;">${replyText}</p>
-              <div style="margin: 30px 0; text-align: left;">
-                <a href="${ticketUrl}" style="display: inline-block; padding: 12px 24px; background-color: #00f5ff; color: #000; text-decoration: none; border-radius: 4px; font-weight: bold;">Visa Ärende & Svara</a>
-              </div>
-              <hr style="border: 0; height: 1px; background: #222; margin: 25px 0;" />
-              <p style="color: #777777; font-size: 14px; margin: 0;">Du skrev:<br/><br/><i>${contact.message}</i></p>
-            </div>
-          `
-        }
+      const currentReplies = contact.replies || [];
+      const newReply = { text: replyText, sender: 'admin', createdAt: new Date().toISOString() };
+      const updatedContact = await pb.collection('contacts').update(contact.id, {
+        status: 'replied',
+        replies: [...currentReplies, newReply]
       });
       
-      // Markera som besvarad och lägg till i historiken
-      await updateDoc(doc(db, 'contacts', contact.id), { 
-        status: 'replied',
-        replies: arrayUnion({
-          text: replyText,
-          sender: 'admin',
-          createdAt: new Date().toISOString()
-        })
+      setContacts(prev => prev.map(c => c.id === contact.id ? updatedContact : c));
+      
+      await pb.collection('mail').create({
+        to: contact.email,
+        subject: "Svar från OneUnit",
+        html: `
+          <div style="font-family: Arial, sans-serif; background-color: #0d0d0d; color: #ffffff; padding: 30px; border-radius: 12px; border: 1px solid #222; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #00f5ff; margin-top: 0; font-size: 24px;">Svar på ditt meddelande</h2>
+            <p style="color: #cccccc; font-size: 16px; line-height: 1.5; white-space: pre-wrap;">${replyText}</p>
+            <hr style="border: 0; height: 1px; background: #222; margin: 25px 0;" />
+            <p style="color: #777777; font-size: 14px; margin: 0;">Du skrev:<br/><br/><i>${contact.message}</i></p>
+          </div>
+        `
       });
       
       setReplyContactId(null);
@@ -297,18 +266,16 @@ export default function Dashboard() {
     setSendingReply(false);
   };
 
-  // --- MEMBER MANAGEMENT FUNCTIONS ---
-
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setSavingProfile(true);
     try {
-      await updateDoc(doc(db, 'users', currentUser.uid), {
+      await pb.collection('users').update(currentUser.id, {
         bike: profileBike,
         instagram: profileInsta
       });
       setEditingProfile(false);
-      // Update local context manually or rely on AuthContext reload (AuthContext doesn't auto-reload doc on update, but it's fine for simple display, wait, we might need to refresh page or rely on snapshot. Let's just alert.)
+      window.location.reload();
     } catch (err) {
       alert("Fel vid sparning: " + err.message);
     }
@@ -318,11 +285,14 @@ export default function Dashboard() {
   const handleAwardPatch = async (memberId) => {
     if (!patchName.trim()) return;
     try {
-      await updateDoc(doc(db, 'users', memberId), {
-        patches: arrayUnion(patchName)
+      const member = members.find(m => m.id === memberId);
+      const currentPatches = member.patches || [];
+      const updatedUser = await pb.collection('users').update(memberId, {
+        patches: [...currentPatches, patchName]
       });
+      setMembers(prev => prev.map(m => m.id === memberId ? updatedUser : m));
       if (selectedMember && selectedMember.id === memberId) {
-        setSelectedMember({ ...selectedMember, patches: [...(selectedMember.patches || []), patchName] });
+        setSelectedMember(updatedUser);
       }
       setPatchName('');
     } catch (err) {
@@ -332,11 +302,14 @@ export default function Dashboard() {
 
   const handleRemovePatch = async (memberId, patch) => {
     try {
-      await updateDoc(doc(db, 'users', memberId), {
-        patches: arrayRemove(patch)
+      const member = members.find(m => m.id === memberId);
+      const updatedPatches = (member.patches || []).filter(p => p !== patch);
+      const updatedUser = await pb.collection('users').update(memberId, {
+        patches: updatedPatches
       });
+      setMembers(prev => prev.map(m => m.id === memberId ? updatedUser : m));
       if (selectedMember && selectedMember.id === memberId) {
-        setSelectedMember({ ...selectedMember, patches: selectedMember.patches.filter(p => p !== patch) });
+        setSelectedMember(updatedUser);
       }
     } catch (err) {
       alert("Fel vid radering av patch.");
@@ -345,9 +318,10 @@ export default function Dashboard() {
 
   const handleChangeRole = async (memberId, newRole) => {
     try {
-      await updateDoc(doc(db, 'users', memberId), { role: newRole });
+      const updatedUser = await pb.collection('users').update(memberId, { role: newRole });
+      setMembers(prev => prev.map(m => m.id === memberId ? updatedUser : m));
       if (selectedMember && selectedMember.id === memberId) {
-        setSelectedMember({ ...selectedMember, role: newRole });
+        setSelectedMember(updatedUser);
       }
     } catch (err) {
       alert("Kunde inte ändra roll: " + err.message);
@@ -371,9 +345,10 @@ export default function Dashboard() {
       onConfirm: async () => {
         setConfirmConfig(null);
         try {
-          await updateDoc(doc(db, 'users', member.id), { isBanned: !isCurrentlyBanned });
+          const updatedUser = await pb.collection('users').update(member.id, { isBanned: !isCurrentlyBanned });
+          setMembers(prev => prev.map(m => m.id === member.id ? updatedUser : m));
           if (selectedMember && selectedMember.id === member.id) {
-            setSelectedMember({ ...selectedMember, isBanned: !isCurrentlyBanned });
+            setSelectedMember(updatedUser);
           }
         } catch (err) {
           alert("Gick inte att uppdatera spärrstatus: " + err.message);
@@ -386,24 +361,18 @@ export default function Dashboard() {
     setLoadingChatLogs(true);
     setMemberChatLogs([]);
     try {
+      const clubSnap = await pb.collection('club_chat').getFullList({ filter: `user = '${uid}'`, sort: '-created' });
+      const adminSnap = await pb.collection('admin_chat').getFullList({ filter: `user = '${uid}'`, sort: '-created' });
+      
       const msgs = [];
-      const qClub = query(collection(db, 'club_chat'), where('uid', '==', uid));
-      const qAdmin = query(collection(db, 'admin_chat'), where('uid', '==', uid));
+      clubSnap.forEach(d => msgs.push({ id: d.id, room: 'Klubbchatt', ...d }));
+      adminSnap.forEach(d => msgs.push({ id: d.id, room: 'Adminchatt', ...d }));
       
-      const [clubSnap, adminSnap] = await Promise.all([getDocs(qClub), getDocs(qAdmin)]);
-      clubSnap.forEach(d => msgs.push({ id: d.id, room: 'Klubbchatt', ...d.data() }));
-      adminSnap.forEach(d => msgs.push({ id: d.id, room: 'Adminchatt', ...d.data() }));
-      
-      // Sortera nyast först
-      msgs.sort((a, b) => {
-        const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-        const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-        return timeB - timeA;
-      });
+      msgs.sort((a, b) => new Date(b.created) - new Date(a.created));
       setMemberChatLogs(msgs);
     } catch (err) {
       console.error(err);
-      alert("Kunde inte hämta chattloggar. Saknar index i databasen.");
+      alert("Kunde inte hämta chattloggar.");
     }
     setLoadingChatLogs(false);
   };
@@ -468,7 +437,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem', alignItems: 'center' }}>
                   
                   <div style={{ position: 'relative', width: '70px', height: '70px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>
-                    <img src={userData.photoURL || "/images/logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={userData.avatar ? pb.files.getURL(userData, userData.avatar) : "/images/logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     
                     {editingProfile && (
                       <label style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '0.65rem', textAlign: 'center', cursor: 'pointer', padding: '4px 0', textTransform: 'uppercase', fontWeight: 'bold' }}>
@@ -528,7 +497,7 @@ export default function Dashboard() {
                 {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (
                   <div key={member.id} style={{ background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
-                      {member.photoURL ? <img src={member.photoURL} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.firstName ? member.firstName[0].toUpperCase() : 'M')}
+                      {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.firstName ? member.firstName[0].toUpperCase() : 'M')}
                     </div>
                     <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.firstName || member.email.split('@')[0]}</h4>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
@@ -630,8 +599,8 @@ export default function Dashboard() {
                 <div className="members-grid">
                   {filteredMembers.map(member => (
                     <div key={member.id} className="member-item" style={{ border: member.isBanned ? '1px solid #ff0055' : '' }}>
-                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: member.isBanned ? '#ff0055' : (member.photoURL ? 'transparent' : '#111') }}>
-                        {member.photoURL ? <img src={member.photoURL} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} /> : (member.isBanned ? 'BAN' : (member.role === 'admin' ? 'ADM' : 'MED'))}
+                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: member.isBanned ? '#ff0055' : (member.avatar ? 'transparent' : '#111') }}>
+                        {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} /> : (member.isBanned ? 'BAN' : (member.role === 'admin' ? 'ADM' : 'MED'))}
                       </div>
                       <div className="member-details">
                         <p className="member-name" style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>
@@ -667,7 +636,7 @@ export default function Dashboard() {
                           {c.status === 'replied' && <span style={{ background: 'rgba(0,245,255,0.1)', color: '#00f5ff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>🟢 BESVARAD</span>}
                         </div>
                         <p style={{ marginTop: '0.5rem' }}><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>
-                        <p><strong>Skickat:</strong> {c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : ''}</p>
+                        <p><strong>Skickat:</strong> {new Date(c.created).toLocaleString()}</p>
                         
                         <div style={{ background: '#0a0a0a', padding: '1rem', borderRadius: '8px', marginTop: '1rem', border: '1px solid #222' }}>
                           <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{c.message}</p>
@@ -855,7 +824,7 @@ export default function Dashboard() {
               <div className="manage-section">
                 <h3>Information</h3>
                 <p><strong>E-post:</strong> {selectedMember.email}</p>
-                <p><strong>Gick med:</strong> {selectedMember.createdAt ? new Date(selectedMember.createdAt).toLocaleDateString() : 'Okänt'}</p>
+                <p><strong>Gick med:</strong> {selectedMember.created ? new Date(selectedMember.created).toLocaleDateString() : 'Okänt'}</p>
                 <p><strong>Nuvarande Roll:</strong> {selectedMember.role}</p>
                 <p><strong>Status:</strong> {selectedMember.isBanned ? <span style={{color: '#ff0055'}}>SPÄRRAD (BANNED)</span> : <span style={{color: '#888'}}>Aktiv</span>}</p>
               </div>
@@ -945,7 +914,7 @@ export default function Dashboard() {
                           <li key={log.id} style={{ background: '#111', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>
                               <span>Rum: {log.room}</span>
-                              <span>{log.createdAt?.toDate ? log.createdAt.toDate().toLocaleString() : ''}</span>
+                              <span>{new Date(log.created).toLocaleString()}</span>
                             </div>
                             {log.text && <p style={{ color: '#fff', fontSize: '0.95rem' }}>{log.text}</p>}
                             {log.gifUrl && <img src={log.gifUrl} alt="GIF" style={{ maxWidth: '200px', borderRadius: '8px', marginTop: '0.5rem' }} />}

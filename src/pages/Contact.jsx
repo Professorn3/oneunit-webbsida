@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { db } from '../firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import pb from '../pocketbase';
 import './Contact.css';
 
 export default function Contact() {
@@ -13,9 +12,8 @@ export default function Contact() {
 
     setStatus('loading');
     try {
-      await addDoc(collection(db, 'contacts'), {
+      await pb.collection('contacts').create({
         ...formData,
-        createdAt: serverTimestamp(),
         status: 'unread'
       });
       setStatus('success');

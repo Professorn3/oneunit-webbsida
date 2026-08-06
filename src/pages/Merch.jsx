@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { db } from '../firebase';
-import { collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
+import pb from '../pocketbase';
 import { useAuth } from '../context/AuthContext';
 import { compressImage } from '../utils/imageHelper';
 import ConfirmModal from '../components/ConfirmModal';
@@ -33,20 +32,35 @@ export default function Merch() {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    const q = query(collection(db, 'merch'), orderBy('createdAt', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = [];
-      snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setMerchItems(list);
-      setLoading(false);
-    }, (err) => {
-      console.error("Fel vid hämtning av merch:", err);
-      setLoading(false);
+    let active = true;
+    const fetchMerch = async () => {
+      try {
+        const records = await pb.collection('merch').getFullList({ sort: '-created' });
+        if (active) {
+          setMerchItems(records);
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Fel vid hämtning av merch:", err);
+        if (active) setLoading(false);
+      }
+    };
+    fetchMerch();
+
+    pb.collection('merch').subscribe('*', function (e) {
+      if (e.action === 'create') {
+        setMerchItems(prev => [e.record, ...prev].sort((a,b) => new Date(b.created) - new Date(a.created)));
+      } else if (e.action === 'update') {
+        setMerchItems(prev => prev.map(item => item.id === e.record.id ? e.record : item));
+      } else if (e.action === 'delete') {
+        setMerchItems(prev => prev.filter(item => item.id !== e.record.id));
+      }
     });
 
-    return () => unsub();
+    return () => {
+      active = false;
+      pb.collection('merch').unsubscribe('*');
+    };
   }, []);
 
   const handleImageSelect = async (e) => {
@@ -71,19 +85,21 @@ export default function Merch() {
 
     setCreating(true);
     try {
-      const imgUrl = imagePreview || '/images/gallery_1.png';
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('category', category);
+      formData.append('description', description);
+      formData.append('price', price);
+      formData.append('createdBy', currentUser?.email || 'admin');
 
-      await addDoc(collection(db, 'merch'), {
-        title,
-        category,
-        description,
-        price,
-        image: imgUrl,
-        createdAt: serverTimestamp(),
-        createdBy: currentUser?.email || 'admin'
-      });
+      if (imagePreview) {
+        const res = await fetch(imagePreview);
+        const blob = await res.blob();
+        formData.append('image', blob, 'image.jpg');
+      }
 
-      // Reset
+      await pb.collection('merch').create(formData);
+
       setTitle('');
       setDescription('');
       setPrice('');
@@ -99,7 +115,7 @@ export default function Merch() {
   const confirmDelete = async () => {
     if (!isAdmin || !itemToDelete) return;
     try {
-      await deleteDoc(doc(db, 'merch', itemToDelete.id));
+      await pb.collection('merch').delete(itemToDelete.id);
       setItemToDelete(null);
     } catch (err) {
       console.error("Fel vid radering:", err);
@@ -111,7 +127,7 @@ export default function Merch() {
     if (!itemToEdit || !editTitle.trim() || !editDescription.trim()) return;
     setEditing(true);
     try {
-      await updateDoc(doc(db, 'merch', itemToEdit.id), {
+      await pb.collection('merch').update(itemToEdit.id, {
         title: editTitle,
         category: editCategory,
         description: editDescription,
@@ -300,7 +316,7 @@ export default function Merch() {
                       </button>
                     </div>
                   )}
-                  <img src={item.image || '/images/gallery_1.png'} alt={item.title} className="merch-img" loading="lazy" />
+                  <img src={item.image && !item.image.startsWith('/images') ? pb.files.getURL(item, item.image) : '/images/gallery_1.png'} alt={item.title} className="merch-img" loading="lazy" />
                 </div>
 
                 <div className="merch-content">
@@ -348,7 +364,7 @@ export default function Merch() {
           </button>
           
           <img
-            src={selectedItem.image || '/images/gallery_1.png'}
+            src={selectedItem.image && !selectedItem.image.startsWith('/images') ? pb.files.getURL(selectedItem, selectedItem.image) : '/images/gallery_1.png'}
             alt={selectedItem.title}
             className="lightbox__img"
             onClick={(e) => e.stopPropagation()}

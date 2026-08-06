@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import pb from '../pocketbase';
 import './Login.css'; // Återanvänder samma CSS
 
 export default function RegisterInvite() {
@@ -31,17 +29,14 @@ export default function RegisterInvite() {
 
       try {
         // Kontrollera om inbjudan finns i databasen
-        const inviteRef = doc(db, 'invites', token);
-        const inviteSnap = await getDoc(inviteRef);
+        const inviteSnap = await pb.collection('invites').getOne(token);
         
-        if (inviteSnap.exists()) {
-          setEmail(inviteSnap.data().email); // Förifyll mejlen från inbjudan
+        if (inviteSnap) {
+          setEmail(inviteSnap.email); // Förifyll mejlen från inbjudan
           setValidToken(token);
-        } else {
-          setError('Inbjudningslänken har gått ut eller är ogiltig.');
         }
       } catch (err) {
-        setError('Ett fel uppstod vid kontroll av inbjudan.');
+        setError('Inbjudningslänken har gått ut eller är ogiltig.');
       }
       setCheckingToken(false);
     };
@@ -70,23 +65,23 @@ export default function RegisterInvite() {
     setLoading(true);
 
     try {
-      // 1. Skapa kontot
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
-      // 2. Skapa användardokument direkt som 'member' (eftersom de blev inbjudna)
-      const userRef = doc(db, 'users', userCredential.user.uid);
-      await setDoc(userRef, {
+      // 1. Skapa kontot och lägg till roll 'member'
+      await pb.collection('users').create({
         email: email,
-        role: 'member',
-        createdAt: new Date().toISOString()
+        password: password,
+        passwordConfirm: confirmPassword,
+        role: 'member'
       });
+      
+      // 2. Logga in automatiskt
+      await pb.collection('users').authWithPassword(email, password);
 
       // 3. Ta bort inbjudan så den inte kan användas igen
-      await deleteDoc(doc(db, 'invites', validToken));
+      await pb.collection('invites').delete(validToken);
 
       navigate('/dashboard');
     } catch (err) {
-      setError('Kunde inte skapa konto. ' + err.message.replace('Firebase: ', ''));
+      setError('Kunde inte skapa konto. ' + err.message);
     }
     
     setLoading(false);

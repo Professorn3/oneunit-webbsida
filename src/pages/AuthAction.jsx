@@ -1,40 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { confirmPasswordReset, verifyPasswordResetCode } from 'firebase/auth';
-import { auth } from '../firebase';
+import pb from '../pocketbase';
 import './AuthAction.css';
 
 export default function AuthAction() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  const mode = searchParams.get('mode');
-  const oobCode = searchParams.get('oobCode');
+  const token = searchParams.get('token');
   
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [loading, setLoading] = useState(false);
-  const [verifying, setVerifying] = useState(true);
-  const [email, setEmail] = useState('');
 
   useEffect(() => {
-    if (mode === 'resetPassword' && oobCode) {
-      verifyPasswordResetCode(auth, oobCode)
-        .then((emailRes) => {
-          setEmail(emailRes);
-          setVerifying(false);
-        })
-        .catch((err) => {
-          setError('Ogiltig eller utgången länk. Begär en ny lösenordsåterställning.');
-          setVerifying(false);
-        });
-    } else {
+    if (!token) {
       setError('Ogiltig begäran. Återvänd till startsidan.');
-      setVerifying(false);
     }
-  }, [mode, oobCode]);
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -53,7 +38,7 @@ export default function AuthAction() {
 
     setLoading(true);
     try {
-      await confirmPasswordReset(auth, oobCode, newPassword);
+      await pb.collection('users').confirmPasswordReset(token, newPassword, confirmPassword);
       setMsg('Ditt lösenord har ändrats framgångsrikt! Du kan nu logga in.');
       setError('');
       setTimeout(() => {
@@ -71,17 +56,17 @@ export default function AuthAction() {
         <div className="auth-action-card">
           <h1 className="auth-action-title">LÖSENORD</h1>
           
-          {verifying ? (
-            <p className="auth-action-subtitle">Verifierar din länk...</p>
+          {!token ? (
+            <p className="auth-action-subtitle">Ogiltig länk...</p>
           ) : (
             <>
               {error && <div className="auth-action-error">{error}</div>}
               {msg && <div className="auth-action-success">{msg}</div>}
 
-              {!error && !msg && email && (
+              {!error && !msg && (
                 <>
                   <p className="auth-action-subtitle">
-                    Återställer lösenordet för <strong>{email}</strong>
+                    Återställ ditt lösenord
                   </p>
                   <form onSubmit={handleSubmit} className="auth-action-form">
                     <div className="form-group">

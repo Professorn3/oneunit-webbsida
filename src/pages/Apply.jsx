@@ -3,8 +3,7 @@ import { motion } from 'framer-motion'
 import GlitchText from '../components/GlitchText'
 import ScrambleText from '../components/ScrambleText'
 import ScrollReveal from '../components/ScrollReveal'
-import { db } from '../firebase'
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import pb from '../pocketbase'
 import { swedishCities } from '../utils/cities'
 import './Apply.css'
 
@@ -47,10 +46,9 @@ export default function Apply() {
     setLoading(true)
     
     try {
-      await addDoc(collection(db, 'applications'), {
+      await pb.collection('applications').create({
         ...form,
-        status: 'pending',
-        createdAt: serverTimestamp()
+        status: 'pending'
       })
       setSubmitted(true)
       window.scrollTo({ top: 0, behavior: 'smooth' })
