@@ -9,7 +9,7 @@ export async function sendBrevoEmail(toEmail, subject, htmlContent) {
       htmlContent: htmlContent
     };
 
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const res = await fetch("/api/brevo/smtp/email", {
       method: "POST",
       headers: {
         "api-key": BREVO_API_KEY,
