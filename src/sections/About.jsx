@@ -73,8 +73,8 @@ export default function About() {
           <ScrollReveal className="about__image-col" direction="right">
             <div className="about__image-frame">
               <img
-                src="/images/gallery_4.png"
-                alt="OneUnit gemenskap"
+                src="/images/hero-glitch-logo.png"
+                alt="OneUnit Glitch Logo"
                 className="about__image"
                 loading="lazy"
               />
