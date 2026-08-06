@@ -16,7 +16,9 @@ const pageVariants = {
   exit: { opacity: 0, transition: { duration: 0.3 } },
 };
 
-const defaultItems = [];
+const defaultItems = [
+  { id: 'def_1', title: 'Kawasaki Z & Ninja', category: 'Motorcyklar', src: '/images/gallery_mc_1.jpg', type: 'image' }
+];
 
 const categories = ['Alla', 'Motorcyklar', 'Community'];
 
