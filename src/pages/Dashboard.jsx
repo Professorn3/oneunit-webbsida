@@ -82,7 +82,7 @@ export default function Dashboard() {
             if (settingsRes.clubRules !== undefined) setClubRules(settingsRes.clubRules);
           } catch(e) { console.log('No settings found'); }
 
-          const apps = await pb.collection('applications').getFullList({ sort: '-created', filter: "status != 'approved'" });
+          const apps = await pb.collection('applications').getFullList({ sort: '-created', filter: "status = 'pending'" });
           if (active) setApplications(apps);
 
           const msgs = await pb.collection('contacts').getFullList({ sort: '-created' });
