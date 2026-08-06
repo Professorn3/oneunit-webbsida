@@ -71,8 +71,18 @@ export default function Merch() {
 
     setCreating(true);
     try {
-      // Om en ny bild valt använder vi Preview base64, annars standardbild
-      const imgUrl = imagePreview || '/images/gallery_1.png';
+      let imgUrl = '/images/gallery_1.png';
+
+      if (imagePreview && imageFile) {
+        // Ladda upp till Firebase Storage
+        const { ref: storageRef, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const { storage } = await import('../firebase');
+        const response = await fetch(imagePreview);
+        const blob = await response.blob();
+        const fileRef = storageRef(storage, `merch_images/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(fileRef, blob);
+        imgUrl = await getDownloadURL(fileRef);
+      }
 
       await addDoc(collection(db, 'merch'), {
         title,

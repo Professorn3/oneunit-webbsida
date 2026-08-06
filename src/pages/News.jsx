@@ -40,6 +40,7 @@ export default function News() {
   const [excerpt, setExcerpt] = useState('');
   const [dateStr, setDateStr] = useState(new Date().toLocaleDateString('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }));
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
@@ -65,6 +66,7 @@ export default function News() {
     try {
       const dataUrl = await compressImage(file, 900, 0.75);
       setImagePreview(dataUrl);
+      setImageFile(file);
     } catch (err) {
       alert("Kunde inte hantera bilden: " + err.message);
     }
@@ -80,14 +82,25 @@ export default function News() {
 
     setCreating(true);
     try {
-      const imgUrl = imagePreview || '/images/gallery_2.png';
+      let finalImg = '/images/gallery_2.png';
+
+      if (imagePreview && imageFile) {
+        // Ladda upp till Firebase Storage
+        const { ref: storageRef, uploadBytes, getDownloadURL } = await import('firebase/storage');
+        const { storage } = await import('../firebase');
+        const response = await fetch(imagePreview);
+        const blob = await response.blob();
+        const fileRef = storageRef(storage, `news_images/${Date.now()}_${imageFile.name}`);
+        await uploadBytes(fileRef, blob);
+        finalImg = await getDownloadURL(fileRef);
+      }
 
       await addDoc(collection(db, 'news'), {
         title,
         category,
         excerpt,
         date: dateStr || new Date().toLocaleDateString('sv-SE'),
-        image: imgUrl,
+        image: finalImg,
         createdAt: serverTimestamp(),
         author: currentUser?.email || 'Admin',
       });
@@ -96,6 +109,7 @@ export default function News() {
       setTitle('');
       setExcerpt('');
       setImagePreview(null);
+      setImageFile(null);
     } catch (err) {
       console.error("Fel vid publicering:", err);
       alert("Kunde inte spara nyheten: " + err.message);
