@@ -201,12 +201,18 @@ export default function Gallery() {
           likes: newLikes,
           likeCount: newLikes.length
         });
+        if (lightbox && lightbox.id === item.id) {
+          setLightbox(prev => ({ ...prev, likes: newLikes, likeCount: newLikes.length }));
+        }
       } else {
         const newLikes = [...(item.likes || []), uid];
         await pb.collection('gallery').update(item.id, {
           likes: newLikes,
           likeCount: newLikes.length
         });
+        if (lightbox && lightbox.id === item.id) {
+          setLightbox(prev => ({ ...prev, likes: newLikes, likeCount: newLikes.length }));
+        }
       }
     } catch (err) {
       console.error("Fel vid uppdatering av like:", err);
@@ -394,49 +400,6 @@ export default function Gallery() {
             return (
             <ScrollReveal key={item.id} delay={i * 40} className="gallery-page__item" role="listitem" style={{ position: 'relative' }}>
               <motion.div style={{ y: parallaxY, height: '100%' }}>
-              {(isAdmin || (currentUser && currentUser.email === item.uploaderEmail)) && (
-                <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, display: 'flex', gap: '8px' }}>
-                  <button
-                    onClick={(e) => { 
-                      e.stopPropagation(); 
-                      setItemToEdit(item); 
-                      setEditTitle(item.title || '');
-                      setEditCategory(item.category || 'Motorcyklar');
-                    }}
-                    style={{
-                      background: 'rgba(0, 245, 255, 0.9)',
-                      color: '#000',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '0.4rem 0.7rem',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                    }}
-                    title="Redigera bild"
-                  >
-                    Redigera
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setItemToDelete(item); }}
-                    style={{
-                      background: 'rgba(239, 68, 68, 0.9)',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '8px',
-                      padding: '0.4rem 0.7rem',
-                      cursor: 'pointer',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.5)'
-                    }}
-                    title="Radera foto"
-                  >
-                    Radera
-                  </button>
-                </div>
-              )}
               <button
                 id={`gallery-item-${item.id}`}
                 className="gallery-page__img-btn"
@@ -475,32 +438,6 @@ export default function Gallery() {
                         </svg>
                       )}
                     </span>
-                  </div>
-                </div>
-                <div className="gallery-page__img-meta">
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start', width: '100%' }}>
-                    {currentUser && (
-                      <button 
-                        onClick={(e) => handleToggleLike(item, e)}
-                        style={{ 
-                          background: 'rgba(0,0,0,0.6)', 
-                          padding: '0.4rem 0.8rem', 
-                          borderRadius: '50px', 
-                          border: '1px solid ' + ((item.likes && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#333'), 
-                          color: (item.likes && item.likes.includes(currentUser.id)) ? '#00f5ff' : '#888', 
-                          cursor: 'pointer', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.4rem', 
-                          fontSize: '1rem',
-                          marginLeft: '0.5rem',
-                          transition: 'all 0.2s ease'
-                        }}
-                        title="Gilla bild"
-                      >
-                        👍 <span style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>{item.likeCount || 0}</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               </button>
@@ -550,37 +487,64 @@ export default function Gallery() {
           )}
 
           <div style={{ marginTop: '1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }} onClick={(e) => e.stopPropagation()}>
-            <p className="lightbox__caption" style={{ margin: 0, position: 'relative', background: 'none' }}>
-              {lightbox.title}
-              {lightbox.uploaderName && ` (av ${lightbox.uploaderName})`}
-            </p>
-
-            {isAdmin && (
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button
-                  onClick={() => { 
-                    setItemToEdit(lightbox); 
-                    setEditTitle(lightbox.title || '');
-                    setEditCategory(lightbox.category || 'Motorcyklar');
-                    setLightbox(null);
-                  }}
-                  className="btn"
-                  style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff' }}
-                >
-                  Redigera
-                </button>
-                <button
-                  onClick={() => { 
-                    setItemToDelete(lightbox); 
-                    setLightbox(null);
-                  }}
-                  className="btn"
-                  style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444' }}
-                >
-                  Radera
-                </button>
-              </div>
+            {lightbox.title && (
+              <p className="lightbox__caption" style={{ margin: 0, position: 'relative', background: 'none' }}>
+                {lightbox.title}
+                {lightbox.uploaderName && ` (av ${lightbox.uploaderName})`}
+              </p>
             )}
+
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', alignItems: 'center' }}>
+              {currentUser && (
+                <button 
+                  onClick={(e) => handleToggleLike(lightbox, e)}
+                  style={{ 
+                    background: 'rgba(0,0,0,0.6)', 
+                    padding: '0.6rem 1.2rem', 
+                    borderRadius: '50px', 
+                    border: '1px solid ' + ((lightbox.likes && lightbox.likes.includes(currentUser.id)) ? '#00f5ff' : '#333'), 
+                    color: (lightbox.likes && lightbox.likes.includes(currentUser.id)) ? '#00f5ff' : '#888', 
+                    cursor: 'pointer', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.5rem', 
+                    fontSize: '1.1rem',
+                    transition: 'all 0.2s ease',
+                    fontWeight: 'bold'
+                  }}
+                  title="Gilla bild"
+                >
+                  👍 <span>{lightbox.likeCount || 0}</span>
+                </button>
+              )}
+
+              {(isAdmin || (currentUser && currentUser.email === lightbox.uploaderEmail)) && (
+                <>
+                  <button
+                    onClick={() => { 
+                      setItemToEdit(lightbox); 
+                      setEditTitle(lightbox.title || '');
+                      setEditCategory(lightbox.category || 'Motorcyklar');
+                      setLightbox(null);
+                    }}
+                    className="btn"
+                    style={{ background: 'rgba(0, 245, 255, 0.2)', color: '#00f5ff', border: '1px solid #00f5ff', padding: '0.6rem 1.2rem', borderRadius: '50px', fontWeight: 'bold' }}
+                  >
+                    Redigera
+                  </button>
+                  <button
+                    onClick={() => { 
+                      setItemToDelete(lightbox); 
+                      setLightbox(null);
+                    }}
+                    className="btn"
+                    style={{ background: 'rgba(239, 68, 68, 0.2)', color: '#ff4444', border: '1px solid #ff4444', padding: '0.6rem 1.2rem', borderRadius: '50px', fontWeight: 'bold' }}
+                  >
+                    Radera
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
