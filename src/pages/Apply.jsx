@@ -24,7 +24,7 @@ export default function Apply() {
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     name: '', age: '', city: '', email: '', phone: '',
-    bike: '', experience: '', reason: '', howFound: '',
+    bike: '', instagram: '', experience: '', reason: '', howFound: '',
     agreed: false
   })
 
@@ -36,7 +36,7 @@ export default function Apply() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name.trim() || !form.age.trim() || !form.city.trim() || !form.email.trim() || !form.phone.trim() || !form.bike.trim() || !form.experience || !form.reason.trim() || !form.howFound) {
-      alert("Vänligen fyll i alla fält och spalter i formuläret innan du skickar in din ansökan.")
+      alert("Vänligen fyll i alla obligatoriska fält och spalter i formuläret innan du skickar in din ansökan.")
       return
     }
     if (!form.agreed) {
@@ -46,8 +46,9 @@ export default function Apply() {
     setLoading(true)
     
     try {
+      const { agreed, ...submitData } = form; // Ta bort 'agreed' från payloaden
       await pb.collection('applications').create({
-        ...form,
+        ...submitData,
         status: 'pending'
       })
       setSubmitted(true)
@@ -212,6 +213,22 @@ export default function Apply() {
                     value={form.bike}
                     onChange={handleChange}
                     required
+                  />
+                </div>
+              </div>
+
+              {/* Row 4 */}
+              <div className="apply-page__row">
+                <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+                  <label className="form-label" htmlFor="apply-instagram">Instagram (Frivilligt)</label>
+                  <input
+                    id="apply-instagram"
+                    name="instagram"
+                    type="text"
+                    className="form-input"
+                    placeholder="@användarnamn"
+                    value={form.instagram}
+                    onChange={handleChange}
                   />
                 </div>
               </div>
