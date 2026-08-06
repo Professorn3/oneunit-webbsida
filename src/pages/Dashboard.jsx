@@ -598,6 +598,7 @@ export default function Dashboard() {
               <button 
                 className={`btn ${activeTab === 'applications' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => setActiveTab('applications')}
+                style={applications.length > 0 ? { borderColor: '#00f5ff', color: '#00f5ff', textShadow: '0 0 5px rgba(0, 245, 255, 0.5)', boxShadow: '0 0 8px rgba(0, 245, 255, 0.2)' } : {}}
               >
                 Väntande Ansökningar ({applications.length})
               </button>
@@ -610,6 +611,7 @@ export default function Dashboard() {
               <button 
                 className={`btn ${activeTab === 'contacts' ? 'btn-primary' : 'btn-outline'}`}
                 onClick={() => setActiveTab('contacts')}
+                style={contacts.filter(c => c.status === 'unread').length > 0 ? { borderColor: '#00f5ff', color: '#00f5ff', textShadow: '0 0 5px rgba(0, 245, 255, 0.5)', boxShadow: '0 0 8px rgba(0, 245, 255, 0.2)' } : {}}
               >
                 Kontaktmeddelanden ({contacts.filter(c => c.status === 'unread').length})
               </button>
