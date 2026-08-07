@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
 import { compressImage } from '../utils/imageHelper';
 import { sendBrevoEmail } from '../utils/emailHelper';
+import { swedishCities } from '../utils/cities';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileName, setProfileName] = useState('');
   const [profileBike, setProfileBike] = useState('');
+  const [profileCity, setProfileCity] = useState('');
   const [profileInstagram, setProfileInstagram] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
   
@@ -38,6 +40,7 @@ export default function Dashboard() {
     if (userData) {
       setProfileName(userData.name || '');
       setProfileBike(userData.bike || '');
+      setProfileCity(userData.city || '');
       setProfileInstagram(userData.instagram || '');
     }
   }, [userData]);
@@ -335,9 +338,10 @@ export default function Dashboard() {
     e.preventDefault();
     setSavingProfile(true);
     try {
-      await pb.collection('users').update(currentUser.id, {
+      const updatedUser = await pb.collection('users').update(currentUser.id, {
         name: profileName,
         bike: profileBike,
+        city: profileCity,
         instagram: profileInstagram
       });
       setEditingProfile(false);
@@ -558,6 +562,15 @@ export default function Dashboard() {
                       <input type="text" value={profileBike} onChange={e => setProfileBike(e.target.value)} placeholder="T.ex. Harley-Davidson Fat Boy '21" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
                     </div>
                     <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Stad / Ort:</label>
+                      <select value={profileCity} onChange={e => setProfileCity(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }}>
+                        <option value="">Välj din stad...</option>
+                        {swedishCities.map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
                       <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Instagram-namn:</label>
                       <input type="text" value={profileInstagram} onChange={e => setProfileInstagram(e.target.value)} placeholder="@oneunit_rider" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
                     </div>
@@ -567,6 +580,7 @@ export default function Dashboard() {
                   </form>
                 ) : (
                   <div style={{ width: '100%' }}>
+                    <p style={{ marginBottom: '0.5rem' }}><strong>Stad:</strong> {userData.city || 'Inte angiven'}</p>
                     <p style={{ marginBottom: '0.5rem' }}><strong>Motorcykel:</strong> {userData.bike || 'Inte angiven'}</p>
                     <p style={{ marginBottom: '1.5rem' }}><strong>Instagram:</strong> {userData.instagram ? <a href={`https://instagram.com/${userData.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#00f5ff' }}>{userData.instagram}</a> : 'Inte angiven'}</p>
                     
@@ -599,6 +613,7 @@ export default function Dashboard() {
                     <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || (member.email ? member.email.split('@')[0] : 'Okänd')}</h4>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#aaa', minHeight: '2.5rem' }}>
+                      {member.city ? <span style={{ display: 'block', color: '#fff', marginBottom: '0.2rem' }}>📍 {member.city}</span> : null}
                       {member.bike || 'Hoj ej angiven'}
                     </p>
                     {member.instagram ? (
