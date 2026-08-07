@@ -275,6 +275,9 @@ export default function Chat() {
             <div className="chat-header-title">
               <span className="chat-online-pulse" />
               <h3>ONEUNIT CHATT</h3>
+              {isAdmin && (
+                <button onClick={handleClearChat} style={{ background: 'transparent', border: '1px solid #ff3b30', color: '#ff3b30', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '0.5rem' }}>Rensa Chatt</button>
+              )}
             </div>
             <button className="chat-close-btn" onClick={() => setIsOpen(false)} title="Stäng chatt">
               ✕
@@ -301,11 +304,6 @@ export default function Chat() {
               </button>
             )}
           </div>
-          {isAdmin && (
-            <div style={{ textAlign: 'right', marginTop: '0.5rem', marginRight: '1rem' }}>
-              <button onClick={handleClearChat} style={{ background: 'transparent', border: '1px solid #ff3b30', color: '#ff3b30', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.2s' }}>Rensa Chatt</button>
-            </div>
-          )}
         </header>
 
         <div className="chat-messages">
