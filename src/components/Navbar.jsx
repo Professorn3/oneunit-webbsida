@@ -7,7 +7,6 @@ const navLinks = [
   { path: '/', label: 'Hem' },
   { path: '/about', label: 'Om Oss' },
   { path: '/gallery', label: 'Galleri' },
-  { path: '/news', label: 'Nyheter' },
   { path: '/meetups', label: 'Meetups' },
   { path: '/merch', label: 'Merch' },
   { path: '/apply', label: 'Ansök' },
