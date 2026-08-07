@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oneunit-cache-v1';
+const CACHE_NAME = 'oneunit-cache-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -29,34 +29,27 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Enkel network-first strategi för API-anrop, cache-first för statiska filer
+// Network-first strategi för att säkerställa att uppdateringar alltid syns direkt
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Undvik api-anrop (PocketBase) i cachen för säkerhets skull
+  if (event.request.url.includes('/api/')) return;
   
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        if (response) {
-          return response; // Returnera från cache
+        // Om nätverket funkar, spara en kopia i cachen och returnera
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        return fetch(event.request).then(
-          (response) => {
-            // Kolla om vi fick ett giltigt svar
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            // Klona svaret och spara i cache
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                // Undvik att cacha API-anrop till PocketBase
-                if (!event.request.url.includes('/api/')) {
-                  cache.put(event.request, responseToCache);
-                }
-              });
-            return response;
-          }
-        );
+        return response;
+      })
+      .catch(() => {
+        // Om offline, hämta från cachen
+        return caches.match(event.request);
       })
   );
 });
