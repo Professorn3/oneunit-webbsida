@@ -217,8 +217,13 @@ export default function Dashboard() {
 
     try {
       const formData = new FormData();
-      const compressed = await compressImage(file, 400, 0.8);
-      formData.append('avatar', compressed);
+      const compressedDataUrl = await compressImage(file, 400, 0.8);
+      
+      // Konvertera Base64 (DataURL) till en Blob så PocketBase förstår att det är en fil
+      const res = await fetch(compressedDataUrl);
+      const blob = await res.blob();
+      
+      formData.append('avatar', blob, "avatar.jpg");
       await pb.collection('users').update(currentUser.id, formData);
       window.location.reload();
     } catch (err) {
