@@ -529,7 +529,7 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem', alignItems: 'center' }}>
                   
                   <div style={{ position: 'relative', width: '70px', height: '70px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>
-                    <img src={userData.avatar ? pb.files.getURL(userData, userData.avatar) : "/images/logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={userData.avatar ? pb.files.getURL(userData, userData.avatar) : "/images/hero-glitch-logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     
                     {editingProfile && (
                       <label style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '0.65rem', textAlign: 'center', cursor: 'pointer', padding: '4px 0', textTransform: 'uppercase', fontWeight: 'bold' }}>
@@ -593,7 +593,7 @@ export default function Dashboard() {
                 {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (
                   <div key={member.id} style={{ background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
-                      {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} /> : (member.name ? member.name[0].toUpperCase() : 'M')}
+                      <img src={member.avatar ? pb.files.getURL(member, member.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
                     </div>
                     <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || (member.email ? member.email.split('@')[0] : 'Okänd')}</h4>
                     <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
@@ -697,8 +697,8 @@ export default function Dashboard() {
                 <div className="members-grid">
                   {filteredMembers.map(member => (
                     <div key={member.id} className="member-item" style={{ border: member.isBanned ? '1px solid #ff0055' : '' }}>
-                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: member.isBanned ? '#ff0055' : (member.avatar ? 'transparent' : '#111') }}>
-                        {member.avatar ? <img src={pb.files.getURL(member, member.avatar)} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} /> : (member.isBanned ? 'BAN' : (member.role === 'admin' ? 'ADM' : 'MED'))}
+                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: 'transparent' }}>
+                        <img src={member.avatar ? pb.files.getURL(member, member.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
                       </div>
                       <div className="member-details">
                         <p className="member-name" style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>
