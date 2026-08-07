@@ -101,6 +101,7 @@
 .admin-tabs .btn {
   padding: 0.6rem 1.2rem;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 
 .applications-list {

@@ -14,6 +14,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
+  background: url('/images/hero_bg.png') center/cover no-repeat;
 }
 
 .hero__bg-video {
@@ -247,4 +248,5 @@
   .hero__logo-img { height: 80px; }
   .hero__actions { flex-direction: column; }
   .hero__scroll { right: 1.5rem; }
+  .hero__bg-video { display: none; }
 }

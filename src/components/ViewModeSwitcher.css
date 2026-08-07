@@ -86,7 +86,7 @@
 
 @media (max-width: 768px) {
   .view-mode-switcher {
-    bottom: 5rem;
+    bottom: 8rem;
     left: 50%;
     transform: translateX(-50%);
     width: max-content;
