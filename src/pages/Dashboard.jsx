@@ -533,12 +533,13 @@ export default function Dashboard() {
               <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start', marginTop: '1.5rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem', alignItems: 'center' }}>
                   
-                  <div style={{ position: 'relative', width: '70px', height: '70px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>
+                  <div style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>
                     <img src={userData.avatar ? pb.files.getURL(userData, userData.avatar) : "/images/hero-glitch-logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     
                     {editingProfile && (
-                      <label style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(0,0,0,0.7)', color: '#fff', fontSize: '0.65rem', textAlign: 'center', cursor: 'pointer', padding: '4px 0', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                        Ändra
+                      <label style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 'bold' }}>
+                        <span style={{ fontSize: '1.2rem', marginBottom: '2px' }}>📸</span>
+                        <span style={{ fontSize: '0.6rem' }}>Byt</span>
                         <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfilePicUpload} />
                       </label>
                     )}
