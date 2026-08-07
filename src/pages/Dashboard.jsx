@@ -214,7 +214,8 @@ export default function Dashboard() {
 
     try {
       const formData = new FormData();
-      formData.append('avatar', file);
+      const compressed = await compressImage(file, 400, 0.8);
+      formData.append('avatar', compressed);
       await pb.collection('users').update(currentUser.id, formData);
       window.location.reload();
     } catch (err) {
