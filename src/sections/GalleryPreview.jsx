@@ -40,31 +40,6 @@ export default function GalleryPreview() {
     fetchTopGallery()
   }, [])
 
-  // Horizontal scroll – pin the section, scroll the track
-  useEffect(() => {
-    const section = sectionRef.current
-    const track = trackRef.current
-    const progressBar = progressRef.current
-    if (!section || !track) return
-
-    const updateScroll = () => {
-      const rect = section.getBoundingClientRect()
-      const sectionTop = section.offsetTop
-      const sectionH = section.offsetHeight
-      const scrollY = window.scrollY
-
-      const progress = (scrollY - sectionTop) / (sectionH - window.innerHeight)
-      const clampedProgress = Math.max(0, Math.min(1, progress))
-      const maxScroll = track.scrollWidth - track.clientWidth
-      track.style.transform = `translateX(-${clampedProgress * maxScroll}px)`
-      if (progressBar) {
-        progressBar.style.transform = `scaleX(${clampedProgress})`
-      }
-    }
-
-    window.addEventListener('scroll', updateScroll, { passive: true })
-    return () => window.removeEventListener('scroll', updateScroll)
-  }, [])
 
   if (galleryItems.length === 0) return null;
 
@@ -116,12 +91,6 @@ export default function GalleryPreview() {
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="container">
-          <div className="gallery-preview__progress-container">
-            <div ref={progressRef} className="gallery-preview__progress-bar" />
-          </div>
-        </div>
 
         <div className="container">
           <ScrollReveal>
