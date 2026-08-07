@@ -8,6 +8,7 @@
     <meta property="og:title" content="OneUnit MC" />
     <meta property="og:description" content="Gemenskap. Respekt. Frihet." />
     <meta property="og:image" content="/images/hero_bg.png" />
+    <link rel="manifest" href="/manifest.json" />
     
     <!-- iOS Web App Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -23,5 +24,16 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then((registration) => {
+            console.log('SW registered: ', registration);
+          }).catch((registrationError) => {
+            console.log('SW registration failed: ', registrationError);
+          });
+        });
+      }
+    </script>
   </body>
 </html>
