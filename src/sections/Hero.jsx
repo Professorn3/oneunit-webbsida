@@ -56,8 +56,6 @@ export default function Hero() {
         events: {
           onReady: (event) => {
             event.target.playVideo();
-            setTimeout(() => setIsVideoReady(true), 500); // fade in after play starts
-            
             intervalId = setInterval(() => {
               if (event.target && event.target.getCurrentTime) {
                 if (event.target.getCurrentTime() >= 119) {
@@ -65,6 +63,11 @@ export default function Hero() {
                 }
               }
             }, 500);
+          },
+          onStateChange: (event) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              setIsVideoReady(true);
+            }
           }
         }
       });
