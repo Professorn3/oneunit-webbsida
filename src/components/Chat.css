@@ -439,6 +439,11 @@
 @media (max-width: 600px) {
   .chat-drawer {
     width: 100vw;
+    height: 100dvh;
+    background: #050608;
+    border-left: none;
+    box-shadow: none;
+    border-radius: 0;
   }
   .chat-drawer-header {
     padding: calc(0.8rem + env(safe-area-inset-top)) 1rem 0.6rem;

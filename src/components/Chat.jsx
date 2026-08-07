@@ -75,6 +75,21 @@ export default function Chat() {
     };
   }, [activeRoom, isOpen, canAccessChat, isAdmin]);
 
+  // Lock body scroll when chat is open (especially for mobile app feel)
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehaviorY = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
