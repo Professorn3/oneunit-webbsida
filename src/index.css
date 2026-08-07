@@ -61,6 +61,10 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 img, video {
@@ -78,6 +82,12 @@ button {
   background: none;
   cursor: pointer;
   font-family: inherit;
+  min-height: 44px; /* Touch target size for mobile */
+}
+
+/* Fix iOS Zoom bug on inputs */
+input, textarea, select {
+  font-size: 16px !important;
 }
 
 ul, ol {
@@ -139,6 +149,7 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   overflow: hidden;
   z-index: 1;
+  min-height: 44px; /* Ensure 44px touch target */
 }
 
 .btn::before {
