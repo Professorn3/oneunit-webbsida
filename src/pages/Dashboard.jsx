@@ -257,9 +257,7 @@ export default function Dashboard() {
           
           await sendBrevoEmail(app.email, subject, html);
 
-          await pb.collection('applications').update(app.id, {
-            status: 'approved'
-          });
+          await pb.collection('applications').delete(app.id);
           setApplications(prev => prev.filter(a => a.id !== app.id));
         } catch (err) {
           console.error(err);
