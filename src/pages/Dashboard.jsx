@@ -424,6 +424,31 @@ export default function Dashboard() {
     });
   };
 
+  const handleDeleteMember = (member) => {
+    if (member.email === currentUser.email) {
+      alert("Du kan inte radera ditt eget konto härifrån!");
+      return;
+    }
+    setConfirmConfig({
+      title: "Radera konto permanent?",
+      message: `Är du Helt säker på att du vill radera ${member.email}? Deras konto och data kommer att försvinna för alltid. Detta går INTE att ångra!`,
+      confirmText: "Ja, Radera Konto",
+      type: "danger",
+      onConfirm: async () => {
+        setConfirmConfig(null);
+        try {
+          await pb.collection('users').delete(member.id);
+          setMembers(prev => prev.filter(m => m.id !== member.id));
+          if (selectedMember && selectedMember.id === member.id) {
+            setSelectedMember(null);
+          }
+        } catch (err) {
+          alert("Kunde inte radera kontot: " + err.message);
+        }
+      }
+    });
+  };
+
   const handleFetchUserChat = async (uid) => {
     setLoadingChatLogs(true);
     setMemberChatLogs([]);
@@ -965,6 +990,13 @@ export default function Dashboard() {
                   onClick={() => handleToggleBan(selectedMember)}
                 >
                   {selectedMember.isBanned ? 'Häv Spärr' : 'Spärra Användare'}
+                </button>
+                <button 
+                  className="btn btn-outline" 
+                  style={{ color: '#ff0055', borderColor: '#ff0055', marginTop: '1rem', width: '100%' }}
+                  onClick={() => handleDeleteMember(selectedMember)}
+                >
+                  Radera Konto Permanent
                 </button>
               </div>
 
