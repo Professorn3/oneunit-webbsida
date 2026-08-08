@@ -641,10 +641,9 @@ export default function Dashboard() {
         {isMember && !isBanned && (
           <>
             {currentView === 'profile' && (
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <div className="dashboard-card member-card" style={{ maxWidth: '500px', width: '100%' }}>      
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>      
-                <h3 style={{ margin: 0, flex: '1 1 auto' }}>Ditt Garage & Medlemskort</h3>      
+              <div className="profile-view-container" style={{ width: '100%', maxWidth: '800px', marginTop: '1rem' }}>      
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid #222', paddingBottom: '1.5rem', marginBottom: '2rem' }}>      
+                <h2 style={{ margin: 0, flex: '1 1 auto', fontSize: '1.8rem', color: '#fff' }}>Min Profil & Garage</h2>      
                 <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto', flexWrap: 'wrap' }}>      
                   <button onClick={async () => {      
                     try {      
@@ -761,18 +760,12 @@ export default function Dashboard() {
                     </div>      
                   </div>      
                 )}      
-                      
-              </div>      
-            </div>      
-                  
-                  
               </div>
+            </div>
             )}
-            
             {currentView === 'members' && (
-              <div style={{ width: '100%' }}>
-                <div className="dashboard-card member-directory-card" style={{ width: '100%', marginTop: '2rem' }}>      
-              <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '1rem', marginBottom: '1.5rem' }}>Klubbmedlemmar ({members.filter(m => m.role === 'member' || m.role === 'admin').length})</h3>      
+              <div className="members-view-container" style={{ width: '100%', marginTop: '1rem' }}>
+              <h2 style={{ borderBottom: '1px solid #222', paddingBottom: '1rem', marginBottom: '2rem', fontSize: '1.8rem', color: '#fff' }}>Klubbmedlemmar ({members.filter(m => m.role === 'member' || m.role === 'admin').length})</h2>      
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>      
                 {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (      
                   <div key={member.id} onClick={() => setSelectedMember(member)} className="member-item-card" style={{ cursor: 'pointer', background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'all 0.2s ease' }}>      
@@ -796,9 +789,6 @@ export default function Dashboard() {
                 ))}      
               </div>      
             </div>      
-      
-      
-              </div>
             )}
           </>
         )}

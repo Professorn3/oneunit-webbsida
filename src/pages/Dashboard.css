@@ -342,8 +342,8 @@
 
 .dashboard-sidebar {
   width: 260px;
-  background: #0a0b0f;
-  border-right: 1px solid #1a1a1a;
+  background: transparent;
+  border-right: none;
   padding: 2rem 1rem;
   display: flex;
   flex-direction: column;
@@ -427,6 +427,8 @@
   .dashboard-sidebar {
     transform: translateX(-100%);
     width: 280px;
+    background: #0a0b0f; /* Keep solid bg on mobile menu */
+    border-right: 1px solid #1a1a1a;
   }
   
   .dashboard-sidebar.open {
