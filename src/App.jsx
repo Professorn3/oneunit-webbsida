@@ -71,7 +71,6 @@ function AppContent() {
         </AnimatePresence>
       </main>
       <Chat />
-      <SosButton />
       <ViewModeSwitcher />
       <Footer />
     </>

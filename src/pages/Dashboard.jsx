@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import pb from '../pocketbase';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
+import SosButton from '../components/SosButton';
 import { compressImage } from '../utils/imageHelper';
 import { sendBrevoEmail } from '../utils/emailHelper';
 import { swedishCities } from '../utils/cities';
@@ -492,10 +493,13 @@ export default function Dashboard() {
   return (
     <div className="dashboard-page">
       <div className="container">
-        <header className="dashboard-header">
-          <div>
-            <h1 className="dashboard-title">Mina Sidor</h1>
-            <p className="dashboard-subtitle">Inloggad som: {currentUser.email} ({userData.role})</p>
+        <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <SosButton />
+            <div>
+              <h1 className="dashboard-title">Mina Sidor</h1>
+              <p className="dashboard-subtitle">Inloggad som: {currentUser.email} ({userData.role})</p>
+            </div>
           </div>
           <button onClick={handleLogout} className="btn btn-outline">Logga ut</button>
         </header>
