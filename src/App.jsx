@@ -25,10 +25,16 @@ import PageTransition from './components/PageTransition'
 import './App.css'
 import ScrollToTop from './components/ScrollToTop'
 import SosButton from './components/SosButton'
+import { initOneSignal } from './utils/pushHelper'
+import { useEffect } from 'react'
 
 function AppContent() {
   const location = useLocation()
   const { isAdmin, actualIsAdmin } = useAuth()
+  
+  useEffect(() => {
+    initOneSignal();
+  }, []);
   
   // Hela sidan är öppen för allmänheten
 

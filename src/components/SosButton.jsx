@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import pb from '../pocketbase';
 import MapModal from './MapModal';
 import { sendBrevoEmail } from '../utils/emailHelper';
+import { sendPushNotification } from '../utils/pushHelper';
 import './SosButton.css';
 
 export default function SosButton() {
@@ -58,9 +59,18 @@ export default function SosButton() {
       // Jag använder emailHelper.js som stödjer arrays om vi uppdaterar den.
       const emails = recipients.map(u => u.email);
       
-      const success = await sendBrevoEmail(emails, subject, htmlContent);
+      const emailSuccess = await sendBrevoEmail(emails, subject, htmlContent);
       
-      if (success) {
+      // Skicka push-notis
+      const userIds = recipients.map(u => u.id);
+      const pushSuccess = await sendPushNotification(
+        "🚨 NÖDLARM!", 
+        `${senderName} behöver omedelbar hjälp: ${message}`,
+        mapsLink,
+        userIds
+      );
+      
+      if (emailSuccess || pushSuccess) {
         alert("Larmet har skickats till alla medlemmar!");
         setShowModal(false);
       } else {

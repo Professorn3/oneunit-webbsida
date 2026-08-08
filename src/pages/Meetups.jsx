@@ -6,6 +6,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import ScrambleText from '../components/ScrambleText';
 import MapModal from '../components/MapModal';
 import { sendBrevoEmail } from '../utils/emailHelper';
+import { sendPushNotification } from '../utils/pushHelper';
 import './Meetups.css';
 
 // Standard-evenemang om inget lagts in i Firestore ännu
@@ -192,9 +193,21 @@ export default function Meetups() {
         </div>
       `;
 
-      const success = await sendBrevoEmail(targetEmails, subject, htmlContent);
-      if (success) {
-        alert("Återsamlingsplats och instruktioner har mailats till alla anmälda!");
+      const emailSuccess = await sendBrevoEmail(targetEmails, subject, htmlContent);
+      
+      const targetUserIds = users
+        .filter(u => attendeesList.some(a => a.toLowerCase().includes(u.email.split('@')[0].toLowerCase())))
+        .map(u => u.id);
+        
+      const pushSuccess = await sendPushNotification(
+        `📍 Återsamling: ${mapOpenFor.title}`, 
+        message,
+        mapsLink,
+        targetUserIds
+      );
+      
+      if (emailSuccess || pushSuccess) {
+        alert("Återsamlingsplats och instruktioner har skickats till alla anmälda!");
         setMapOpenFor(null);
       } else {
         alert("Något gick fel med utskicket.");

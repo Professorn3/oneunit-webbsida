@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import pb from '../pocketbase';
+import { loginToOneSignal, logoutFromOneSignal } from '../utils/pushHelper';
 
 const AuthContext = createContext();
 
@@ -20,11 +21,13 @@ export function AuthProvider({ children }) {
         setCurrentUser(authData.record);
         setUserData(authData.record);
         setLoading(false);
+        loginToOneSignal(authData.record.id);
       }).catch(() => {
         pb.authStore.clear();
         setCurrentUser(null);
         setUserData(null);
         setLoading(false);
+        logoutFromOneSignal();
       });
     } else {
       setLoading(false);
@@ -34,6 +37,11 @@ export function AuthProvider({ children }) {
     const unsubscribe = pb.authStore.onChange((token, model) => {
       setCurrentUser(model);
       setUserData(model);
+      if (model) {
+        loginToOneSignal(model.id);
+      } else {
+        logoutFromOneSignal();
+      }
     });
 
     return () => {
