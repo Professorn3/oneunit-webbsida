@@ -324,3 +324,143 @@
   color: #ff0055;
   background: rgba(255, 0, 85, 0.1);
 }
+
+/* =========================================
+   SIDEBAR LAYOUT
+   ========================================= */
+.sidebar-layout {
+  display: flex;
+  min-height: 100vh;
+  padding: 0;
+  padding-top: 70px; /* space for global top navbar */
+  background: #050505;
+}
+
+.mobile-header {
+  display: none;
+}
+
+.dashboard-sidebar {
+  width: 260px;
+  background: #0a0b0f;
+  border-right: 1px solid #1a1a1a;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 70px;
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  z-index: 50;
+  transition: transform 0.3s ease;
+}
+
+.dashboard-sidebar h2 {
+  font-size: 1.5rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-sidebar p {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 1rem;
+  word-break: break-all;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.nav-group h4 {
+  font-size: 0.75rem;
+  color: #555;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  letter-spacing: 1px;
+}
+
+.nav-group button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  padding: 0.8rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.nav-group button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.nav-group button.active {
+  background: rgba(0, 245, 255, 0.1);
+  color: #00f5ff;
+  font-weight: bold;
+}
+
+.dashboard-main-content {
+  flex: 1;
+  margin-left: 260px;
+  padding: 2rem;
+  max-width: 1200px;
+}
+
+/* MOBILE LAYOUT */
+@media (max-width: 900px) {
+  .sidebar-layout {
+    flex-direction: column;
+  }
+  
+  .dashboard-sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+  }
+  
+  .dashboard-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 20px 0 50px rgba(0,0,0,0.8);
+  }
+  
+  .dashboard-main-content {
+    margin-left: 0;
+    padding: 1rem;
+    padding-bottom: 4rem;
+  }
+  
+  .mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0a0b0f;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #1a1a1a;
+    margin-bottom: 1rem;
+  }
+  
+  .mobile-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #fff;
+  }
+  
+  .mobile-header button {
+    background: none;
+    border: none;
+    color: #00f5ff;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+}

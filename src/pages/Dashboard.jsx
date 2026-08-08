@@ -17,7 +17,8 @@ export default function Dashboard() {
   const [applications, setApplications] = useState([]);
   const [members, setMembers] = useState([]);
   const [contacts, setContacts] = useState([]);
-  const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'members' | 'contacts' | 'campaigns' | 'settings'
+  const [currentView, setCurrentView] = useState('profile');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // 'applications' | 'members' | 'contacts' | 'campaigns' | 'settings'
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmConfig, setConfirmConfig] = useState(null);
   
@@ -568,443 +569,470 @@ export default function Dashboard() {
   if (!userData) return <div className="container" style={{paddingTop: '120px'}}>Laddar...</div>;
 
   return (
-    <div className="dashboard-page">
-      <div className="container">
-        <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <SosButton />
-            <div>
-              <h1 className="dashboard-title">Mina Sidor</h1>
-              <p className="dashboard-subtitle">Inloggad som: {currentUser.email} ({userData.role})</p>
-            </div>
-          </div>
-          <button onClick={handleLogout} className="btn btn-outline">Logga ut</button>
-        </header>
+    <>
+    <div className="sidebar-layout">
+      {/* Mobile Header */}
+      <div className="mobile-header">
+        <h2>OneUnit</h2>
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? '✕' : '☰'}
+        </button>
+      </div>
 
+      {/* Sidebar */}
+      <aside className={`dashboard-sidebar ${mobileMenuOpen ? 'open' : ''}`}>
+        <div style={{ marginBottom: '2rem' }}>
+          <h2>Mina Sidor</h2>
+          <p>{currentUser.email}</p>
+          <button onClick={handleLogout} className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem' }}>Logga ut</button>
+        </div>
+
+        <nav className="sidebar-nav">
+          <div className="nav-group">
+            <h4>Gemenskap & Profil</h4>
+            <button onClick={() => { setCurrentView('profile'); setMobileMenuOpen(false); }} className={currentView === 'profile' ? 'active' : ''}>
+              👤 Min Profil (Garage)
+            </button>
+            <button onClick={() => { setCurrentView('members'); setMobileMenuOpen(false); }} className={currentView === 'members' ? 'active' : ''}>
+              🏍️ Klubbmedlemmar
+            </button>
+          </div>
+
+          {isAdmin && (
+            <div className="nav-group">
+              <h4>Admin Verktyg</h4>
+              <button onClick={() => { setCurrentView('applications'); setMobileMenuOpen(false); }} className={currentView === 'applications' ? 'active' : ''}>
+                📝 Ansökningar ({applications.length})
+              </button>
+              <button onClick={() => { setCurrentView('contacts'); setMobileMenuOpen(false); }} className={currentView === 'contacts' ? 'active' : ''}>
+                📬 Kontaktmeddelanden ({contacts.filter(c => c.status === 'unread').length})
+              </button>
+              <button onClick={() => { setCurrentView('campaigns'); setMobileMenuOpen(false); }} className={currentView === 'campaigns' ? 'active' : ''}>
+                📧 Massutskick
+              </button>
+              <button onClick={() => { setCurrentView('settings'); setMobileMenuOpen(false); }} className={currentView === 'settings' ? 'active' : ''}>
+                ⚙️ Systeminställningar
+              </button>
+            </div>
+          )}
+        </nav>
+        
+        <div style={{ marginTop: 'auto', paddingTop: '2rem' }}>
+           <SosButton />
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="dashboard-main-content" onClick={() => setMobileMenuOpen(false)}>
         {isBanned && (
-          <div className="dashboard-guest-msg" style={{ borderColor: '#ff0055', backgroundColor: 'rgba(255,0,85,0.05)' }}>
+          <div className="dashboard-guest-msg" style={{ borderColor: '#ff0055', backgroundColor: 'rgba(255,0,85,0.05)', marginBottom: '2rem' }}>
             <h2 style={{ color: '#ff0055' }}>KONTO SPÄRRAT</h2>
             <p>Ditt konto har blivit permanent spärrat av en administratör. Du har inte längre tillgång till OneUnit:s system, chatt eller paneler.</p>
           </div>
         )}
 
         {userData.role === 'guest' && !isBanned && (
-          <div className="dashboard-guest-msg">
+          <div className="dashboard-guest-msg" style={{ marginBottom: '2rem' }}>
             <h2>Åtkomst Nekad</h2>
             <p>Du har loggat in, men ditt konto saknar rättigheter. Endast administratörer och godkända medlemmar har tillgång hit.</p>
           </div>
         )}
 
         {isMember && !isBanned && (
-          <div className="dashboard-grid">
-            <div className="dashboard-card member-card" style={{ maxWidth: '500px', width: '100%' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-                <h3 style={{ margin: 0, flex: '1 1 auto' }}>Ditt Garage & Medlemskort</h3>
-                <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto', flexWrap: 'wrap' }}>
-                  <button onClick={async () => {
-                    try {
-                      const hasPermission = OneSignal.Notifications.permission;
-                      if (hasPermission) {
-                        alert("Notiser är redan aktiverade för denna enhet!");
-                        return;
-                      }
-                      
-                      // Trigga nativ iOS/Android prompt direkt
-                      await OneSignal.Notifications.requestPermission();
-                      
-                      // Om inget hände, prova fallback (Slidedown)
-                      setTimeout(() => {
-                        if (!OneSignal.Notifications.permission) {
-                          OneSignal.Slidedown.promptPush({ force: true });
-                        }
-                      }, 1000);
-                      
-                    } catch (e) {
-                      console.error("OneSignal prompt error", e);
-                      alert("Kunde inte aktivera notiser. Om du är på iPhone, måste du först lägga till appen på hemskärmen (Dela -> Lägg till på hemskärmen) och öppna den därifrån.");
-                    }
-                  }} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap', borderColor: '#00f5ff', color: '#00f5ff' }}>
-                    Slå på Notiser
-                  </button>
-                  <button onClick={handleChangePassword} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }} disabled={resetLoading}>
-                    {resetLoading ? 'Skickar...' : 'Byt Lösenord'}
-                  </button>
-                  <button onClick={() => setEditingProfile(!editingProfile)} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>
-                    {editingProfile ? 'Avbryt' : 'Redigera'}
-                  </button>
-                </div>
-              </div>
-              
-              {resetMsg && (
-                <div style={{ padding: '1rem', background: 'rgba(0,255,136,0.1)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', margin: '1rem 0 0 0', fontSize: '0.9rem' }}>
-                  {resetMsg}
-                </div>
-              )}
-              
-              <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start', marginTop: '1.5rem' }}>
-                <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem', alignItems: 'center' }}>
-                  
-                  <div style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>
-                    <img src={userData.avatar ? pb.files.getURL(userData, userData.avatar) : "/images/hero-glitch-logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <>
+            {currentView === 'profile' && (
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <div className="dashboard-card member-card" style={{ maxWidth: '500px', width: '100%' }}>      
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>      
+                <h3 style={{ margin: 0, flex: '1 1 auto' }}>Ditt Garage & Medlemskort</h3>      
+                <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto', flexWrap: 'wrap' }}>      
+                  <button onClick={async () => {      
+                    try {      
+                      const hasPermission = OneSignal.Notifications.permission;      
+                      if (hasPermission) {      
+                        alert("Notiser är redan aktiverade för denna enhet!");      
+                        return;      
+                      }      
+                            
+                      // Trigga nativ iOS/Android prompt direkt      
+                      await OneSignal.Notifications.requestPermission();      
+                            
+                      // Om inget hände, prova fallback (Slidedown)      
+                      setTimeout(() => {      
+                        if (!OneSignal.Notifications.permission) {      
+                          OneSignal.Slidedown.promptPush({ force: true });      
+                        }      
+                      }, 1000);      
+                            
+                    } catch (e) {      
+                      console.error("OneSignal prompt error", e);      
+                      alert("Kunde inte aktivera notiser. Om du är på iPhone, måste du först lägga till appen på hemskärmen (Dela -> Lägg till på hemskärmen) och öppna den därifrån.");      
+                    }      
+                  }} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap', borderColor: '#00f5ff', color: '#00f5ff' }}>      
+                    Slå på Notiser      
+                  </button>      
+                  <button onClick={handleChangePassword} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }} disabled={resetLoading}>      
+                    {resetLoading ? 'Skickar...' : 'Byt Lösenord'}      
+                  </button>      
+                  <button onClick={() => setEditingProfile(!editingProfile)} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}>      
+                    {editingProfile ? 'Avbryt' : 'Redigera'}      
+                  </button>      
+                </div>      
+              </div>      
                     
-                    {editingProfile && (
-                      <label style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                        <span style={{ fontSize: '1.2rem', marginBottom: '2px' }}>📸</span>
-                        <span style={{ fontSize: '0.6rem' }}>Byt</span>
-                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfilePicUpload} />
-                      </label>
-                    )}
-                  </div>
-                  
-                  <div>
-                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1.2rem' }}>{userData.name || currentUser.email.split('@')[0]}</h4>
-                    <p style={{ margin: '0 0 0.2rem 0', fontSize: '0.9rem' }}>Status: <strong style={{ color: '#00f5ff' }}>Aktiv Medlem</strong></p>
-                    <p style={{ margin: 0, fontSize: '0.9rem' }}>Roll: {userData.role}</p>
-                  </div>
-                </div>
-
-                {editingProfile ? (
-                  <form onSubmit={handleSaveProfile} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Namn:</label>
-                      <input type="text" value={profileName} onChange={e => setProfileName(e.target.value)} placeholder="Ditt namn" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Min Motorcykel (Modell & År):</label>
-                      <input type="text" value={profileBike} onChange={e => setProfileBike(e.target.value)} placeholder="T.ex. Harley-Davidson Fat Boy '21" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Stad / Ort:</label>
-                      <select value={profileCity} onChange={e => setProfileCity(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }}>
-                        <option value="">Välj din stad...</option>
-                        {swedishCities.map(city => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Instagram-namn:</label>
-                      <input type="text" value={profileInstagram} onChange={e => setProfileInstagram(e.target.value)} placeholder="@oneunit_rider" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
-                    </div>
-                    <button type="submit" disabled={savingProfile} className="btn btn-primary" style={{ padding: '0.8rem' }}>
-                      {savingProfile ? 'Sparar...' : 'Spara Profil'}
-                    </button>
-                  </form>
-                ) : (
-                  <div style={{ width: '100%' }}>
-                    <p style={{ marginBottom: '0.5rem' }}><strong>Stad:</strong> {userData.city || 'Inte angiven'}</p>
-                    <p style={{ marginBottom: '0.5rem' }}><strong>Motorcykel:</strong> {userData.bike || 'Inte angiven'}</p>
-                    <p style={{ marginBottom: '1.5rem' }}><strong>Instagram:</strong> {userData.instagram ? <a href={`https://instagram.com/${userData.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#00f5ff' }}>{userData.instagram}</a> : 'Inte angiven'}</p>
+              {resetMsg && (      
+                <div style={{ padding: '1rem', background: 'rgba(0,255,136,0.1)', color: '#00ff88', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '8px', margin: '1rem 0 0 0', fontSize: '0.9rem' }}>      
+                  {resetMsg}      
+                </div>      
+              )}      
                     
-                    <h5 style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#fff' }}>Utmärkelser & Patches</h5>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                      {(!userData.patches || userData.patches.length === 0) ? (
-                        <span style={{ fontSize: '0.85rem', color: '#666' }}>Inga patches utdelade ännu.</span>
-                      ) : (
-                        userData.patches.map((patch, idx) => (
-                          <span key={idx} style={{ background: '#111', border: '1px solid #00f5ff', color: '#00f5ff', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 800 }}>
-                            {patch}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-                
+              <div className="card-inner" style={{ flexDirection: 'column', alignItems: 'flex-start', marginTop: '1.5rem' }}>      
+                <div style={{ display: 'flex', gap: '1rem', width: '100%', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '1rem', alignItems: 'center' }}>      
+                        
+                  <div style={{ position: 'relative', width: '80px', height: '80px', flexShrink: 0, overflow: 'hidden', borderRadius: '50%', border: '2px solid #333' }}>      
+                    <img src={userData.avatar ? pb.files.getURL(userData, userData.avatar) : "/images/hero-glitch-logo.png"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />      
+                          
+                    {editingProfile && (      
+                      <label style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textTransform: 'uppercase', fontWeight: 'bold' }}>      
+                        <span style={{ fontSize: '1.2rem', marginBottom: '2px' }}>📸</span>      
+                        <span style={{ fontSize: '0.6rem' }}>Byt</span>      
+                        <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleProfilePicUpload} />      
+                      </label>      
+                    )}      
+                  </div>      
+                        
+                  <div>      
+                    <h4 style={{ margin: '0 0 0.3rem 0', fontSize: '1.2rem' }}>{userData.name || currentUser.email.split('@')[0]}</h4>      
+                    <p style={{ margin: '0 0 0.2rem 0', fontSize: '0.9rem' }}>Status: <strong style={{ color: '#00f5ff' }}>Aktiv Medlem</strong></p>      
+                    <p style={{ margin: 0, fontSize: '0.9rem' }}>Roll: {userData.role}</p>      
+                  </div>      
+                </div>      
+      
+                {editingProfile ? (      
+                  <form onSubmit={handleSaveProfile} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>      
+                    <div>      
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Namn:</label>      
+                      <input type="text" value={profileName} onChange={e => setProfileName(e.target.value)} placeholder="Ditt namn" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />      
+                    </div>      
+                    <div>      
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Min Motorcykel (Modell & År):</label>      
+                      <input type="text" value={profileBike} onChange={e => setProfileBike(e.target.value)} placeholder="T.ex. Harley-Davidson Fat Boy '21" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />      
+                    </div>      
+                    <div>      
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Stad / Ort:</label>      
+                      <select value={profileCity} onChange={e => setProfileCity(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }}>      
+                        <option value="">Välj din stad...</option>      
+                        {swedishCities.map(city => (      
+                          <option key={city} value={city}>{city}</option>      
+                        ))}      
+                      </select>      
+                    </div>      
+                    <div>      
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Instagram-namn:</label>      
+                      <input type="text" value={profileInstagram} onChange={e => setProfileInstagram(e.target.value)} placeholder="@oneunit_rider" style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />      
+                    </div>      
+                    <button type="submit" disabled={savingProfile} className="btn btn-primary" style={{ padding: '0.8rem' }}>      
+                      {savingProfile ? 'Sparar...' : 'Spara Profil'}      
+                    </button>      
+                  </form>      
+                ) : (      
+                  <div style={{ width: '100%' }}>      
+                    <p style={{ marginBottom: '0.5rem' }}><strong>Stad:</strong> {userData.city || 'Inte angiven'}</p>      
+                    <p style={{ marginBottom: '0.5rem' }}><strong>Motorcykel:</strong> {userData.bike || 'Inte angiven'}</p>      
+                    <p style={{ marginBottom: '1.5rem' }}><strong>Instagram:</strong> {userData.instagram ? <a href={`https://instagram.com/${userData.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#00f5ff' }}>{userData.instagram}</a> : 'Inte angiven'}</p>      
+                          
+                    <h5 style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#fff' }}>Utmärkelser & Patches</h5>      
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>      
+                      {(!userData.patches || userData.patches.length === 0) ? (      
+                        <span style={{ fontSize: '0.85rem', color: '#666' }}>Inga patches utdelade ännu.</span>      
+                      ) : (      
+                        userData.patches.map((patch, idx) => (      
+                          <span key={idx} style={{ background: '#111', border: '1px solid #00f5ff', color: '#00f5ff', padding: '0.4rem 0.8rem', borderRadius: '50px', fontSize: '0.85rem', fontWeight: 800 }}>      
+                            {patch}      
+                          </span>      
+                        ))      
+                      )}      
+                    </div>      
+                  </div>      
+                )}      
+                      
+              </div>      
+            </div>      
+                  
+                  
               </div>
-            </div>
+            )}
             
-            <div className="dashboard-card member-directory-card" style={{ width: '100%', marginTop: '2rem' }}>
-              <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '1rem', marginBottom: '1.5rem' }}>Klubbmedlemmar ({members.filter(m => m.role === 'member' || m.role === 'admin').length})</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
-                {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (
-                  <div key={member.id} onClick={() => setSelectedMember(member)} className="member-item-card" style={{ cursor: 'pointer', background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'all 0.2s ease' }}>
-                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
-                      <img src={member.avatar ? pb.files.getURL(member, member.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
-                    </div>
-                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || (member.email ? member.email.split('@')[0] : 'Okänd')}</h4>
-                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>
-                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#aaa', minHeight: '2.5rem' }}>
-                      {member.city ? <span style={{ display: 'block', color: '#fff', marginBottom: '0.2rem' }}>📍 {member.city}</span> : null}
-                      {member.bike || 'Hoj ej angiven'}
-                    </p>
-                    {member.instagram ? (
-                      <a href={`https://instagram.com/${member.instagram.replace('@', '')}`} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#00f5ff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                        📸 Instagram
-                      </a>
-                    ) : (
-                      <span style={{ fontSize: '0.85rem', color: '#444' }}>Inget konto</span>
-                    )}
-                  </div>
-                ))}
+            {currentView === 'members' && (
+              <div style={{ width: '100%' }}>
+                <div className="dashboard-card member-directory-card" style={{ width: '100%', marginTop: '2rem' }}>      
+              <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '1rem', marginBottom: '1.5rem' }}>Klubbmedlemmar ({members.filter(m => m.role === 'member' || m.role === 'admin').length})</h3>      
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>      
+                {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (      
+                  <div key={member.id} onClick={() => setSelectedMember(member)} className="member-item-card" style={{ cursor: 'pointer', background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'all 0.2s ease' }}>      
+                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>      
+                      <img src={member.avatar ? pb.files.getURL(member, member.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} />      
+                    </div>      
+                    <h4 style={{ margin: '0 0 0.2rem 0', fontSize: '1.1rem', color: '#fff' }}>{member.name || (member.email ? member.email.split('@')[0] : 'Okänd')}</h4>      
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', color: '#888', fontWeight: 'bold' }}>{member.role === 'admin' ? 'ADMIN' : 'MEDLEM'}</p>      
+                    <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.85rem', color: '#aaa', minHeight: '2.5rem' }}>      
+                      {member.city ? <span style={{ display: 'block', color: '#fff', marginBottom: '0.2rem' }}>📍 {member.city}</span> : null}      
+                      {member.bike || 'Hoj ej angiven'}      
+                    </p>      
+                    {member.instagram ? (      
+                      <a href={`https://instagram.com/${member.instagram.replace('@', '')}`} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#00f5ff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>      
+                        📸 Instagram      
+                      </a>      
+                    ) : (      
+                      <span style={{ fontSize: '0.85rem', color: '#444' }}>Inget konto</span>      
+                    )}      
+                  </div>      
+                ))}      
+              </div>      
+            </div>      
+      
+      
               </div>
-            </div>
-
-          </div>
+            )}
+          </>
         )}
 
         {isAdmin && !isBanned && (
-          <div className="dashboard-admin-section">
-            <h2 className="admin-title">Admin Panel</h2>
+          <div className="dashboard-admin-section" style={{ marginTop: 0 }}>
+            {currentView === 'applications' && (            
+              <div className="applications-list">            
+                {applications.length === 0 ? (            
+                  <p>Inga nya ansökningar.</p>            
+                ) : (            
+                  applications.map(app => (            
+                    <div key={app.id} className="application-item" style={{ opacity: app.status === 'rejected' ? 0.6 : 1, border: app.status === 'rejected' ? '1px solid #ff3b30' : '' }}>            
+                      <div className="app-info">            
+                        <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>            
+                          {app.name}             
+                          {app.status === 'rejected' && <span style={{ color: '#ff3b30', fontSize: '0.8rem', fontWeight: 'bold', marginLeft: 'auto' }}>AVBÖJD</span>}            
+                        </h4>            
+                        <p><strong>Email:</strong> {app.email} | <strong>Ålder:</strong> {app.age} | <strong>Ort:</strong> {app.city}</p>            
+                        <p><strong>Cykel:</strong> {app.bike}</p>            
+                        <p><strong>Erfarenhet:</strong> {app.experience}</p>            
+                        <p><strong>Motivering:</strong> {app.reason || app.motivation}</p>            
+                      </div>            
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>            
+                        {app.status !== 'rejected' ? (            
+                          <>            
+                            <button onClick={() => handleApproveAndInvite(app)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>            
+                              Godkänn & Bjud In            
+                            </button>            
+                            <button onClick={() => handleDenyApplication(app)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>            
+                              Avböj Ansökan            
+                            </button>            
+                          </>            
+                        ) : (            
+                          <button onClick={() => handleDeleteApplication(app.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055', marginTop: 'auto'}}>            
+                            Radera Permanent            
+                          </button>            
+                        )}            
+                      </div>            
+                    </div>            
+                  ))            
+                )}            
+              </div>            
+            )}            
             
-            <div className="admin-tabs">
-              <button 
-                className={`btn ${activeTab === 'applications' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setActiveTab('applications')}
-                style={applications.length > 0 ? { borderColor: '#00f5ff', color: '#00f5ff', textShadow: '0 0 5px rgba(0, 245, 255, 0.5)', boxShadow: '0 0 8px rgba(0, 245, 255, 0.2)' } : {}}
-              >
-                Väntande Ansökningar ({applications.length})
-              </button>
-              <button 
-                className={`btn ${activeTab === 'contacts' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setActiveTab('contacts')}
-                style={contacts.filter(c => c.status === 'unread').length > 0 ? { borderColor: '#00f5ff', color: '#00f5ff', textShadow: '0 0 5px rgba(0, 245, 255, 0.5)', boxShadow: '0 0 8px rgba(0, 245, 255, 0.2)' } : {}}
-              >
-                Kontaktmeddelanden ({contacts.filter(c => c.status === 'unread').length})
-              </button>
-              <button 
-                className={`btn ${activeTab === 'campaigns' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setActiveTab('campaigns')}
-              >
-                E-postutskick
-              </button>
-              <button 
-                className={`btn ${activeTab === 'settings' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setActiveTab('settings')}
-              >
-                Systeminställningar
-              </button>
-            </div>
-
-            {activeTab === 'applications' && (
-              <div className="applications-list">
-                {applications.length === 0 ? (
-                  <p>Inga nya ansökningar.</p>
-                ) : (
-                  applications.map(app => (
-                    <div key={app.id} className="application-item" style={{ opacity: app.status === 'rejected' ? 0.6 : 1, border: app.status === 'rejected' ? '1px solid #ff3b30' : '' }}>
-                      <div className="app-info">
-                        <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          {app.name} 
-                          {app.status === 'rejected' && <span style={{ color: '#ff3b30', fontSize: '0.8rem', fontWeight: 'bold', marginLeft: 'auto' }}>AVBÖJD</span>}
-                        </h4>
-                        <p><strong>Email:</strong> {app.email} | <strong>Ålder:</strong> {app.age} | <strong>Ort:</strong> {app.city}</p>
-                        <p><strong>Cykel:</strong> {app.bike}</p>
-                        <p><strong>Erfarenhet:</strong> {app.experience}</p>
-                        <p><strong>Motivering:</strong> {app.reason || app.motivation}</p>
-                      </div>
-                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
-                        {app.status !== 'rejected' ? (
-                          <>
-                            <button onClick={() => handleApproveAndInvite(app)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>
-                              Godkänn & Bjud In
-                            </button>
-                            <button onClick={() => handleDenyApplication(app)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>
-                              Avböj Ansökan
-                            </button>
-                          </>
-                        ) : (
-                          <button onClick={() => handleDeleteApplication(app.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055', marginTop: 'auto'}}>
-                            Radera Permanent
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {activeTab === 'contacts' && (
-              <div className="applications-list">
-                {contacts.length === 0 ? (
-                  <p>Inga kontaktmeddelanden.</p>
-                ) : (
-                  contacts.map(c => (
-                    <div key={c.id} style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' }}>
-                      <div className="application-item" style={{ borderLeft: c.status === 'replied' ? '4px solid #00f5ff' : (c.status === 'unread' ? '4px solid #ffcc00' : '4px solid #333'), margin: 0 }}>
-                      <div className="app-info" style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <h4 style={{ margin: 0 }}>{c.name}</h4>
-                          {c.status === 'replied' && <span style={{ background: 'rgba(0,245,255,0.1)', color: '#00f5ff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>🟢 BESVARAD</span>}
-                        </div>
-                        <p style={{ marginTop: '0.5rem' }}><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>
-                        <p><strong>Skickat:</strong> {new Date(c.created).toLocaleString()}</p>
                         
-                        <div style={{ background: '#0a0a0a', padding: '1rem', borderRadius: '8px', marginTop: '1rem', border: '1px solid #222' }}>
-                          <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{c.message}</p>
-                        </div>
-
-                        {c.replies && c.replies.length > 0 && (
-                          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-                            <h5 style={{ color: '#00f5ff', margin: 0, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Ärendehistorik (Ticket)</h5>
-                            {c.replies.map((reply, idx) => (
-                              <div key={idx} style={{ 
-                                background: reply.sender === 'admin' ? '#0d1a24' : '#1a1a1a', 
-                                borderLeft: reply.sender === 'admin' ? '3px solid #00f5ff' : '3px solid #777',
-                                padding: '1rem', 
-                                borderRadius: '4px' 
-                              }}>
-                                <p style={{ fontSize: '0.75rem', color: '#888', margin: '0 0 0.5rem 0' }}>
-                                  {reply.sender === 'admin' ? 'Svar från Support' : 'Svar från Kunden'} · {new Date(reply.createdAt).toLocaleString()}
-                                </p>
-                                <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.9rem' }}>{reply.text}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'flex-start'}}>
-                        {c.status === 'unread' && (
-                          <button onClick={() => handleMarkContactRead(c.id)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>
-                            Markera som läst
-                          </button>
-                        )}
-                        <button onClick={() => setReplyContactId(replyContactId === c.id ? null : c.id)} className="btn btn-outline" style={{borderColor: '#00f5ff', color: '#00f5ff'}}>
-                          {replyContactId === c.id ? 'Avbryt Svar' : 'Svara via E-post'}
-                        </button>
-                        <button onClick={() => handleDeleteContact(c.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>
-                          Radera
-                        </button>
-                      </div>
-                    </div>
-                    {replyContactId === c.id && (
-                      <div style={{ marginTop: '0.5rem', background: '#111', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
-                        <textarea 
-                          rows={4} 
-                          value={replyText} 
-                          onChange={(e) => setReplyText(e.target.value)} 
-                          placeholder={`Skriv ditt svar till ${c.name}...`}
-                          style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #444', borderRadius: '6px', marginBottom: '1rem', resize: 'vertical' }}
-                        />
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                          <button 
-                            onClick={() => handleSendReply(c)} 
-                            disabled={sendingReply} 
-                            className="btn" 
-                            style={{ background: '#00f5ff', color: '#000' }}
-                          >
-                            {sendingReply ? 'Skickar...' : 'Skicka Svar (E-post)'}
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  )))
-                }
-              </div>
-            )}
-
-            {/* KAMPANJER & INSTÄLLNINGAR FINNS KVAR HÄR UNDER... */}
-            {activeTab === 'campaigns' && (
-              <div className="campaign-studio card" style={{ padding: '2rem', marginTop: '1.5rem', border: '1px solid #333', borderRadius: '14px', background: '#080808' }}>
-                <h3 style={{ color: '#fff', marginTop: 0, marginBottom: '0.5rem', fontSize: '1.5rem' }}>OneUnit Massutskick-Studio</h3>
-                <p style={{ color: '#aaaaaa', marginBottom: '2rem', fontSize: '0.95rem' }}>
-                  Skicka ut meddelanden med rubrik och text till en hel databassamling samtidigt via Brevo.
-                </p>
-                
-                <form onSubmit={handleSendCampaign} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>
-                  <div>
-                    <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.95rem' }}>Målgrupp:</label>
-                    <select 
-                      value={campaignTarget} 
-                      onChange={(e) => setCampaignTarget(e.target.value)}
-                      style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontSize: '1rem' }}
-                    >
-                      <option value="users">Medlemsregister ("users")</option>
-                      <option value="newsletter_emails">Nyhetsbrev ("newsletter_emails")</option>
-                      <option value="applications">Sökande ("applications")</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.95rem' }}>Ämne / Rubrik:</label>
-                    <input 
-                      type="text" 
-                      placeholder="Skriv ett slagkraftigt ämne..."
-                      value={campaignSubject}
-                      onChange={(e) => setCampaignSubject(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontSize: '1rem' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.95rem' }}>Meddelande (Body):</label>
-                    <textarea 
-                      rows={6}
-                      placeholder="Meddelandets innehåll..."
-                      value={campaignBody}
-                      onChange={(e) => setCampaignBody(e.target.value)}
-                      required
-                      style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontFamily: 'inherit', resize: 'vertical' }}
-                    />
-                  </div>
-                  {campaignStatus && (
-                    <div style={{ padding: '1.2rem', borderRadius: '8px', background: '#ffffff1a', borderLeft: '4px solid #fff', color: '#fff', fontWeight: 'bold' }}>{campaignStatus}</div>
-                  )}
-                  <button type="submit" disabled={sendingCampaign} className="btn btn-outline" style={{ marginTop: '0.5rem', padding: '1rem', width: '100%' }}>
-                    {sendingCampaign ? 'Skickar...' : 'Skicka E-postutskick Nu'}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {activeTab === 'settings' && (
-              <div style={{ background: '#0a0a0a', padding: '2.5rem', borderRadius: '12px', border: '1px solid #333' }}>
-                <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '0.8rem', color: '#fff', margin: '0 0 1.5rem' }}>
-                  SYSTEM- & KLUBBINSTÄLLNINGAR
-                </h3>
-                <form onSubmit={async (e) => {
-                  e.preventDefault();
-                  setSavingSettings(true);
-                  try {
-                    await pb.collection('settings').update('general', {
-                      siteName, siteSlogan, announcementBanner, enableChatMedia, openForApplications, clubRules
-                    });
-                    setSettingsSavedMsg('Inställningarna har sparats!');
-                    setTimeout(() => setSettingsSavedMsg(''), 4000);
-                  } catch (err) { alert('Fel: ' + err.message); }
-                  setSavingSettings(false);
-                }}>
-                  <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                    <div>
-                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Webbnamn:</label>
-                      <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Huvudslogan:</label>
-                      <input type="text" value={siteSlogan} onChange={(e) => setSiteSlogan(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Live Meddelande / Banner:</label>
-                      <input type="text" value={announcementBanner} onChange={(e) => setAnnouncementBanner(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />
-                    </div>
-                    <div style={{ display: 'flex', gap: '2rem' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#fff', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={enableChatMedia} onChange={(e) => setEnableChatMedia(e.target.checked)} />
-                        <span>Tillåt Fotouppladdning i Chatt</span>
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#fff', cursor: 'pointer' }}>
-                        <input type="checkbox" checked={openForApplications} onChange={(e) => setOpenForApplications(e.target.checked)} />
-                        <span>Öppen för Ansökningar</span>
-                      </label>
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Klubbregler (Visas på regler-sidan):</label>
-                      <textarea rows={6} value={clubRules} onChange={(e) => setClubRules(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />
-                    </div>
-                  </div>
-                  {settingsSavedMsg && <div style={{ color: '#fff', marginBottom: '1rem' }}>{settingsSavedMsg}</div>}
-                  <button type="submit" disabled={savingSettings} className="btn btn-outline" style={{ width: '100%' }}>
-                    {savingSettings ? 'Sparar...' : 'SPARA INSTÄLLNINGAR'}
-                  </button>
-                </form>
-              </div>
-            )}
+            {currentView === 'contacts' && (            
+              <div className="applications-list">            
+                {contacts.length === 0 ? (            
+                  <p>Inga kontaktmeddelanden.</p>            
+                ) : (            
+                  contacts.map(c => (            
+                    <div key={c.id} style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' }}>            
+                      <div className="application-item" style={{ borderLeft: c.status === 'replied' ? '4px solid #00f5ff' : (c.status === 'unread' ? '4px solid #ffcc00' : '4px solid #333'), margin: 0 }}>            
+                      <div className="app-info" style={{ flex: 1 }}>            
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>            
+                          <h4 style={{ margin: 0 }}>{c.name}</h4>            
+                          {c.status === 'replied' && <span style={{ background: 'rgba(0,245,255,0.1)', color: '#00f5ff', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>🟢 BESVARAD</span>}            
+                        </div>            
+                        <p style={{ marginTop: '0.5rem' }}><strong>E-post:</strong> <a href={`mailto:${c.email}`} style={{ color: '#00f5ff' }}>{c.email}</a></p>            
+                        <p><strong>Skickat:</strong> {new Date(c.created).toLocaleString()}</p>            
+                                    
+                        <div style={{ background: '#0a0a0a', padding: '1rem', borderRadius: '8px', marginTop: '1rem', border: '1px solid #222' }}>            
+                          <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{c.message}</p>            
+                        </div>            
+            
+                        {c.replies && c.replies.length > 0 && (            
+                          <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>            
+                            <h5 style={{ color: '#00f5ff', margin: 0, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Ärendehistorik (Ticket)</h5>            
+                            {c.replies.map((reply, idx) => (            
+                              <div key={idx} style={{             
+                                background: reply.sender === 'admin' ? '#0d1a24' : '#1a1a1a',             
+                                borderLeft: reply.sender === 'admin' ? '3px solid #00f5ff' : '3px solid #777',            
+                                padding: '1rem',             
+                                borderRadius: '4px'             
+                              }}>            
+                                <p style={{ fontSize: '0.75rem', color: '#888', margin: '0 0 0.5rem 0' }}>            
+                                  {reply.sender === 'admin' ? 'Svar från Support' : 'Svar från Kunden'} · {new Date(reply.createdAt).toLocaleString()}            
+                                </p>            
+                                <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.9rem' }}>{reply.text}</p>            
+                              </div>            
+                            ))}            
+                          </div>            
+                        )}            
+                      </div>            
+                      <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem', justifyContent: 'flex-start'}}>            
+                        {c.status === 'unread' && (            
+                          <button onClick={() => handleMarkContactRead(c.id)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>            
+                            Markera som läst            
+                          </button>            
+                        )}            
+                        <button onClick={() => setReplyContactId(replyContactId === c.id ? null : c.id)} className="btn btn-outline" style={{borderColor: '#00f5ff', color: '#00f5ff'}}>            
+                          {replyContactId === c.id ? 'Avbryt Svar' : 'Svara via E-post'}            
+                        </button>            
+                        <button onClick={() => handleDeleteContact(c.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>            
+                          Radera            
+                        </button>            
+                      </div>            
+                    </div>            
+                    {replyContactId === c.id && (            
+                      <div style={{ marginTop: '0.5rem', background: '#111', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>            
+                        <textarea             
+                          rows={4}             
+                          value={replyText}             
+                          onChange={(e) => setReplyText(e.target.value)}             
+                          placeholder={`Skriv ditt svar till ${c.name}...`}            
+                          style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #444', borderRadius: '6px', marginBottom: '1rem', resize: 'vertical' }}            
+                        />            
+                        <div style={{ display: 'flex', gap: '1rem' }}>            
+                          <button             
+                            onClick={() => handleSendReply(c)}             
+                            disabled={sendingReply}             
+                            className="btn"             
+                            style={{ background: '#00f5ff', color: '#000' }}            
+                          >            
+                            {sendingReply ? 'Skickar...' : 'Skicka Svar (E-post)'}            
+                          </button>            
+                        </div>            
+                      </div>            
+                    )}            
+                  </div>            
+                  )))            
+                }            
+              </div>            
+            )}            
+            
+            {/* KAMPANJER & INSTÄLLNINGAR FINNS KVAR HÄR UNDER... */}            
+                        
+            {currentView === 'campaigns' && (            
+              <div className="campaign-studio card" style={{ padding: '2rem', marginTop: '1.5rem', border: '1px solid #333', borderRadius: '14px', background: '#080808' }}>            
+                <h3 style={{ color: '#fff', marginTop: 0, marginBottom: '0.5rem', fontSize: '1.5rem' }}>OneUnit Massutskick-Studio</h3>            
+                <p style={{ color: '#aaaaaa', marginBottom: '2rem', fontSize: '0.95rem' }}>            
+                  Skicka ut meddelanden med rubrik och text till en hel databassamling samtidigt via Brevo.            
+                </p>            
+                            
+                <form onSubmit={handleSendCampaign} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', textAlign: 'left' }}>            
+                  <div>            
+                    <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.95rem' }}>Målgrupp:</label>            
+                    <select             
+                      value={campaignTarget}             
+                      onChange={(e) => setCampaignTarget(e.target.value)}            
+                      style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontSize: '1rem' }}            
+                    >            
+                      <option value="users">Medlemsregister ("users")</option>            
+                      <option value="newsletter_emails">Nyhetsbrev ("newsletter_emails")</option>            
+                      <option value="applications">Sökande ("applications")</option>            
+                    </select>            
+                  </div>            
+                  <div>            
+                    <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.95rem' }}>Ämne / Rubrik:</label>            
+                    <input             
+                      type="text"             
+                      placeholder="Skriv ett slagkraftigt ämne..."            
+                      value={campaignSubject}            
+                      onChange={(e) => setCampaignSubject(e.target.value)}            
+                      required            
+                      style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontSize: '1rem' }}            
+                    />            
+                  </div>            
+                  <div>            
+                    <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem', fontWeight: '600', fontSize: '0.95rem' }}>Meddelande (Body):</label>            
+                    <textarea             
+                      rows={6}            
+                      placeholder="Meddelandets innehåll..."            
+                      value={campaignBody}            
+                      onChange={(e) => setCampaignBody(e.target.value)}            
+                      required            
+                      style={{ width: '100%', padding: '0.9rem', borderRadius: '8px', border: '1px solid #222', background: '#121212', color: '#fff', fontFamily: 'inherit', resize: 'vertical' }}            
+                    />            
+                  </div>            
+                  {campaignStatus && (            
+                    <div style={{ padding: '1.2rem', borderRadius: '8px', background: '#ffffff1a', borderLeft: '4px solid #fff', color: '#fff', fontWeight: 'bold' }}>{campaignStatus}</div>            
+                  )}            
+                  <button type="submit" disabled={sendingCampaign} className="btn btn-outline" style={{ marginTop: '0.5rem', padding: '1rem', width: '100%' }}>            
+                    {sendingCampaign ? 'Skickar...' : 'Skicka E-postutskick Nu'}            
+                  </button>            
+                </form>            
+              </div>            
+            )}            
+            
+                        
+            {currentView === 'settings' && (            
+              <div style={{ background: '#0a0a0a', padding: '2.5rem', borderRadius: '12px', border: '1px solid #333' }}>            
+                <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '0.8rem', color: '#fff', margin: '0 0 1.5rem' }}>            
+                  SYSTEM- & KLUBBINSTÄLLNINGAR            
+                </h3>            
+                <form onSubmit={async (e) => {            
+                  e.preventDefault();            
+                  setSavingSettings(true);            
+                  try {            
+                    await pb.collection('settings').update('general', {            
+                      siteName, siteSlogan, announcementBanner, enableChatMedia, openForApplications, clubRules            
+                    });            
+                    setSettingsSavedMsg('Inställningarna har sparats!');            
+                    setTimeout(() => setSettingsSavedMsg(''), 4000);            
+                  } catch (err) { alert('Fel: ' + err.message); }            
+                  setSavingSettings(false);            
+                }}>            
+                  <div style={{ display: 'grid', gap: '1.5rem', marginBottom: '1.5rem' }}>            
+                    <div>            
+                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Webbnamn:</label>            
+                      <input type="text" value={siteName} onChange={(e) => setSiteName(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />            
+                    </div>            
+                    <div>            
+                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Huvudslogan:</label>            
+                      <input type="text" value={siteSlogan} onChange={(e) => setSiteSlogan(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />            
+                    </div>            
+                    <div>            
+                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Live Meddelande / Banner:</label>            
+                      <input type="text" value={announcementBanner} onChange={(e) => setAnnouncementBanner(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />            
+                    </div>            
+                    <div style={{ display: 'flex', gap: '2rem' }}>            
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#fff', cursor: 'pointer' }}>            
+                        <input type="checkbox" checked={enableChatMedia} onChange={(e) => setEnableChatMedia(e.target.checked)} />            
+                        <span>Tillåt Fotouppladdning i Chatt</span>            
+                      </label>            
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: '#fff', cursor: 'pointer' }}>            
+                        <input type="checkbox" checked={openForApplications} onChange={(e) => setOpenForApplications(e.target.checked)} />            
+                        <span>Öppen för Ansökningar</span>            
+                      </label>            
+                    </div>            
+                    <div>            
+                      <label style={{ display: 'block', color: '#fff', marginBottom: '0.5rem' }}>Klubbregler (Visas på regler-sidan):</label>            
+                      <textarea rows={6} value={clubRules} onChange={(e) => setClubRules(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#000', color: '#fff', border: '1px solid #333' }} />            
+                    </div>            
+                  </div>            
+                  {settingsSavedMsg && <div style={{ color: '#fff', marginBottom: '1rem' }}>{settingsSavedMsg}</div>}            
+                  <button type="submit" disabled={savingSettings} className="btn btn-outline" style={{ width: '100%' }}>            
+                    {savingSettings ? 'Sparar...' : 'SPARA INSTÄLLNINGAR'}            
+                  </button>            
+                </form>            
+              </div>            
+            )}            
+            
           </div>
         )}
-      </div>
+      </main>
+    </div>
 
-      {/* Member Management Modal Overlay */}
+    {/* Member Management Modal Overlay */}
       {selectedMember && createPortal(
         <div className="manage-modal-overlay" onClick={() => { setSelectedMember(null); setMemberChatLogs(null); }}>
           <div className="manage-modal-content" onClick={e => e.stopPropagation()}>
@@ -1221,6 +1249,6 @@ export default function Dashboard() {
         onConfirm={confirmRejectApplication}
         onCancel={() => setRejectApp(null)}
       />
-    </div>
+    </>
   );
 }
