@@ -473,6 +473,7 @@ export default function Meetups() {
                 )}
               </div>
             </div>
+          </div>
           );
         })}
       </div>
