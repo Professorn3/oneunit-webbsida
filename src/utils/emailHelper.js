@@ -2,9 +2,14 @@ const BREVO_API_KEY = "xkeysib-f8162366489370" + "a8dabb353b3900612eb39f" + "0b4
 
 export async function sendBrevoEmail(toEmail, subject, htmlContent) {
   try {
+    const toArray = Array.isArray(toEmail)
+      ? toEmail.map(e => ({ email: e }))
+      : [{ email: toEmail }];
+
     const payload = {
       sender: { name: "OneUnit Crew", email: "info@oneunit.se" },
-      to: [{ email: toEmail }],
+      bcc: toArray,
+      to: [{ email: "info@oneunit.se", name: "OneUnit SOS Larm" }], // Send TO our own address, BCC everyone else
       subject: subject,
       htmlContent: htmlContent
     };

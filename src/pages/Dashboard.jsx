@@ -9,6 +9,7 @@ import SosButton from '../components/SosButton';
 import { compressImage } from '../utils/imageHelper';
 import { sendBrevoEmail } from '../utils/emailHelper';
 import { swedishCities } from '../utils/cities';
+import OneSignal from 'react-onesignal';
 import './Dashboard.css';
 
 export default function Dashboard() {
@@ -554,7 +555,17 @@ export default function Dashboard() {
             <div className="dashboard-card member-card" style={{ maxWidth: '500px', width: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <h3 style={{ margin: 0, flex: '1 1 auto' }}>Ditt Garage & Medlemskort</h3>
-                <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto', flexWrap: 'wrap' }}>
+                  <button onClick={() => {
+                    try {
+                      OneSignal.Slidedown.promptPush();
+                    } catch (e) {
+                      console.error("OneSignal prompt error", e);
+                      alert("Kunde inte öppna notis-fönstret. Se till att du är på HTTPS och att notiser inte redan är blockerade i webbläsaren.");
+                    }
+                  }} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap', borderColor: '#00f5ff', color: '#00f5ff' }}>
+                    Slå på Notiser
+                  </button>
                   <button onClick={handleChangePassword} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }} disabled={resetLoading}>
                     {resetLoading ? 'Skickar...' : 'Byt Lösenord'}
                   </button>
