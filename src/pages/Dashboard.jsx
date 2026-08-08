@@ -29,6 +29,12 @@ export default function Dashboard() {
   const [memberChatLogs, setMemberChatLogs] = useState(null);
   const [loadingChatLogs, setLoadingChatLogs] = useState(false);
   const [patchName, setPatchName] = useState('');
+  
+  const [adminEditName, setAdminEditName] = useState('');
+  const [adminEditBike, setAdminEditBike] = useState('');
+  const [adminEditCity, setAdminEditCity] = useState('');
+  const [adminEditInstagram, setAdminEditInstagram] = useState('');
+  const [adminSavingProfile, setAdminSavingProfile] = useState(false);
 
   // Garage State
   const [editingProfile, setEditingProfile] = useState(false);
@@ -40,6 +46,26 @@ export default function Dashboard() {
   
   const [resetLoading, setResetLoading] = useState(false);
   const [resetMsg, setResetMsg] = useState('');
+
+  // Sync selectedMember to edit state
+  useEffect(() => {
+    if (selectedMember) {
+      setAdminEditName(selectedMember.name || '');
+      setAdminEditBike(selectedMember.bike || '');
+      setAdminEditCity(selectedMember.city || '');
+      setAdminEditInstagram(selectedMember.instagram || '');
+      
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehaviorY = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    };
+  }, [selectedMember]);
 
   // Sync profile state when userData loads
   useEffect(() => {
@@ -390,6 +416,25 @@ export default function Dashboard() {
     setSavingProfile(false);
   };
 
+  const handleAdminSaveProfile = async (e) => {
+    e.preventDefault();
+    setAdminSavingProfile(true);
+    try {
+      const updatedUser = await pb.collection('users').update(selectedMember.id, {
+        name: adminEditName,
+        bike: adminEditBike,
+        city: adminEditCity,
+        instagram: adminEditInstagram
+      });
+      setMembers(prev => prev.map(m => m.id === selectedMember.id ? updatedUser : m));
+      setSelectedMember(updatedUser);
+      alert("Medlemmens profil har uppdaterats!");
+    } catch (err) {
+      alert("Fel vid uppdatering av medlem: " + err.message);
+    }
+    setAdminSavingProfile(false);
+  };
+
   const handleAwardPatch = async (memberId) => {
     if (!patchName.trim()) return;
     try {
@@ -673,7 +718,7 @@ export default function Dashboard() {
               <h3 style={{ borderBottom: '1px solid #333', paddingBottom: '1rem', marginBottom: '1.5rem' }}>Klubbmedlemmar ({members.filter(m => m.role === 'member' || m.role === 'admin').length})</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
                 {members.filter(m => m.role === 'member' || m.role === 'admin').map(member => (
-                  <div key={member.id} style={{ background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                  <div key={member.id} onClick={() => setSelectedMember(member)} className="member-item-card" style={{ cursor: 'pointer', background: '#0a0b0f', border: '1px solid #222', borderRadius: '8px', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', transition: 'all 0.2s ease' }}>
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', overflow: 'hidden', border: '2px solid #333', marginBottom: '0.8rem', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: '#555' }}>
                       <img src={member.avatar ? pb.files.getURL(member, member.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
                     </div>
@@ -684,7 +729,7 @@ export default function Dashboard() {
                       {member.bike || 'Hoj ej angiven'}
                     </p>
                     {member.instagram ? (
-                      <a href={`https://instagram.com/${member.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#00f5ff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <a href={`https://instagram.com/${member.instagram.replace('@', '')}`} onClick={e => e.stopPropagation()} target="_blank" rel="noreferrer" style={{ fontSize: '0.85rem', color: '#00f5ff', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                         📸 Instagram
                       </a>
                     ) : (
@@ -709,12 +754,6 @@ export default function Dashboard() {
                 style={applications.length > 0 ? { borderColor: '#00f5ff', color: '#00f5ff', textShadow: '0 0 5px rgba(0, 245, 255, 0.5)', boxShadow: '0 0 8px rgba(0, 245, 255, 0.2)' } : {}}
               >
                 Väntande Ansökningar ({applications.length})
-              </button>
-              <button 
-                className={`btn ${activeTab === 'members' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setActiveTab('members')}
-              >
-                Medlemshantering ({members.length})
               </button>
               <button 
                 className={`btn ${activeTab === 'contacts' ? 'btn-primary' : 'btn-outline'}`}
@@ -773,44 +812,6 @@ export default function Dashboard() {
                     </div>
                   ))
                 )}
-              </div>
-            )}
-
-            {activeTab === 'members' && (
-              <div className="members-list-wrapper">
-                <div className="members-toolbar">
-                  <input 
-                    type="text" 
-                    placeholder="Sök på namn, email eller roll..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="members-search"
-                  />
-                </div>
-                
-                <div className="members-grid">
-                  {filteredMembers.map(member => (
-                    <div key={member.id} className="member-item" style={{ border: member.isBanned ? '1px solid #ff0055' : '' }}>
-                      <div className="member-avatar" style={{ fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', background: 'transparent' }}>
-                        <img src={member.avatar ? pb.files.getURL(member, member.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%'}} />
-                      </div>
-                      <div className="member-details">
-                        <p className="member-name" style={{ fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>
-                          {member.name}
-                        </p>
-                        <p className="member-email">{member.email}</p>
-                        <p className="member-role">Roll: <strong style={{color: member.isBanned ? '#ff0055' : '#fff'}}>{member.isBanned ? 'SPÄRRAD' : member.role}</strong></p>
-                      </div>
-                      <button 
-                        onClick={() => setSelectedMember(member)} 
-                        className="btn btn-outline"
-                        style={{ padding: '0.5rem 1rem', fontSize: '0.8rem', whiteSpace: 'nowrap' }}
-                      >
-                        Hantera
-                      </button>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 
@@ -1014,12 +1015,76 @@ export default function Dashboard() {
 
             <div className="manage-modal-body">
               <div className="manage-section">
-                <h3>Information</h3>
-                <p><strong>E-post:</strong> {selectedMember.email}</p>
-                <p><strong>Gick med:</strong> {selectedMember.created ? new Date(selectedMember.created).toLocaleDateString() : 'Okänt'}</p>
-                <p><strong>Nuvarande Roll:</strong> {selectedMember.role}</p>
-                <p><strong>Status:</strong> {selectedMember.isBanned ? <span style={{color: '#ff0055'}}>SPÄRRAD (BANNED)</span> : <span style={{color: '#888'}}>Aktiv</span>}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', border: '3px solid #333' }}>
+                    <img src={selectedMember.avatar ? pb.files.getURL(selectedMember, selectedMember.avatar) : "/images/hero-glitch-logo.png"} alt="Avatar" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: '0 0 0.3rem 0' }}>{selectedMember.name || 'Okänd'}</h3>
+                    <p style={{ margin: 0, color: '#aaa', fontSize: '0.85rem' }}>{selectedMember.role.toUpperCase()}</p>
+                  </div>
+                </div>
+
+                {isAdmin ? (
+                  <form onSubmit={handleAdminSaveProfile} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Namn/Alias:</label>
+                      <input type="text" value={adminEditName} onChange={e => setAdminEditName(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Motorcykel:</label>
+                      <input type="text" value={adminEditBike} onChange={e => setAdminEditBike(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Stad / Ort:</label>
+                      <select value={adminEditCity} onChange={e => setAdminEditCity(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }}>
+                        <option value="">Välj stad...</option>
+                        {swedishCities.map(city => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.85rem', color: '#aaa', marginBottom: '0.3rem' }}>Instagram-namn:</label>
+                      <input type="text" value={adminEditInstagram} onChange={e => setAdminEditInstagram(e.target.value)} style={{ width: '100%', padding: '0.8rem', background: '#0a0b0f', border: '1px solid #333', color: '#fff', borderRadius: '8px' }} />
+                    </div>
+                    <button type="submit" disabled={adminSavingProfile} className="btn btn-primary" style={{ padding: '0.8rem' }}>
+                      {adminSavingProfile ? 'Sparar...' : 'Spara Profiländringar'}
+                    </button>
+                  </form>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <p><strong>Stad:</strong> {selectedMember.city || 'Inte angiven'}</p>
+                    <p><strong>Motorcykel:</strong> {selectedMember.bike || 'Inte angiven'}</p>
+                    <p><strong>Instagram:</strong> {selectedMember.instagram ? <a href={`https://instagram.com/${selectedMember.instagram.replace('@', '')}`} target="_blank" rel="noreferrer" style={{ color: '#00f5ff' }}>{selectedMember.instagram}</a> : 'Inte angiven'}</p>
+                    
+                    <h5 style={{ borderBottom: '1px solid #333', paddingBottom: '0.5rem', marginBottom: '1rem', marginTop: '1rem', color: '#fff' }}>Utmärkelser & Patches</h5>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {(!selectedMember.patches || selectedMember.patches.length === 0) ? (
+                        <span style={{ fontSize: '0.85rem', color: '#666' }}>Inga patches ännu</span>
+                      ) : (
+                        selectedMember.patches.map((patch, idx) => (
+                          <span key={idx} style={{ background: '#111', border: '1px solid #00f5ff', color: '#00f5ff', padding: '0.3rem 0.6rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 0 10px rgba(0, 245, 255, 0.2)' }}>
+                            {patch}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {isAdmin && (
+                  <>
+                    <hr style={{ borderColor: '#222', margin: '1.5rem 0' }} />
+                    <p><strong>E-post:</strong> {selectedMember.email}</p>
+                    <p><strong>Gick med:</strong> {selectedMember.created ? new Date(selectedMember.created).toLocaleDateString() : 'Okänt'}</p>
+                    <p><strong>Status:</strong> {selectedMember.isBanned ? <span style={{color: '#ff0055'}}>SPÄRRAD (BANNED)</span> : <span style={{color: '#888'}}>Aktiv</span>}</p>
+                  </>
+                )}
               </div>
+
+              {isAdmin && (
+                <>
 
               <div className="manage-section">
                 <h3>Ändra Roll & Behörighet</h3>
@@ -1125,6 +1190,8 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
+              </>
+            )}
             </div>
           </div>
         </div>,
