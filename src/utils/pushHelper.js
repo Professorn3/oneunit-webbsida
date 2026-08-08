@@ -8,6 +8,8 @@ export async function initOneSignal() {
     await OneSignal.init({
       appId: ONESIGNAL_APP_ID,
       allowLocalhostAsSecureOrigin: true, // Bra för testning
+      serviceWorkerParam: { scope: "/" },
+      serviceWorkerPath: "sw.js",
       notifyButton: {
         enable: false,
       },

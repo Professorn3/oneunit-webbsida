@@ -1,3 +1,5 @@
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
+
 const CACHE_NAME = 'oneunit-cache-v2';
 const urlsToCache = [
   '/',
@@ -54,26 +56,4 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Lyssnare för Web Push Notifications
-self.addEventListener('push', (event) => {
-  const data = event.data ? event.data.json() : {};
-  
-  const title = data.title || 'OneUnit MC';
-  const options = {
-    body: data.body || 'Nytt meddelande!',
-    icon: '/images/logo.png',
-    badge: '/images/logo.png',
-    data: data.url || '/'
-  };
-
-  event.waitUntil(
-    self.registration.showNotification(title, options)
-  );
-});
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data)
-  );
-});
+// OneSignal handles push and notificationclick events automatically.
