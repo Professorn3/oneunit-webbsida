@@ -4,6 +4,8 @@ import pb from '../pocketbase';
 import { useAuth } from '../context/AuthContext';
 import ConfirmModal from '../components/ConfirmModal';
 import ScrambleText from '../components/ScrambleText';
+import MapModal from '../components/MapModal';
+import { sendBrevoEmail } from '../utils/emailHelper';
 import './Meetups.css';
 
 // Standard-evenemang om inget lagts in i Firestore ännu
@@ -142,6 +144,64 @@ export default function Meetups() {
       setMeetupToDelete(null);
     } catch (err) {
       console.error("Fel vid radering:", err);
+    }
+  };
+
+  const handleSendRallyPoint = async ({ message, lat, lng, mapsLink }) => {
+    if (!mapOpenFor) return;
+    try {
+      const attendeesList = mapOpenFor.attendees || [];
+      if (attendeesList.length === 0) {
+        alert("Ingen har anmält sig (RSVP) till denna meetup ännu!");
+        setMapOpenFor(null);
+        return;
+      }
+      
+      // Vi behöver hämta användarnas emails baserat på deras displayNames i attendeesList
+      const users = await pb.collection('users').getFullList();
+      const targetEmails = users
+        .filter(u => attendeesList.some(a => a.toLowerCase().includes(u.email.split('@')[0].toLowerCase())))
+        .map(u => u.email);
+
+      if (targetEmails.length === 0) {
+        alert("Kunde inte hitta e-postadresser till de anmälda.");
+        setMapOpenFor(null);
+        return;
+      }
+
+      const senderName = currentUser.name || currentUser.email.split('@')[0];
+      const subject = `📍 Återsamlingsplats för ${mapOpenFor.title}`;
+      
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; background-color: #1a1a1a; color: #ffffff; padding: 35px; border-radius: 16px; max-width: 600px; margin: 0 auto; border: 1px solid #333;">
+          <h2 style="margin-top:0; color:#00f5ff; font-size:24px;">📍 ÅTERSAMLINGSPLATS</h2>
+          <p style="font-size: 16px; line-height: 1.5; color:#fff;">
+            Admin <strong>${senderName}</strong> har angivit en samlingsplats för körningen <strong>"${mapOpenFor.title}"</strong>.
+          </p>
+          <div style="background: rgba(0,245,255,0.1); padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid rgba(0,245,255,0.3);">
+            <p style="margin:0; font-size: 16px; color:#fff;"><strong>Instruktioner:</strong><br/>${message}</p>
+          </div>
+          <p style="font-size: 16px; color:#fff;">
+            <strong>Plats (Google Maps):</strong><br/>
+            <a href="${mapsLink}" style="color: #00f5ff; font-weight: bold; font-size: 18px;">📍 Öppna i Kartor (Kör hit!)</a>
+          </p>
+          <hr style="border:0; border-top: 1px solid #333; margin: 30px 0;">
+          <p style="font-size: 12px; color: #888;">
+            Detta utskick skickades endast till de som klickat i att de kommer på detta Meetup.
+          </p>
+        </div>
+      `;
+
+      const success = await sendBrevoEmail(targetEmails, subject, htmlContent);
+      if (success) {
+        alert("Återsamlingsplats och instruktioner har mailats till alla anmälda!");
+        setMapOpenFor(null);
+      } else {
+        alert("Något gick fel med utskicket.");
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Misslyckades: " + e.message);
     }
   };
 
@@ -388,34 +448,42 @@ export default function Meetups() {
                       </div>
                     )}
 
-                    {isAdmin && !event.id.startsWith('default_') && (
-                      <button 
-                        onClick={() => setMeetupToDelete(event)} 
-                        className="btn-delete-meetup"
-                        title="Radera Meetup"
-                      >
-                        🗑️
-                      </button>
-                    )}
+                {isAdmin && (
+                  <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                    <button className="btn-secondary" onClick={() => setMapOpenFor(event)} style={{ border: '1px solid #00f5ff', color: '#00f5ff', padding: '0.4rem 1rem' }}>
+                      📍 Skicka Återsamlingsplats
+                    </button>
+                    <button className="btn-secondary" onClick={() => setMeetupToDelete(event)} style={{ border: '1px solid #ff3b30', color: '#ff3b30', padding: '0.4rem 1rem' }}>
+                      Radera Meetup
+                    </button>
                   </div>
-                </div>
+                )}
               </div>
-            );
-          })}
-        </div>
-        )}
+            </div>
+          );
+        })}
       </div>
 
-      <ConfirmModal
+      <ConfirmModal 
         isOpen={!!meetupToDelete}
-        title="Radera Meetup"
-        message={`Vill du verkligen radera "${meetupToDelete?.title}" permanent? Detta går inte att ångra.`}
-        confirmText="Ja, radera permanent"
-        cancelText="Avbryt"
-        type="danger"
+        onClose={() => setMeetupToDelete(null)}
         onConfirm={confirmDeleteMeetup}
-        onCancel={() => setMeetupToDelete(null)}
+        title="Radera Meetup?"
+        message={`Är du säker på att du vill radera "${meetupToDelete?.title}"?`}
+        confirmText="Ja, Radera"
+        type="danger"
       />
+
+      {mapOpenFor && (
+        <MapModal
+          isOpen={!!mapOpenFor}
+          onClose={() => setMapOpenFor(null)}
+          onConfirm={handleSendRallyPoint}
+          title={`📍 Återsamlingsplats för ${mapOpenFor.title}`}
+          messagePlaceholder="Skriv instruktioner, t.ex. 'Vi samlas vid pumparna om 20 minuter!'"
+          confirmText="Skicka Karta till Anmälda"
+        />
+      )}
     </motion.div>
   );
 }

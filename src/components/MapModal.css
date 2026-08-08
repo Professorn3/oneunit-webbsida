@@ -1,0 +1,88 @@
+.map-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.map-modal-content {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.map-modal-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.map-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.map-modal-close {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.map-modal-body {
+  padding: 20px;
+}
+
+.map-container-wrapper {
+  margin-bottom: 15px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.map-modal-textarea {
+  width: 100%;
+  background: #2a2a2a;
+  border: 1px solid #444;
+  color: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.map-modal-textarea:focus {
+  outline: none;
+  border-color: #00f5ff;
+}
+
+.map-modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #333;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Fix for leaflet map z-index issues within modals */
+.leaflet-container {
+  z-index: 1 !important;
+}

@@ -22,6 +22,8 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeRoom, setActiveRoom] = useState('club_chat'); // 'club_chat' | 'admin_chat'
+  const [onlineMembers, setOnlineMembers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   
   // GIF Picker State
   const [showGifPicker, setShowGifPicker] = useState(false);
@@ -74,6 +76,42 @@ export default function Chat() {
       pb.collection(roomToFetch).unsubscribe('*');
     };
   }, [activeRoom, isOpen, canAccessChat, isAdmin]);
+
+  // Uppdatera läskvitto när chatten är öppen och vi får nya meddelanden
+  useEffect(() => {
+    if (!isOpen || !currentUser?.id) return;
+    
+    const updateReadStatus = async () => {
+      const roomToFetch = (!isAdmin && activeRoom === 'admin_chat') ? 'club_chat' : activeRoom;
+      const readField = roomToFetch === 'admin_chat' ? 'lastReadAdminChat' : 'lastReadClubChat';
+      try {
+        await pb.collection('users').update(currentUser.id, { [readField]: new Date().toISOString() });
+      } catch (e) {}
+    };
+
+    updateReadStatus();
+  }, [isOpen, messages.length, activeRoom, currentUser?.id, isAdmin]);
+
+  // Hämta online-medlemmar och läskvitton
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const fetchUsers = async () => {
+      try {
+        const users = await pb.collection('users').getFullList();
+        setAllUsers(users);
+        
+        // Räkna ut vilka som är online (aktiva senaste 5 min)
+        const fiveMinsAgo = new Date(Date.now() - 5 * 60000);
+        const online = users.filter(u => u.onlineAt && new Date(u.onlineAt) > fiveMinsAgo);
+        setOnlineMembers(online);
+      } catch (e) {}
+    };
+
+    fetchUsers();
+    const interval = setInterval(fetchUsers, 30000); // Polla var 30:e sekund
+    return () => clearInterval(interval);
+  }, [isOpen]);
 
   // Lock body scroll when chat is open (especially for mobile app feel)
   useEffect(() => {
@@ -290,6 +328,9 @@ export default function Chat() {
             <div className="chat-header-title">
               <span className="chat-online-pulse" />
               <h3>ONEUNIT CHATT</h3>
+              <span style={{ fontSize: '0.7rem', color: '#00ff88', marginLeft: '10px' }}>
+                {onlineMembers.length} {onlineMembers.length === 1 ? 'medlem' : 'medlemmar'} online
+              </span>
               {isAdmin && (
                 <button onClick={handleClearChat} style={{ background: 'transparent', border: '1px solid #ff3b30', color: '#ff3b30', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.7rem', cursor: 'pointer', transition: 'all 0.2s', marginLeft: '0.5rem' }}>Rensa Chatt</button>
               )}
@@ -420,6 +461,25 @@ export default function Chat() {
                     </div>
                   ) : (
                     <div className="msg-bubble">{msg.text}</div>
+                  )}
+
+                  {/* Read receipts: visa miniatyrer på de som läst detta meddelande (om det är det sista i chatten) */}
+                  {msg.id === regularMessages[regularMessages.length - 1]?.id && (
+                    <div style={{ display: 'flex', justifyContent: isMe ? 'flex-end' : 'flex-start', marginTop: '4px', gap: '2px' }}>
+                      {allUsers.filter(u => {
+                        if (u.id === msg.uid) return false; // Visa inte sig själv som läsare på sitt eget
+                        const readField = activeRoom === 'admin_chat' ? 'lastReadAdminChat' : 'lastReadClubChat';
+                        return u[readField] && new Date(u[readField]) >= new Date(msg.created);
+                      }).map(u => (
+                        <img 
+                          key={u.id} 
+                          src={u.avatar ? pb.files.getURL(u, u.avatar) : "/images/hero-glitch-logo.png"} 
+                          alt={u.email} 
+                          title={`${u.name || u.email} har sett detta`}
+                          style={{ width: '12px', height: '12px', borderRadius: '50%', objectFit: 'cover' }} 
+                        />
+                      ))}
+                    </div>
                   )}
                 </div>
               );

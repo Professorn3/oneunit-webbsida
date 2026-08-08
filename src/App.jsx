@@ -24,6 +24,7 @@ import ViewModeSwitcher from './components/ViewModeSwitcher'
 import PageTransition from './components/PageTransition'
 import './App.css'
 import ScrollToTop from './components/ScrollToTop'
+import SosButton from './components/SosButton'
 
 function AppContent() {
   const location = useLocation()
@@ -70,6 +71,7 @@ function AppContent() {
         </AnimatePresence>
       </main>
       <Chat />
+      <SosButton />
       <ViewModeSwitcher />
       <Footer />
     </>

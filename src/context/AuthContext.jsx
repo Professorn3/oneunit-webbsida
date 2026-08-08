@@ -41,6 +41,24 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  // Presence tracking
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    
+    const updatePresence = async () => {
+      try {
+        await pb.collection('users').update(currentUser.id, { onlineAt: new Date().toISOString() });
+      } catch (err) {
+        // Ignorera fel, t.ex. om användaren är offline tillfälligt
+      }
+    };
+
+    updatePresence();
+    const interval = setInterval(updatePresence, 60000); // Varje minut
+    
+    return () => clearInterval(interval);
+  }, [currentUser?.id]);
+
   const actualIsAdmin = userData?.role === 'admin';
 
   // Om användaren faktiskt är admin och väljer att byta vy (medlem / gäst)
