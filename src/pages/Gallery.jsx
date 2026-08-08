@@ -78,6 +78,21 @@ export default function Gallery() {
     };
   }, []);
 
+  // Scroll lock for modals
+  useEffect(() => {
+    if (lightbox || itemToDelete || itemToEdit) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehaviorY = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    };
+  }, [lightbox, itemToDelete, itemToEdit]);
+
   const handleImageSelect = async (e) => {
     const file = e.target.files[0];
     if (!file) return;

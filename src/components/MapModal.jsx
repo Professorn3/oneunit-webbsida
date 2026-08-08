@@ -43,7 +43,19 @@ export default function MapModal({
       setPosition(null);
       // Auto-fetch location when opened
       handleGetLocation();
+      
+      // Lås scroll på bakgrunden
+      document.body.style.overflow = 'hidden';
+      document.body.style.overscrollBehaviorY = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
     }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    };
   }, [isOpen]);
 
   const handleGetLocation = () => {

@@ -13,9 +13,16 @@ export default function ConfirmModal({
   onCancel,
   customIcon
 }) {
-  // Stäng med Escape eller bekräfta med Enter
+  // Stäng med Escape eller bekräfta med Enter, samt lås scroll
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+      return;
+    }
+
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehaviorY = 'none';
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -26,7 +33,11 @@ export default function ConfirmModal({
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehaviorY = '';
+    };
   }, [isOpen, onConfirm, onCancel]);
 
   if (!isOpen) return null;
