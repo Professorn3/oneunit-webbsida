@@ -648,18 +648,31 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto', flexWrap: 'wrap' }}>      
                   <button onClick={async () => {      
                     try {      
-                      const hasPermission = OneSignal.Notifications.permission;      
-                      if (hasPermission) {      
-                        alert("Notiser är redan aktiverade för denna enhet!");      
-                        return;      
-                      }      
-                            
-                      // Trigga OneSignal Slidedown (som i sin tur ber om native permission)
-                      await OneSignal.Slidedown.promptPush({ force: true });      
-                            
+                      // Kontrollera om webbläsaren stödjer notiser
+                      if (!('Notification' in window)) {
+                        alert("Din enhet/webbläsare stöder tyvärr inte push-notiser. På iPhone krävs iOS 16.4+ och att appen läggs till på hemskärmen.");
+                        return;
+                      }
+
+                      // Om vi redan har tillåtelse
+                      if (Notification.permission === 'granted' || OneSignal.Notifications.permission) {
+                        alert("Notiser är redan aktiverade för denna enhet!");
+                        return;
+                      }
+                      
+                      // Fråga om native permission (måste göras direkt i en onClick på iOS)
+                      const permission = await Notification.requestPermission();
+                      
+                      if (permission === 'granted') {
+                        // Synka till OneSignal
+                        await OneSignal.Notifications.requestPermission();
+                        alert("Notiser är nu aktiverade!");
+                      } else {
+                        alert("Du nekade notiser. Du kan behöva ändra detta i enhetens inställningar.");
+                      }
                     } catch (e) {      
-                      console.error("OneSignal prompt error", e);      
-                      alert("Kunde inte aktivera notiser. Om du är på iPhone, måste du först lägga till appen på hemskärmen (Dela -> Lägg till på hemskärmen) och öppna den därifrån.");      
+                      console.error("Push notification error", e);      
+                      alert("Ett fel uppstod: " + e.message);      
                     }      
                   }} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap', borderColor: '#00f5ff', color: '#00f5ff' }}>      
                     Slå på Notiser      
