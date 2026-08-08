@@ -59,7 +59,12 @@ export default function MapModal({
         },
         (err) => {
           console.warn('Geolocation error:', err);
-          alert('Kunde inte hämta plats. Dra nålen manuellt på kartan.');
+          let errorMsg = 'Kunde inte hämta plats. Dra nålen manuellt på kartan.';
+          if (err.code === 1) errorMsg = 'Platsåtkomst nekad. Gå till Inställningar -> Safari / OneUnit och tillåt platsinfo, ladda sen om appen.';
+          else if (err.code === 2) errorMsg = 'GPS-signal saknas eller platsen är otillgänglig.';
+          else if (err.code === 3) errorMsg = 'Det tog för lång tid att hämta platsen (Timeout).';
+          
+          alert(errorMsg);
           setPosition({ lat: 59.3293, lng: 18.0686 }); // Default Stockholm
           setLoadingLoc(false);
         },
