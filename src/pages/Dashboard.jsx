@@ -654,15 +654,8 @@ export default function Dashboard() {
                         return;      
                       }      
                             
-                      // Trigga nativ iOS/Android prompt direkt      
-                      await OneSignal.Notifications.requestPermission();      
-                            
-                      // Om inget hände, prova fallback (Slidedown)      
-                      setTimeout(() => {      
-                        if (!OneSignal.Notifications.permission) {      
-                          OneSignal.Slidedown.promptPush({ force: true });      
-                        }      
-                      }, 1000);      
+                      // Trigga OneSignal Slidedown (som i sin tur ber om native permission)
+                      await OneSignal.Slidedown.promptPush({ force: true });      
                             
                     } catch (e) {      
                       console.error("OneSignal prompt error", e);      
