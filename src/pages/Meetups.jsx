@@ -477,7 +477,8 @@ export default function Meetups() {
           );
         })}
       </div>
-
+      )}
+    </div>
       <ConfirmModal 
         isOpen={!!meetupToDelete}
         onClose={() => setMeetupToDelete(null)}
