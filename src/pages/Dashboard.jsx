@@ -556,12 +556,27 @@ export default function Dashboard() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
                 <h3 style={{ margin: 0, flex: '1 1 auto' }}>Ditt Garage & Medlemskort</h3>
                 <div style={{ display: 'flex', gap: '0.5rem', flex: '0 0 auto', flexWrap: 'wrap' }}>
-                  <button onClick={() => {
+                  <button onClick={async () => {
                     try {
-                      OneSignal.Slidedown.promptPush();
+                      const hasPermission = OneSignal.Notifications.permission;
+                      if (hasPermission) {
+                        alert("Notiser är redan aktiverade för denna enhet!");
+                        return;
+                      }
+                      
+                      // Trigga nativ iOS/Android prompt direkt
+                      await OneSignal.Notifications.requestPermission();
+                      
+                      // Om inget hände, prova fallback (Slidedown)
+                      setTimeout(() => {
+                        if (!OneSignal.Notifications.permission) {
+                          OneSignal.Slidedown.promptPush({ force: true });
+                        }
+                      }, 1000);
+                      
                     } catch (e) {
                       console.error("OneSignal prompt error", e);
-                      alert("Kunde inte öppna notis-fönstret. Se till att du är på HTTPS och att notiser inte redan är blockerade i webbläsaren.");
+                      alert("Kunde inte aktivera notiser. Om du är på iPhone, måste du först lägga till appen på hemskärmen (Dela -> Lägg till på hemskärmen) och öppna den därifrån.");
                     }
                   }} className="btn btn-outline" style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap', borderColor: '#00f5ff', color: '#00f5ff' }}>
                     Slå på Notiser
