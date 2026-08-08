@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import pb from '../pocketbase';
 import { useNavigate } from 'react-router-dom';
 import ConfirmModal from '../components/ConfirmModal';
+import PromptModal from '../components/PromptModal';
 import SosButton from '../components/SosButton';
 import { compressImage } from '../utils/imageHelper';
 import { sendBrevoEmail } from '../utils/emailHelper';
@@ -18,6 +19,9 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'members' | 'contacts' | 'campaigns' | 'settings'
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmConfig, setConfirmConfig] = useState(null);
+  
+  const [rejectApp, setRejectApp] = useState(null);
+  const [rejectMessage, setRejectMessage] = useState("");
   
   // Member Management State
   const [selectedMember, setSelectedMember] = useState(null);
@@ -277,9 +281,36 @@ export default function Dashboard() {
     });
   };
 
-  const handleDenyApplication = (appId) => {
+  const handleDenyApplication = (app) => {
+    setRejectMessage(`Hej ${app.name.split(' ')[0]},\n\nTack för ditt intresse för OneUnit.\n\nVi har gått igenom din ansökan, men har tyvärr valt att inte gå vidare med den denna gång.\n\nMvh,\nOneUnit Crew`);
+    setRejectApp(app);
+  };
+
+  const confirmRejectApplication = async () => {
+    try {
+      const subject = "Angående din ansökan till OneUnit";
+      const html = `
+        <div style="background-color: #111; color: #eee; padding: 20px; font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #333; border-radius: 8px;">
+            <h2 style="color: #ff3b30; margin-top: 0;">Beslut gällande ansökan</h2>
+            <p style="font-size: 15px; line-height: 1.6; color: #ddd; white-space: pre-wrap;">${rejectMessage}</p>
+            <hr style="border: 0; height: 1px; background: #333; margin: 25px 0;" />
+            <p style="color: #777; font-size: 13px; margin: 0;">OneUnit Admin</p>
+        </div>
+      `;
+      
+      await sendBrevoEmail(rejectApp.email, subject, html);
+      await pb.collection('applications').update(rejectApp.id, { status: 'rejected' });
+      setApplications(prev => prev.map(a => a.id === rejectApp.id ? { ...a, status: 'rejected' } : a));
+      setRejectApp(null);
+    } catch (err) {
+      console.error(err);
+      alert('Något gick fel när mailet skulle skickas.');
+    }
+  };
+
+  const handleDeleteApplication = (appId) => {
     setConfirmConfig({
-      title: "Radera ansökan?",
+      title: "Radera ansökan permanent?",
       message: "Vill du verkligen radera denna ansökan permanent? Detta går inte att ångra.",
       confirmText: "Ja, radera ansökan",
       type: "danger",
@@ -686,21 +717,32 @@ export default function Dashboard() {
                   <p>Inga nya ansökningar.</p>
                 ) : (
                   applications.map(app => (
-                    <div key={app.id} className="application-item">
+                    <div key={app.id} className="application-item" style={{ opacity: app.status === 'rejected' ? 0.6 : 1, border: app.status === 'rejected' ? '1px solid #ff3b30' : '' }}>
                       <div className="app-info">
-                        <h4>{app.name}</h4>
+                        <h4 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          {app.name} 
+                          {app.status === 'rejected' && <span style={{ color: '#ff3b30', fontSize: '0.8rem', fontWeight: 'bold', marginLeft: 'auto' }}>AVBÖJD</span>}
+                        </h4>
                         <p><strong>Email:</strong> {app.email} | <strong>Ålder:</strong> {app.age} | <strong>Ort:</strong> {app.city}</p>
                         <p><strong>Cykel:</strong> {app.bike}</p>
                         <p><strong>Erfarenhet:</strong> {app.experience}</p>
                         <p><strong>Motivering:</strong> {app.reason || app.motivation}</p>
                       </div>
                       <div style={{display: 'flex', flexDirection: 'column', gap: '0.5rem'}}>
-                        <button onClick={() => handleApproveAndInvite(app)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>
-                          Godkänn & Bjud In
-                        </button>
-                        <button onClick={() => handleDenyApplication(app.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>
-                          Radera Ansökan
-                        </button>
+                        {app.status !== 'rejected' ? (
+                          <>
+                            <button onClick={() => handleApproveAndInvite(app)} className="btn btn-outline" style={{borderColor: '#fff', color: '#fff'}}>
+                              Godkänn & Bjud In
+                            </button>
+                            <button onClick={() => handleDenyApplication(app)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055'}}>
+                              Avböj Ansökan
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => handleDeleteApplication(app.id)} className="btn btn-outline" style={{borderColor: '#ff0055', color: '#ff0055', marginTop: 'auto'}}>
+                            Radera Permanent
+                          </button>
+                        )}
                       </div>
                     </div>
                   ))
@@ -888,9 +930,9 @@ export default function Dashboard() {
                   e.preventDefault();
                   setSavingSettings(true);
                   try {
-                    await setDoc(doc(db, 'settings', 'general'), {
-                      siteName, siteSlogan, announcementBanner, enableChatMedia, openForApplications, clubRules, updatedAt: serverTimestamp()
-                    }, { merge: true });
+                    await pb.collection('settings').update('general', {
+                      siteName, siteSlogan, announcementBanner, enableChatMedia, openForApplications, clubRules
+                    });
                     setSettingsSavedMsg('Inställningarna har sparats!');
                     setTimeout(() => setSettingsSavedMsg(''), 4000);
                   } catch (err) { alert('Fel: ' + err.message); }
@@ -1072,6 +1114,19 @@ export default function Dashboard() {
         type={confirmConfig?.type}
         onConfirm={confirmConfig?.onConfirm}
         onCancel={() => setConfirmConfig(null)}
+      />
+
+      <PromptModal
+        isOpen={!!rejectApp}
+        title="Avböj Ansökan"
+        message={`Skriv ett meddelande som kommer att skickas via e-post till ${rejectApp?.name}.`}
+        placeholder="Ditt meddelande..."
+        value={rejectMessage}
+        onChange={setRejectMessage}
+        confirmText="Skicka E-post & Avböj"
+        type="danger"
+        onConfirm={confirmRejectApplication}
+        onCancel={() => setRejectApp(null)}
       />
     </div>
   );
